@@ -2,8 +2,11 @@
   "university": "UNIVERSIDAD DE MÁLAGA",
   "department": "Departamento de Tecnología Electrónica",
   "subject": "Fundamentos de Electrónica",
-  "exam_title": "Examen Final (Teoría) - Parte Digital",
-  "term": "1er Cuatrimestre 2024",
+  "exam_title": "Examen Final (Teoría)",
+  "exam_type": "Parte Digital",
+  "term": "Curso 2024/2025",
+  "semester": "1er Cuatrimestre",
+  "date": "Enero 2025",
   "professors": "Profesores: Almudena | Julián",
   "logo_path": "image_38294.png"
 }

@@ -32,28 +32,26 @@ class LatexRenderer:
 
     def get_preamble(self) -> str:
         h = self.header_config
+        logo = h.get("logo_path", "")
         
-        # Construcción del encabezado dinámico
-        header_latex = r"\begin{center}" + "\n"
-        if h.get("university"):
-            header_latex += fr"{{\Large \textbf{{{h['university']}}}}} \\" + "\n"
-        if h.get("department"):
-            header_latex += fr"{{\large {h['department']}}} \\" + "\n"
-        header_latex += r"\vspace{0.2cm}" + "\n"
-        if h.get("subject"):
-            header_latex += fr"{{\Huge \textbf{{{h['subject']}}}}} \\" + "\n"
-        if h.get("exam_title"):
-            header_latex += fr"{{\Large \textbf{{{h['exam_title']}}}}} \\" + "\n"
-        if h.get("term"):
-            header_latex += fr"\textit{{{h['term']}}} \\" + "\n"
-        if h.get("professors"):
-            header_latex += fr"\vspace{{0.1cm}} {{\small {h['professors']}}}" + "\n"
-        header_latex += r"\end{center}"
+        # Construcción de strings compuestos
+        full_exam_title = h.get('exam_title', '')
+        if h.get('exam_type'):
+            full_exam_title += fr" - {h.get('exam_type')}"
+            
+        right_header = fr"\textbf{{{h.get('subject', '')}}}"
+        if h.get('semester'):
+            right_header += fr" \\ {h.get('semester')}"
+        if h.get('term'):
+            right_header += fr" \\ {h.get('term')}"
+            
+        date_str = h.get('date', '')
 
-        return fr"""\documentclass[a4paper,11pt]{{article}}
+        # Configuración de FancyHDR para encabezados y pies profesionales
+        preamble = fr"""\documentclass[a4paper,11pt]{{article}}
 \usepackage[utf8]{{inputenc}}
 \usepackage[spanish]{{babel}}
-\usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{{geometry}}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2cm, right=2cm, headheight=2cm]{{geometry}}
 \usepackage{{tikz}}
 \usepackage{{circuitikz}}
 \usepackage{{tikz-timing}}
@@ -65,18 +63,46 @@ class LatexRenderer:
 \usepackage{{enumitem}}
 \usepackage{{float}}
 \usepackage{{tcolorbox}}
-\usepackage{{graphicx}} % Para logos si fuera necesario
+\usepackage{{graphicx}}
+\usepackage{{fancyhdr}}
+\usepackage{{lastpage}}
+\usepackage{{diagbox}} % Para la celda diagonal en Karnaugh
+
 \usetikzlibrary{{calc}}
 \tcbset{{colback=gray!5!white, colframe=gray!75!black, title=\textbf{{ENUNCIADO}}, fonttitle=\bfseries, boxrule=0.5mm, arc=2mm}}
 
+% Definición de columna centrada con ancho fijo
+\newcolumntype{{C}}[1]{{>{{\centering\arraybackslash}}p{{#1}}}}
+
+% Configuración de Encabezado y Pie de Página
+\pagestyle{{fancy}}
+\fancyhf{{}} % Limpiar todo
+\renewcommand{{\headrulewidth}}{{0.4pt}}
+\renewcommand{{\footrulewidth}}{{0.4pt}}
+
+% Encabezado
+\lhead{{\includegraphics[height=1.5cm]{{{logo}}}}} % Logo a la izquierda
+\chead{{\textbf{{{h.get('university', '')}}} \\ {h.get('department', '')}}}
+\rhead{{{right_header}}}
+
+% Pie de página
+\lfoot{{\small {full_exam_title}}}
+\cfoot{{\small {h.get('professors', '')}}}
+\rfoot{{\small Página \thepage\ de \pageref{{LastPage}}}}
+
 \begin{{document}}
 
-{header_latex}
+% Título del Examen en el cuerpo
+\begin{{center}}
+    {{\Huge \textbf{{{full_exam_title}}}}} \\ \vspace{{0.2cm}}
+    {{\Large \textbf{{{date_str}}}}}
+\end{{center}}
 
 \vspace{{0.5cm}}
 \noindent \textbf{{Apellido y Nombre:}} ............................................................................ \hfill \textbf{{Grupo:}} ....................
 \vspace{{0.5cm}} \hrule \vspace{{0.5cm}}
 """
+        return preamble
 
     def render_ej1(self, data: Exercise1Data) -> str:
         score = self._get_score_text("ej1")
@@ -85,11 +111,13 @@ class LatexRenderer:
         latex += fr"\noindent \textbf{{a)}} Complete la tabla. Registro de {data.n_bits} bits. Si no es representable, escriba 'NR'." + "\n"
         latex += r"\end{tcolorbox}" + "\n\n"
 
-        # Tabla
+        # Tabla con columnas de ancho fijo para las representaciones binarias
         latex += r"\textbf{Respuesta:}" + "\n"
         latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}" + "\n"
-        latex += r"\begin{tabular}{|c|c|c|c|c|c|} \hline" + "\n"
-        latex += r"\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{C2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline" + "\n"
+        # Definición de columnas: Id(c), Decimal(c), Bin(C), C2(C), SM(C), BCD(C)
+        # Ancho 2.8cm para las 4 últimas asegura uniformidad y espacio suficiente para 8 bits
+        latex += r"\begin{tabular}{|c|c|C{2.8cm}|C{2.8cm}|C{2.8cm}|C{2.8cm}|} \hline" + "\n"
+        latex += r"\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{Compl. 2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline" + "\n"
 
         for row in data.rows:
             cells = [""] * 6
