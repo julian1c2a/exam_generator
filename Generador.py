@@ -90,22 +90,23 @@ def get_latex_preamble() -> str:
 \usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
 \usepackage{tikz}
 \usepackage{circuitikz}
+\usepackage{tikz-timing} % PAQUETE ESPECIALIZADO PARA CRONOGRAMAS
 \usepackage{amsmath}
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{colortbl}
 \usepackage{enumitem}
 \usepackage{float}
-\usepackage{tcolorbox} % Para las cajas de enunciado
+\usepackage{tcolorbox}
 
-% Configuración de TikZ para cronogramas
+% Configuración de TikZ y tikz-timing
 \usetikzlibrary{calc}
 
 % Configuración de tcolorbox para los enunciados
 \tcbset{
-    colback=gray!5!white, % Fondo gris muy claro
-    colframe=gray!75!black, % Borde gris oscuro
-    title=\textbf{ENUNCIADO}, % Título por defecto
+    colback=gray!5!white,
+    colframe=gray!75!black,
+    title=\textbf{ENUNCIADO},
     fonttitle=\bfseries,
     boxrule=0.5mm,
     arc=2mm
@@ -356,8 +357,6 @@ def gen_latex_ej3() -> str:
     latex += gen_latex_tabla_verdad(vars_clean, out_clean, valores=None)
 
     latex += r"\newpage" # Salto para que el mapa quede arriba en la siguiente si es necesario, o solo vspace
-    # Como el ejercicio tiene su propia página, mejor no forzar newpage aqui salvo que la tabla sea larga.
-    # Vamos a dejar espacio.
 
     latex += r"\noindent \textbf{2. Rellene la numeración y simplifique en el Mapa de Karnaugh:}"
     l_izq = "".join(vars_clean[:2])
@@ -390,11 +389,23 @@ def gen_latex_ej4() -> str:
         latex += r"\draw (4,4) -- (5,4) node[right]{Y};"
         latex += r"\draw (4,3) -- (4.5,3); \node[circle,draw,inner sep=1pt] at (4.6,3) {}; \draw (4.7,3) -- (5,3) node[right]{$\overline{Y}$};"
     elif tipo == 'COMPARADOR':
+        val_a = random.randint(0, 15); val_b = random.randint(0, 15)
         latex += r"\draw[thick] (0,0) rectangle (4,4);"
         latex += r"\node at (2,3) {\textbf{COMPARADOR}};"
         latex += r"\node at (2,2) {\textbf{4 BITS}};"
-        latex += r"\draw (-1, 3) -- (0,3) node[midway, above]{A(4)};"
-        latex += r"\draw (-1, 1) -- (0,1) node[midway, above]{B(4)};"
+
+        # BUS A
+        latex += r"\draw[ultra thick] (-1, 3) -- (0,3) node[midway, above, yshift=0.1cm]{A};"
+        # Slash bus A
+        latex += r"\draw[thick] (-0.6, 2.8) -- (-0.4, 3.2);"
+        latex += r"\node[above] at (-0.5, 3.1) {\scriptsize 4};"
+
+        # BUS B
+        latex += r"\draw[ultra thick] (-1, 1) -- (0,1) node[midway, above, yshift=0.1cm]{B};"
+        # Slash bus B
+        latex += r"\draw[thick] (-0.6, 0.8) -- (-0.4, 1.2);"
+        latex += r"\node[above] at (-0.5, 1.1) {\scriptsize 4};"
+
         cascada = [random.randint(0,1) for _ in range(3)]
         latex += r"\draw (1, -1) -- (1,0) node[below, yshift=-1cm]{I($>$)=%d};" % cascada[0]
         latex += r"\draw (2, -1) -- (2,0) node[below, yshift=-1cm]{I($=$)=%d};" % cascada[1]
@@ -403,7 +414,7 @@ def gen_latex_ej4() -> str:
         latex += r"\draw (4,2) -- (5,2) node[right]{$=$};"
         latex += r"\draw (4,1) -- (5,1) node[right]{$<$};"
     elif tipo == 'SUMADOR':
-        cin = random.randint(0,1)
+        val_a = random.randint(0, 15); val_b = random.randint(0, 15); cin = random.randint(0,1)
         latex += r"\draw[thick] (0,0) rectangle (4,4);"
         latex += r"\node at (2,2) {\textbf{SUMADOR 4 BITS}};"
         latex += r"\draw (-1,3) -- (0,3) node[midway, above]{A};"
@@ -469,29 +480,50 @@ def gen_latex_ej5() -> str:
     latex += r"\textbf{Espacio de Resolución:}" + "\n"
     latex += r"\vspace{2cm}" # Espacio para ecuaciones
 
-    latex += r"\begin{center} \begin{tikzpicture}[x=1cm, y=0.5cm]"
+    latex += r"\begin{center}"
+    latex += r"\begin{tikztimingtable}[timing/slope=0]"
+
+    # 1. Configuración de parámetros
     cycles = ExamSpecs.EX5_CRONO_CYCLES
-    latex += r"\draw (0,4) node[left]{CLK};"
-    latex += r"\draw[thick] (0,4)"
-    for _ in range(cycles):
-        latex += r" -- ++(0.5,0) -- ++(0,1) -- ++(0.5,0) -- ++(0,-1)"
-    latex += r";"
-    latex += r"\draw (0,2) node[left]{E};"
-    latex += r"\draw[thick] (0,2)"
-    curr_e = 0
-    for _ in range(cycles * 2):
-        new_e = random.randint(0,1)
-        if new_e != curr_e:
-            latex += r" -- ++(0," + str(new_e - curr_e) + r")"
-            curr_e = new_e
-        latex += r" -- ++(0.5,0)"
-    latex += r";"
-    latex += r"\draw (0,0) node[left]{Q0}; \draw[dotted] (0,0) -- (6,0);"
-    latex += r"\draw (0,-1.5) node[left]{Q1}; \draw[dotted] (0,-1.5) -- (6,-1.5);"
+
+    # 2. Señal de RELOJ (CLK)
+    # 6 ciclos 'C'. Cada 'C' tiene ancho 2 (1H + 1L). Ancho total = 12.
+    clk_str = f"{cycles}{{C}}"
+    latex += r"CLK & " + clk_str + r" \\"
+
+    # 3. Señal ASÍNCRONA (Si existe)
     if has_async:
-        latex += r"\draw (0,5.5) node[left]{ASYNC};"
-        latex += r"\draw[thick] (0,5.5) -- (0.2, 5.5) -- (0.2, 6.5) -- (1.5, 6.5) -- (1.5, 5.5) -- (6, 5.5);"
-    latex += r"\end{tikzpicture} \end{center}"
+        # Aseguramos ancho total 12.
+        # 1 ciclo activo (ancho 2) + 5 ciclos inactivos (ancho 10) = 12.
+        active_high = ('1' in async_txt)
+        if active_high:
+            # Activo en Alto (H) al principio, luego Bajo (L)
+            async_sig = "2H " + str((cycles-1)*2) + "L"
+        else:
+            # Activo en Bajo (L) al principio, luego Alto (H)
+            async_sig = "2L " + str((cycles-1)*2) + "H"
+        latex += r"ASYNC & " + async_sig + r" \\"
+
+    # 4. Señal de ENTRADA (E)
+    # Generamos H/L aleatorios para cada medio ciclo.
+    # Total 12 chars (cada uno ancho 1). Ancho total = 12.
+    input_str = ""
+    for _ in range(cycles * 2):
+        input_str += "H" if random.randint(0,1) else "L"
+    latex += r"E & " + input_str + r" \\"
+
+    # 5. Salidas Q0 y Q1 (Solo rejilla)
+    # Usamos 'D{}' (bloque de datos vacío) repetido 12 veces (ancho 12).
+    # Con la opción [draw=none], se oculta el trazo, dejando solo la rejilla de fondo.
+    out_str = f"{cycles*2}{{D{{}}}}"
+
+    latex += r"Q0 & [draw=none] " + out_str + r" \\"
+    latex += r"Q1 & [draw=none] " + out_str + r" \\"
+
+    latex += r"\extracode"
+    latex += r"\tablegrid" # Dibuja la cuadrícula sobre todo el diagrama
+    latex += r"\end{tikztimingtable}"
+    latex += r"\end{center}"
 
     return latex
 
