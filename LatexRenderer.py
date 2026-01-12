@@ -73,6 +73,8 @@ class LatexRenderer:
 
 % Definición de columna centrada con ancho fijo
 \newcolumntype{{C}}[1]{{>{{\centering\arraybackslash}}p{{#1}}}}
+% Definición de columna para bits (cuadrada)
+\newcolumntype{{B}}{{>{{\centering\arraybackslash}}p{{0.5cm}}}}
 
 % Configuración de Encabezado y Pie de Página
 \pagestyle{{fancy}}
@@ -111,11 +113,9 @@ class LatexRenderer:
         latex += fr"\noindent \textbf{{a)}} Complete la tabla. Registro de {data.n_bits} bits. Si no es representable, escriba 'NR'." + "\n"
         latex += r"\end{tcolorbox}" + "\n\n"
 
-        # Tabla con columnas de ancho fijo para las representaciones binarias
+        # Tabla
         latex += r"\textbf{Respuesta:}" + "\n"
         latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}" + "\n"
-        # Definición de columnas: Id(c), Decimal(c), Bin(C), C2(C), SM(C), BCD(C)
-        # Ancho 2.8cm para las 4 últimas asegura uniformidad y espacio suficiente para 8 bits
         latex += r"\begin{tabular}{|c|c|C{2.8cm}|C{2.8cm}|C{2.8cm}|C{2.8cm}|} \hline" + "\n"
         latex += r"\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{Compl. 2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline" + "\n"
 
@@ -131,12 +131,52 @@ class LatexRenderer:
             latex += r"\begin{tcolorbox}[title=Enunciado (Parte b)]" + "\n"
             latex += r"\noindent \textbf{b)} Realice las siguientes operaciones aritméticas." + "\n"
             latex += r"\end{tcolorbox}" + "\n"
-            latex += r"\begin{itemize}" + "\n"
+            
             for i, op in enumerate(data.operations, 1):
-                latex += fr"\item \textbf{{{i}) {op.op_type} en {op.system}:}} Fila {op.operand1} {op.operator_symbol} Fila {op.operand2}" + "\n"
-                latex += r"\\ \vspace{0.2cm} Resultado: \underline{\hspace{4cm}} \\ \textit{¿Overflow? $\square$ ¿Correcto? $\square$}" + "\n"
-            latex += r"\end{itemize}" + "\n"
+                latex += fr"\par \vspace{{0.5cm}} \noindent \textbf{{{i}) {op.op_type} en {op.system}:}} Fila {op.operand1} {op.operator_symbol} Fila {op.operand2}" + "\n"
+                latex += self._render_binary_operation_grid(data.n_bits)
+                
+                # Línea de validación
+                latex += r"\par \vspace{0.2cm}" + "\n"
+                latex += r"\noindent \textit{¿Overflow? $\square$ \hspace{1cm} ¿Underflow? $\square$ \hspace{1cm} ¿Correcto? $\square$}" + "\n"
+                
+                # Línea de justificación (con sangría y sin subrayado)
+                latex += r"\par \vspace{0.3cm}" + "\n"
+                latex += r"\noindent \hspace{0.5cm} \textbf{¿Por qué?}" + "\n" 
+                
+                # Espacio extra antes del siguiente ítem
+                latex += r"\par \vspace{0.8cm}" + "\n"
 
+        return latex
+
+    def _render_binary_operation_grid(self, n_bits: int) -> str:
+        # Genera una cuadrícula para realizar la operación bit a bit
+        # Estructura:
+        # Acarreo: [ ][ ][ ]...
+        # Op1:     [ ][ ][ ]...
+        # Op2:     [ ][ ][ ]...
+        # Res:     [ ][ ][ ]...
+        
+        # Definición de columnas: Etiqueta + n_bits columnas cuadradas
+        cols = "r|" + "B|" * n_bits
+        
+        latex = r"\begin{center} \renewcommand{\arraystretch}{1.5}" + "\n"
+        latex += fr"\begin{{tabular}}{{{cols}}}" + "\n"
+        
+        # Fila de Acarreo (Carry/Borrow)
+        # Usamos \cline para dibujar las cajas de los bits, pero no la primera celda (etiqueta)
+        latex += r"\tiny{Acarreo} & " + " & ".join([""] * n_bits) + r" \\ \cline{2-" + str(n_bits+1) + "}" + "\n"
+        
+        # Operando 1
+        latex += r"Op. 1 & " + " & ".join([""] * n_bits) + r" \\ \cline{2-" + str(n_bits+1) + "}" + "\n"
+        
+        # Operando 2
+        latex += r"Op. 2 & " + " & ".join([""] * n_bits) + r" \\ \hline \hline" + "\n"
+        
+        # Resultado
+        latex += r"\textbf{Res.} & " + " & ".join([""] * n_bits) + r" \\ \cline{2-" + str(n_bits+1) + "}" + "\n"
+        
+        latex += r"\end{tabular} \end{center}" + "\n"
         return latex
 
     def render_ej2(self, data: Exercise2Data) -> str:
@@ -158,7 +198,7 @@ class LatexRenderer:
         latex += r"\textbf{Espacio de Resolución:}" + "\n"
         # Delegar a KarnaughMapRenderer
         latex += self.kmap_renderer.render_template("AB", "CD", "F")
-        latex += r"\vspace{3cm} \hrule" + "\n"
+        latex += r"\vspace{3cm}" + "\n" # Eliminado \hrule
         return latex
 
     def render_ej3(self, data: Exercise3Data) -> str:

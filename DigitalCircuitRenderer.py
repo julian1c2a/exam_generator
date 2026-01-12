@@ -67,8 +67,9 @@ class DigitalCircuitRenderer:
     \draw[ultra thick] (-1.2, 1) -- (0,1); \node[left] at (-1.2, 1) {{B}}; 
     \node[above] at (-0.6, 1.1) {{\scriptsize 4}}; \draw[thick] (-0.7, 0.8) -- (-0.5, 1.2);
     
-    % Carry In
-    \draw (2,4) -- (2,5) node[above]{{Cin={params['Cin']}}};
+    % Carry In (Parte izquierda abajo)
+    % Lo ponemos en el lado izquierdo (x=0), abajo (y=0.5), alineado con las entradas pero más abajo.
+    \draw (-1, 0.5) -- (0, 0.5) node[midway, above]{{Cin={params['Cin']}}};
     
     % Salida S (Bus)
     \draw[ultra thick] (4,2.5) -- (5.2,2.5); \node[right] at (5.2, 2.5) {{S}};
