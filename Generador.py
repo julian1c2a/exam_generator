@@ -485,10 +485,10 @@ def main():
     valores_ej1 = generar_ejercicio_1(doc)
     generar_ejercicio_1_parte_b(doc, valores_ej1)
 
-    generar_ejercicio_2(doc)
-    generar_ejercicio_3(doc)
-    generar_ejercicio_4(doc)
-    generar_ejercicio_5(doc)
+    valores_ej2 = generar_ejercicio_2(doc)
+    valores_ej3 = generar_ejercicio_3(doc)
+    valores_ej4 = generar_ejercicio_4(doc)
+    valores_ej5 = generar_ejercicio_5(doc)
 
     guardar_documento(doc)
 
