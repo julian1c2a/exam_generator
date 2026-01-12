@@ -391,25 +391,35 @@ def gen_latex_ej4() -> str:
     elif tipo == 'COMPARADOR':
         val_a = random.randint(0, 15); val_b = random.randint(0, 15)
         latex += r"\draw[thick] (0,0) rectangle (4,4);"
-        latex += r"\node at (2,3) {\textbf{COMPARADOR}};"
-        latex += r"\node at (2,2) {\textbf{4 BITS}};"
+        # Movemos el texto para que no estorbe a los nuevos inputs intermedios
+        latex += r"\node at (2,3.5) {\textbf{COMPARADOR}};"
+        latex += r"\node at (2,0.5) {\textbf{4 BITS}};"
 
-        # BUS A
-        latex += r"\draw[ultra thick] (-1, 3) -- (0,3) node[midway, above, yshift=0.1cm]{A};"
-        # Slash bus A
-        latex += r"\draw[thick] (-0.6, 2.8) -- (-0.4, 3.2);"
-        latex += r"\node[above] at (-0.5, 3.1) {\scriptsize 4};"
+        # BUS A (Arriba, y=3)
+        latex += r"\draw[ultra thick] (-1.2, 3) -- (0,3);"
+        latex += r"\node[left] at (-1.2, 3) {A};" # Etiqueta al principio
+        latex += r"\draw[thick] (-0.7, 2.8) -- (-0.5, 3.2);" # Slash
+        latex += r"\node[above] at (-0.6, 3.1) {\scriptsize 4};" # Número bits
 
-        # BUS B
-        latex += r"\draw[ultra thick] (-1, 1) -- (0,1) node[midway, above, yshift=0.1cm]{B};"
-        # Slash bus B
-        latex += r"\draw[thick] (-0.6, 0.8) -- (-0.4, 1.2);"
-        latex += r"\node[above] at (-0.5, 1.1) {\scriptsize 4};"
+        # BUS B (Abajo, y=1)
+        latex += r"\draw[ultra thick] (-1.2, 1) -- (0,1);"
+        latex += r"\node[left] at (-1.2, 1) {B};" # Etiqueta al principio
+        latex += r"\draw[thick] (-0.7, 0.8) -- (-0.5, 1.2);" # Slash
+        latex += r"\node[above] at (-0.6, 1.1) {\scriptsize 4};" # Número bits
 
+        # ENTRADAS CASCADA INTERMEDIAS
         cascada = [random.randint(0,1) for _ in range(3)]
-        latex += r"\draw (1, -1) -- (1,0) node[below, yshift=-1cm]{I($>$)=%d};" % cascada[0]
-        latex += r"\draw (2, -1) -- (2,0) node[below, yshift=-1cm]{I($=$)=%d};" % cascada[1]
-        latex += r"\draw (3, -1) -- (3,0) node[below, yshift=-1cm]{I($<$)=%d};" % cascada[2]
+        # I(>)
+        latex += r"\draw (-1, 2.4) -- (0, 2.4);"
+        latex += r"\node[left] at (-1, 2.4) {\small $I_{>}=%d$};" % cascada[0]
+        # I(=)
+        latex += r"\draw (-1, 2.0) -- (0, 2.0);"
+        latex += r"\node[left] at (-1, 2.0) {\small $I_{=}=%d$};" % cascada[1]
+        # I(<)
+        latex += r"\draw (-1, 1.6) -- (0, 1.6);"
+        latex += r"\node[left] at (-1, 1.6) {\small $I_{<}=%d$};" % cascada[2]
+
+        # SALIDAS
         latex += r"\draw (4,3) -- (5,3) node[right]{$>$};"
         latex += r"\draw (4,2) -- (5,2) node[right]{$=$};"
         latex += r"\draw (4,1) -- (5,1) node[right]{$<$};"
