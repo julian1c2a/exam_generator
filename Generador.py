@@ -2,47 +2,29 @@ import os
 import random
 from typing import List, Tuple, Any, Dict
 
-# Solo importamos docx en la capa de "Presentación", no en la de Configuración
-from docx import Document
-from docx.shared import Pt, Cm, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
-
 # ==============================================================================
 # CAPA DE CONFIGURACIÓN (AGNÓSTICA)
 # ==============================================================================
 
 class ExamSpecs:
     """
-    Contenedor centralizado de especificaciones de formato y contenido.
-    Define el 'QUÉ' y el 'CÓMO' abstracto, sin depender de la tecnología de salida (Word, LaTeX, HTML).
+    Contenedor centralizado de especificaciones.
+    Define los datos del examen independientemente del formato de salida.
     """
 
-    # --- Configuración General del Documento ---
     TITLE = "Fundamentos de Electrónica"
     SUBTITLE = "Parte I: Electrónica Digital"
-    STUDENT_FIELD = "Nombre: __________________________________________________  Fecha: ____________"
-
-    FONT_MAIN = "Calibri"
-    FONT_SIZE_MAIN = 11
-    FONT_SIZE_TITLE = 14
-
-    FONT_CODE = "Courier New"
-    FONT_SIZE_CODE = 9
+    STUDENT_FIELD = "Nombre: ............................................................................ Fecha: ...................."
 
     # --- Ejercicio 1: Representación Numérica ---
     EX1_N_BITS = 8
     EX1_HEADERS = ['Id', 'Decimal', 'Binario Nat.', 'C2', 'Signo-Magnitud', 'BCD']
     EX1_ROW_LABELS = ['a', 'b', 'c', 'd']
-    EX1_COL_WIDTH_CM = 2.5
 
-    # --- Ejercicio 2: Karnaugh y Tablas ---
-    EX2_TT_COL_WIDTH_CM = 1.0      # Ancho estrecho para columnas de Tabla de Verdad
-    EX2_KMAP_CELL_DIM_CM = 1.2     # Dimensiones cuadradas (ancho y alto) para celdas del mapa
-    EX2_KMAP_GRID_SIZE = 7         # Tamaño de la cuadrícula (7x7)
-    EX2_TITLE_FONT_SIZE = 24       # Tamaño de la letra 'F' en la esquina
+    # --- Ejercicio 2: Karnaugh ---
+    # En LaTeX controlamos anchos con p{...} o celdas estándar
 
-    # --- Ejercicio 3: Base de Datos de Escenarios ---
+    # --- Ejercicio 3: Escenarios ---
     EX3_SCENARIOS = [
         {
             "titulo": "Sistema de Seguridad de Bóveda Bancaria",
@@ -78,25 +60,21 @@ class ExamSpecs:
 
     # --- Ejercicio 5: Cronogramas ---
     EX5_CRONO_CYCLES = 6
-    EX5_CRONO_HEIGHT_CM = 4.0
 
 # ==============================================================================
 # CAPA DE LÓGICA (Conversiones y Cálculos)
 # ==============================================================================
 
 def int_to_bin_str(val: int, bits: int) -> str:
-    """Convierte un entero a string binario de N bits."""
     return format(val if val >= 0 else (1 << bits) + val, f'0{bits}b')
 
 def int_to_bcd_str(val: int) -> str:
-    """Convierte un entero (0-99) a su representación BCD de 8 bits."""
     if not (0 <= val <= 99): return "NR"
     tens = val // 10
     units = val % 10
     return f"{tens:04b} {units:04b}"
 
 def int_to_sm_str(val: int, bits: int) -> str:
-    """Convierte un entero a Signo-Magnitud."""
     if val >= 0:
         return format(val, f'0{bits}b')
     else:
@@ -105,125 +83,96 @@ def int_to_sm_str(val: int, bits: int) -> str:
         return '1' + bin_abs
 
 # ==============================================================================
-# CAPA DE PRESENTACIÓN (Generación Word/Docx)
+# CAPA DE PRESENTACIÓN (Generación LaTeX)
 # ==============================================================================
 
-def configurar_estilos(doc: Document):
-    """Aplica las especificaciones de fuente de ExamSpecs al documento."""
-    style = doc.styles['Normal']
-    font = style.font
-    font.name = ExamSpecs.FONT_MAIN
-    font.size = Pt(ExamSpecs.FONT_SIZE_MAIN)
+def get_latex_preamble() -> str:
+    return r"""\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{float}
 
-    try:
-        style_code = doc.styles.add_style('CodeStyle', 1)
-        style_code.font.name = ExamSpecs.FONT_CODE
-        style_code.font.size = Pt(ExamSpecs.FONT_SIZE_CODE)
-        style_code.paragraph_format.space_after = Pt(0)
-        style_code.paragraph_format.space_before = Pt(0)
-        style_code.paragraph_format.line_spacing = 1
-        style_code.paragraph_format.keep_with_next = True
-    except:
-        pass
+% Configuración de TikZ para cronogramas
+\usetikzlibrary{calc}
 
-def agregar_ascii_art(doc: Document, art: str):
-    p = doc.add_paragraph(art, style='CodeStyle')
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+\begin{document}
 
-def agregar_encabezado(doc: Document):
-    titulo = doc.add_heading(ExamSpecs.TITLE, 0)
-    titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+% --- ENCABEZADO ---
+\begin{center}
+    {\Huge \textbf{""" + ExamSpecs.TITLE + r"""}} \\
+    \vspace{0.2cm}
+    {\Large \textbf{""" + ExamSpecs.SUBTITLE + r"""}}
+\end{center}
+\vspace{0.5cm}
+\noindent """ + ExamSpecs.STUDENT_FIELD + r"""
+\vspace{0.5cm}
+\hrule
+\vspace{0.5cm}
+"""
 
-    subtitulo = doc.add_paragraph(ExamSpecs.SUBTITLE)
-    subtitulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    subtitulo.runs[0].bold = True
-    subtitulo.runs[0].font.size = Pt(ExamSpecs.FONT_SIZE_TITLE)
+def gen_latex_ej1(valores_out: List[Tuple[str, int]]) -> str:
+    latex = r"\section*{Ejercicio 1: Sistemas de Representación (" + str(ExamSpecs.EX1_N_BITS) + r" bits)}"
+    latex += r"\noindent \textbf{a) Complete la tabla.} El registro es de " + str(ExamSpecs.EX1_N_BITS) + r" bits. Si no es representable, escriba 'NR'."
 
-    doc.add_paragraph('_' * 85)
-    doc.add_paragraph(ExamSpecs.STUDENT_FIELD)
-    doc.add_paragraph('\n')
+    latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}"
+    latex += r"\begin{tabular}{|c|c|c|c|c|c|} \hline"
+    latex += r"\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{C2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline"
 
-def generar_ejercicio_1(doc: Document) -> List[Tuple[str, int]]:
-    doc.add_heading(f'Ejercicio 1: Sistemas de Representación (N = {ExamSpecs.EX1_N_BITS} bits)', level=1)
-
-    p = doc.add_paragraph()
-    p.add_run('a) Complete la tabla. ').bold = True
-    p.add_run(f'El registro es de {ExamSpecs.EX1_N_BITS} bits. Si el número no es representable, escriba "NR".')
-
-    table = doc.add_table(rows=len(ExamSpecs.EX1_ROW_LABELS) + 1, cols=len(ExamSpecs.EX1_HEADERS))
-    table.style = 'Table Grid'
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-
-    # Cabeceras
-    for i, text in enumerate(ExamSpecs.EX1_HEADERS):
-        cell = table.rows[0].cells[i]
-        cell.width = Cm(ExamSpecs.EX1_COL_WIDTH_CM)
-        run = cell.paragraphs[0].add_run(text)
-        run.bold = True
-        run.font.size = Pt(9)
-        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-    valores_generados = []
-
-    for i, label in enumerate(ExamSpecs.EX1_ROW_LABELS):
-        row_cells = table.rows[i + 1].cells
-        row_cells[0].text = f"{label})"
-        row_cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-
+    for label in ExamSpecs.EX1_ROW_LABELS:
         opciones_columna = [1, 1, 2, 3, 3, 4, 4, 5]
         col_idx = random.choice(opciones_columna)
         val = 0
-        text_val = ""
+        cells = [""] * 6
+        cells[0] = f"{label})"
 
-        # Lógica de negocio (aleatoriedad)
         es_signed_col = col_idx in [1, 3, 4]
         signo = -1 if (es_signed_col and random.random() < 0.7) else 1
         n_bits = ExamSpecs.EX1_N_BITS
 
+        text_val = ""
         if col_idx == 1: magnitud = random.randint(0, 200); val = signo * magnitud; text_val = str(val)
         elif col_idx == 2: val = random.randint(0, 255); text_val = int_to_bin_str(val, n_bits)
         elif col_idx == 3: limit = 128 if signo == -1 else 127; magnitud = random.randint(0, limit); val = signo * magnitud; text_val = int_to_bin_str(val, n_bits)
         elif col_idx == 4: magnitud = random.randint(0, 127); val = signo * magnitud; text_val = int_to_sm_str(val, n_bits)
         elif col_idx == 5: val = random.randint(0, 99); text_val = int_to_bcd_str(val)
 
-        cell = row_cells[col_idx]
-        cell.text = text_val
-        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        valores_generados.append((label, val))
+        cells[col_idx] = text_val
+        valores_out.append((label, val))
 
-    doc.add_paragraph('\n')
-    return valores_generados
+        latex += " & ".join(cells) + r" \\ \hline"
 
-def generar_ejercicio_1_parte_b(doc: Document, valores: List[Tuple[str, int]]):
-    if len(valores) < 2: return
+    latex += r"\end{tabular} \end{table}"
 
-    p_b = doc.add_paragraph()
-    p_b.add_run('b) Realice las siguientes operaciones aritméticas ').bold = True
-    p_b.add_run('utilizando los valores de la tabla anterior.')
+    # Parte B
+    if len(valores_out) >= 2:
+        latex += r"\noindent \textbf{b) Realice las siguientes operaciones aritméticas} utilizando los valores de la tabla:"
+        latex += r"\begin{itemize}"
+        for i in range(1, 3):
+            fila1 = random.choice(valores_out)
+            fila2 = random.choice([x for x in valores_out if x != fila1])
+            es_suma = random.choice([True, False])
+            sistema = random.choice(['Binario Natural', 'Complemento a 2'])
+            op_char = "+" if es_suma else "-"
+            op_text = "Suma" if es_suma else "Resta"
 
-    for i in range(1, 3):
-        fila1 = random.choice(valores)
-        fila2 = random.choice([x for x in valores if x != fila1])
-        es_suma = random.choice([True, False])
-        sistema = random.choice(['Binario Natural', 'Complemento a 2'])
-        op_texto = "Suma" if es_suma else "Resta"
-        signo = "+" if es_suma else "-"
+            latex += r"\item \textbf{" + f"{i}) {op_text} en {sistema}:" + r"} Fila " + fila1[0] + f" {op_char} Fila " + fila2[0]
+            latex += r"\\ \vspace{0.2cm} Resultado (Binario): \underline{\hspace{4cm}}"
+            latex += r"\\ \textit{¿Overflow? $\square$ \hspace{0.5cm} ¿Underflow? $\square$ \hspace{0.5cm} ¿Correcto? $\square$}"
+        latex += r"\end{itemize}"
 
-        p_preg = doc.add_paragraph()
-        p_preg.add_run(f'   {i}) {op_texto} en {sistema}: ').bold = True
-        p_preg.add_run(f'Fila {fila1[0]} {signo} Fila {fila2[0]}')
+    return latex
 
-        doc.add_paragraph('       Resultado Binario: __________________________')
-        p_estado = doc.add_paragraph()
-        p_estado.paragraph_format.left_indent = Cm(1.5)
-        run = p_estado.add_run('¿Overflow? [   ]    ¿Underflow? [   ]    ¿Correcto? [   ]')
-        run.italic = True
-        doc.add_paragraph('')
+def gen_latex_ej2() -> str:
+    latex = r"\section*{Ejercicio 2: Diseño y Simplificación Lógica}"
 
-def generar_ejercicio_2(doc: Document) -> Dict[str, Any]:
-    doc.add_heading('Ejercicio 2: Diseño y Simplificación Lógica', level=1)
-
-    # Lógica
     es_minterms = random.choice([True, False])
     tipo_canonico = "Minitérminos (Suma de Productos)" if es_minterms else "Maxitérminos (Producto de Sumas)"
     tipo_puerta = "NAND" if es_minterms else "NOR"
@@ -231,266 +180,245 @@ def generar_ejercicio_2(doc: Document) -> Dict[str, Any]:
     default_val = 0 if es_minterms else 1
     outputs = [default_val] * 16
 
+    # Generar adyacencias
     for _ in range(random.randint(3, 6)):
         idx1 = random.randint(0, 15)
         idx2 = idx1 ^ (1 << random.randint(0, 3))
         outputs[idx1] = target_val
         outputs[idx2] = target_val
 
-    doc.add_paragraph(f'Dada la función lógica F(A, B, C, D) definida por la siguiente tabla de verdad:')
+    latex += r"\noindent Dada la función $F(A,B,C,D)$ definida por la siguiente tabla de verdad:"
+    latex += r"\vspace{0.3cm}"
 
-    # --- TABLA DE VERDAD (Ancho controlado por Specs) ---
-    table_tv = doc.add_table(rows=17, cols=5)
-    table_tv.style = 'Table Grid'
-    table_tv.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_tv.allow_autofit = False
-
-    headers_tv = ['A', 'B', 'C', 'D', 'F']
-    # Cabeceras
-    for idx, text in enumerate(headers_tv):
-        cell = table_tv.rows[0].cells[idx]
-        cell.width = Cm(ExamSpecs.EX2_TT_COL_WIDTH_CM) # <-- USO DE SPEC
-        cell.text = text
-        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        cell.paragraphs[0].runs[0].bold = True
-
-    # Datos
+    # TABLA DE VERDAD (Estrecha)
+    latex += r"\begin{table}[H] \centering"
+    latex += r"\begin{tabular}{|c|c|c|c|c|} \hline"
+    latex += r"\rowcolor[gray]{0.9} \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{F} \\ \hline"
     for i in range(16):
-        row_cells = table_tv.rows[i+1].cells
-        for cell in row_cells:
-            cell.width = Cm(ExamSpecs.EX2_TT_COL_WIDTH_CM) # <-- USO DE SPEC
+        b = f"{i:04b}"
+        latex += f"{b[0]} & {b[1]} & {b[2]} & {b[3]} & \\textbf{{{outputs[i]}}} \\\\ \\hline"
+    latex += r"\end{tabular} \end{table}"
 
-        bin_vals = f"{i:04b}"
-        for j in range(4):
-            row_cells[j].text = bin_vals[j]
-            row_cells[j].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        row_cells[4].text = str(outputs[i])
-        row_cells[4].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        row_cells[4].paragraphs[0].runs[0].bold = True
+    latex += r"\noindent Utilice el siguiente esquema para simplificar. \textbf{Nota: La numeración incluye opciones correctas (Gray) e incorrectas (Binario Nat.), táchese la que no proceda.}"
+    latex += r"\vspace{0.5cm}"
 
-    doc.add_paragraph('\nUtilice el siguiente esquema para simplificar la función. (Nota: La numeración incluye opciones correctas e incorrectas, táchese la que no proceda).')
+    # MAPA DE KARNAUGH (Tabla compleja)
+    # Estructura 7x7
+    # Filas: [Header CD] [Num Bad] [Num Good] [Row 00] [Row 01] [Row 11] [Row 10]
+    # Cols:  [Header AB] [Num Bad] [Num Good] [Col 00] [Col 01] [Col 11] [Col 10]
 
-    # --- MAPA DE KARNAUGH (Dimensiones controladas por Specs) ---
-    grid_size = ExamSpecs.EX2_KMAP_GRID_SIZE
-    table_k = doc.add_table(rows=grid_size, cols=grid_size)
-    table_k.style = 'Table Grid'
-    table_k.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_k.allow_autofit = False
+    latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{2}"
+    latex += r"\begin{tabular}{|c|c|c|c|c|c|c|} \hline"
 
-    # Aplicar dimensiones cuadradas a toda la rejilla
-    for r in range(grid_size):
-        table_k.rows[r].height = Cm(ExamSpecs.EX2_KMAP_CELL_DIM_CM) # <-- USO DE SPEC
-        for c in range(grid_size):
-            table_k.cell(r, c).width = Cm(ExamSpecs.EX2_KMAP_CELL_DIM_CM) # <-- USO DE SPEC
+    # Fila 1: F (merged 3x3) | CD Label (merged 1x4)
+    latex += r"\multicolumn{3}{|c|}{\multirow{3}{*}{\Huge \textbf{F}}} & \multicolumn{4}{c|}{\textbf{CD =}} \\ \cline{4-7}"
 
-    # Layout de la tabla (Trampa)
-    cell_f = table_k.cell(0, 0)
-    cell_f.merge(table_k.cell(2, 2))
-    cell_f.text = "F"
-    cell_f.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cell_f.paragraphs[0].runs[0].bold = True
-    cell_f.paragraphs[0].runs[0].font.size = Pt(ExamSpecs.EX2_TITLE_FONT_SIZE)
-    cell_f.vertical_alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # Fila 2: Num Bad (Cols)
+    latex += r"\multicolumn{3}{|c|}{} & 00 & 01 & 10 & 11 \\ \cline{4-7}"
 
-    cell_cd = table_k.cell(0, 3)
-    cell_cd.merge(table_k.cell(0, 6))
-    cell_cd.text = "CD ="
-    cell_cd.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cell_cd.paragraphs[0].runs[0].bold = True
+    # Fila 3: Num Good (Cols)
+    latex += r"\multicolumn{3}{|c|}{} & 00 & 01 & 11 & 10 \\ \hline"
 
-    cell_ab = table_k.cell(3, 0)
-    cell_ab.merge(table_k.cell(6, 0))
-    cell_ab.text = "AB ="
-    cell_ab.vertical_alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cell_ab.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cell_ab.paragraphs[0].runs[0].bold = True
+    # Filas de la cuadrícula
+    row_bins = ["00", "01", "10", "11"]
+    row_grays = ["00", "01", "11", "10"]
 
-    gray_code = ["00", "01", "11", "10"]
-    bin_code = ["00", "01", "10", "11"]
-
-    # Relleno de cabeceras (trampa vs correcto)
     for i in range(4):
-        # Columnas
-        table_k.cell(1, i+3).text = bin_code[i]
-        table_k.cell(1, i+3).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        table_k.cell(2, i+3).text = gray_code[i]
-        table_k.cell(2, i+3).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        # Filas
-        table_k.cell(i+3, 1).text = bin_code[i]
-        table_k.cell(i+3, 1).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        table_k.cell(i+3, 2).text = gray_code[i]
-        table_k.cell(i+3, 2).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # Columna 1: AB Label (merged 4x1) -> Solo en la primera iteración
+        col1 = r"\multirow{4}{*}{\rotatebox{90}{\textbf{AB =}}}" if i == 0 else ""
+        latex += f"{col1} & {row_bins[i]} & {row_grays[i]} & & & & \\\\ \\hline"
 
-    doc.add_paragraph('\nSe pide:')
-    doc.add_paragraph(f'a) Obtener la expresión canónica mediante {tipo_canonico}.', style='List Number')
-    doc.add_paragraph('b) Identificar la numeración correcta del mapa (tachando la incorrecta) y simplificar.', style='List Number')
-    doc.add_paragraph(f'c) Implementar el circuito simplificado utilizando EXCLUSIVAMENTE puertas {tipo_puerta}.', style='List Number')
-    doc.add_paragraph('\n' * 2)
-    return {"outputs": outputs}
+    latex += r"\end{tabular} \end{table}"
 
-def generar_ejercicio_3(doc: Document) -> Dict[str, Any]:
-    doc.add_heading('Ejercicio 3: Problema de Diseño Lógico', level=1)
+    latex += r"\begin{enumerate}[label=\alph*)]"
+    latex += f"\item Obtener la expresión canónica mediante {tipo_canonico}."
+    latex += r"\item Simplificar usando el mapa (identificando numeración correcta)."
+    latex += f"\item Implementar el circuito simplificado utilizando EXCLUSIVAMENTE puertas \\textbf{{{tipo_puerta}}}."
+    latex += r"\end{enumerate}"
 
-    # Uso de la Base de Datos de Specs
+    return latex
+
+def gen_latex_ej3() -> str:
+    latex = r"\section*{Ejercicio 3: Problema de Diseño Lógico}"
     escenario = random.choice(ExamSpecs.EX3_SCENARIOS)
-    logica_texto = random.choice(escenario["logicas"])
+    logica = random.choice(escenario["logicas"])
 
-    doc.add_paragraph(f"Contexto: {escenario['titulo']}").bold = True
-    for var in escenario["vars"]: doc.add_paragraph(var, style='List Bullet')
-    doc.add_paragraph(f"Lógica: {logica_texto}").italic = True
+    latex += f"\\noindent \\textbf{{Contexto: {escenario['titulo']}}} \\\\"
+    latex += r"\begin{itemize}"
+    for var in escenario["vars"]:
+        latex += f"\\item {var}"
+    latex += f"\\item Salida: {escenario['salida']}"
+    latex += r"\end{itemize}"
 
-    doc.add_paragraph('\nSe pide: Tabla de Verdad, Karnaugh y Esquema Lógico.')
-    doc.add_paragraph('\n' * 3)
-    return {"escenario": escenario}
+    latex += f"\\noindent \\textit{{\\textbf{{Lógica de funcionamiento:}} {logica}}}"
+    latex += r"\vspace{0.3cm} \\ \noindent \textbf{Se pide:} (Justifique todos los pasos)"
+    latex += r"\begin{enumerate} \item Tabla de Verdad. \item Mapa de Karnaugh y simplificación. \item Esquema lógico final. \end{enumerate}"
+    return latex
 
-def generar_ejercicio_4(doc: Document) -> Dict[str, Any]:
-    doc.add_heading('Ejercicio 4: Análisis de Bloques MSI', level=1)
+def gen_latex_ej4() -> str:
+    latex = r"\section*{Ejercicio 4: Análisis de Bloques MSI}"
+    tipo = random.choice(['MUX', 'COMPARADOR', 'SUMADOR'])
+    latex += f"\\noindent Dado el siguiente componente: \\textbf{{{tipo}}}"
+    latex += r"\vspace{0.5cm}"
 
-    tipo_bloque = random.choice(['MUX', 'COMPARADOR', 'SUMADOR'])
-    datos_retorno = {"tipo": tipo_bloque}
+    latex += r"\begin{center} \begin{tikzpicture}"
 
-    doc.add_paragraph(f'Dado el siguiente componente: {tipo_bloque}').bold = True
+    if tipo == 'MUX':
+        # Dibujo Mux 16:1
+        latex += r"\draw[thick] (0,0) -- (0,8) -- (4,6) -- (4,2) -- (0,0) -- cycle;"
+        latex += r"\node at (2,4) {\textbf{MUX 16:1}};"
+        # Entradas Izq
+        latex += r"\foreach \y in {0.5,1,...,7.5} \draw (-0.5,\y) -- (0,\y);"
+        latex += r"\node[left] at (-0.5, 7.5) {I0}; \node[left] at (-0.5, 0.5) {I15};"
+        # Selectores
+        latex += r"\foreach \x in {1,1.6,2.2,2.8} \draw (\x, -0.5) -- (\x, {(\x-2)*0.5 + 1});" # Rough calc
+        latex += r"\node[below] at (2,-0.5) {S3..S0};"
+        # Enable
+        latex += r"\draw (3.5, -0.5) -- (3.5, 2.8); \node[below] at (3.5,-0.5) {$\overline{E}$}; \node[circle,draw,inner sep=1pt] at (3.5, 2.9) {};"
+        # Salidas
+        latex += r"\draw (4,4) -- (5,4) node[right]{Y};"
+        latex += r"\draw (4,3) -- (4.5,3); \node[circle,draw,inner sep=1pt] at (4.6,3) {}; \draw (4.7,3) -- (5,3) node[right]{$\overline{Y}$};"
 
-    if tipo_bloque == 'MUX':
-        inputs_mux = [random.randint(0, 1) for _ in range(16)]
-        inputs_str = [str(x) for x in inputs_mux]
-        col1 = inputs_str[:8]; col2 = inputs_str[8:]
+        inputs = [random.randint(0,1) for _ in range(16)]
+        latex += r"\end{tikzpicture} \end{center}"
 
-        ascii_art = (
-            f"          +-----------------------+\n"
-            f" I0 ={col1[0]} ---|                       |--- Y\n"
-            f" I1 ={col1[1]} ---|                       |--- Y_neg\n"
-            f" ...      |       MUX 16:1        |\n"
-            f" I7 ={col1[7]} ---|                       |\n"
-            f"          |                       |\n"
-            f" I8 ={col2[0]} ---|                       |\n"
-            f" ...      |                       |\n"
-            f" I15={col2[7]} ---|                       |\n"
-            f"          +-----------------------+\n"
-            f"             |   |   |   |     |\n"
-            f"             S3  S2  S1  S0    E\n"
-        )
-        agregar_ascii_art(doc, ascii_art)
-        doc.add_paragraph(f'Entradas I0..I15: {inputs_mux}')
+        latex += f"\\noindent Entradas de datos (I0 a I15): {inputs} \\\\"
+        latex += r"Determine las salidas $Y$ y $\overline{Y}$ para:"
+        latex += r"\begin{enumerate}"
+        for _ in range(3):
+            addr = random.randint(0,15)
+            ena = random.choice([0,1])
+            latex += f"\\item Enable={ena}, Dirección={addr:04b}"
+        latex += r"\end{enumerate}"
 
-        doc.add_paragraph('\nDetermine salidas Y y Y_neg:')
-        for i in range(1, 4):
-            addr_val = random.randint(0, 15)
-            enable = random.choice([0, 1])
-            enable_str = "0 (Activo)" if enable == 0 else "1 (Inactivo)"
-            doc.add_paragraph(f'{i}) E={enable_str}, Dir={addr_val:04b}.', style='List Number')
-
-    elif tipo_bloque == 'COMPARADOR':
+    elif tipo == 'COMPARADOR':
         val_a = random.randint(0, 15); val_b = random.randint(0, 15)
-        cascada = [random.choice([0, 1]) for _ in range(3)]
+        latex += r"\draw[thick] (0,0) rectangle (4,4);"
+        latex += r"\node at (2,3) {\textbf{COMPARADOR}};"
+        latex += r"\node at (2,2) {\textbf{4 BITS}};"
+        # Inputs A y B
+        latex += r"\draw (-1, 3) -- (0,3) node[midway, above]{A(4)};"
+        latex += r"\draw (-1, 1) -- (0,1) node[midway, above]{B(4)};"
+        # Cascadas
+        cascada = [random.randint(0,1) for _ in range(3)]
+        latex += r"\draw (1, -1) -- (1,0) node[below, yshift=-1cm]{I($>$)=%d};" % cascada[0]
+        latex += r"\draw (2, -1) -- (2,0) node[below, yshift=-1cm]{I($=$)=%d};" % cascada[1]
+        latex += r"\draw (3, -1) -- (3,0) node[below, yshift=-1cm]{I($<$)=%d};" % cascada[2]
+        # Salidas
+        latex += r"\draw (4,3) -- (5,3) node[right]{$>$};"
+        latex += r"\draw (4,2) -- (5,2) node[right]{$=$};"
+        latex += r"\draw (4,1) -- (5,1) node[right]{$<$};"
+        latex += r"\end{tikzpicture} \end{center}"
 
-        ascii_art = (
-            f"             +-------------------+\n"
-            f"  A = {val_a:04b}  --|                   |--- A > B\n"
-            f"             |    COMPARADOR     |\n"
-            f"  B = {val_b:04b}  --|      4 BITS       |--- A = B\n"
-            f"             |                   |\n"
-            f"  I(> )={cascada[0]} --|                   |--- A < B\n"
-            f"  I(= )={cascada[1]} --|                   |\n"
-            f"  I(< )={cascada[2]} --|                   |\n"
-            f"             +-------------------+\n"
-        )
-        agregar_ascii_art(doc, ascii_art)
-        doc.add_paragraph('Determine > = <.')
+        latex += f"\\noindent Datos: A = {val_a} ({val_a:04b}), B = {val_b} ({val_b:04b}). Determine las 3 salidas."
 
-    elif tipo_bloque == 'SUMADOR':
-        val_a = random.randint(0, 15); val_b = random.randint(0, 15); c_in = random.choice([0, 1])
-        ascii_art = (
-            f"             +-------------------+\n"
-            f"  A = {val_a:04b}  --|                   |--- S (Suma)\n"
-            f"             |      SUMADOR      |\n"
-            f"  B = {val_b:04b}  --|      4 BITS       |--- Cout\n"
-            f"             |                   |\n"
-            f"  Cin = {c_in}  ---|                   |\n"
-            f"             +-------------------+\n"
-        )
-        agregar_ascii_art(doc, ascii_art)
-        doc.add_paragraph('Determine S, Cout y Overflow.')
+    elif tipo == 'SUMADOR':
+        val_a = random.randint(0, 15); val_b = random.randint(0, 15); cin = random.randint(0,1)
+        latex += r"\draw[thick] (0,0) rectangle (4,4);"
+        latex += r"\node at (2,2) {\textbf{SUMADOR 4 BITS}};"
+        latex += r"\draw (-1,3) -- (0,3) node[midway, above]{A};"
+        latex += r"\draw (-1,1) -- (0,1) node[midway, above]{B};"
+        latex += r"\draw (2,4) -- (2,5) node[above]{Cin=%d};" % cin
+        latex += r"\draw (4,2.5) -- (5,2.5) node[right]{S(4)};"
+        latex += r"\draw (4,1.5) -- (5,1.5) node[right]{Cout};"
+        latex += r"\end{tikzpicture} \end{center}"
 
-    doc.add_paragraph('\n' * 2)
-    return datos_retorno
+        latex += f"\\noindent Realice la suma A ({val_a}) + B ({val_b}) + Cin. Indique S, Cout y si hay Overflow."
 
-def generar_ejercicio_5(doc: Document) -> Dict[str, Any]:
-    doc.add_heading('Ejercicio 5: Análisis de Sistemas Secuenciales', level=1)
+    return latex
 
-    ff_type = random.choice(['JK', 'D', 'T'])
-    edge = random.choice(['Subida', 'Bajada'])
+def gen_latex_ej5() -> str:
+    latex = r"\section*{Ejercicio 5: Sistemas Secuenciales}"
+
+    ff = random.choice(['JK', 'D', 'T'])
+    edge = random.choice(['rising', 'falling']) # TikZ timing naming convention
+    edge_txt = "Subida" if edge == 'rising' else "Bajada"
     has_async = random.choice([True, False])
 
-    async_text = "Sin Async"
+    async_txt = "Sin Async"
     if has_async:
-        atype = random.choice(['Preset', 'Clear'])
-        alevel = random.choice(['1', '0'])
-        async_text = f"Async {atype} activa a {alevel}"
+        atipo = random.choice(['PRE', 'CLR'])
+        alvl = random.choice(['1', '0'])
+        async_txt = f"Entrada asíncrona {atipo} activa a nivel {alvl}"
 
-    logic_type = 'SHIFT' if ff_type == 'D' else 'COUNTER'
+    latex += f"\\noindent Sistema secuencial síncrono por flanco de \\textbf{{{edge_txt}}}. Biestables tipo \\textbf{{{ff}}}. {async_txt}."
+    latex += r"\vspace{0.5cm}"
 
-    doc.add_paragraph(f"Sistema síncrono por flanco {edge}. FF: {ff_type}. {async_text}. Lógica: {logic_type}")
+    # DIBUJO DEL ESQUEMA LÓGICO (Básico con Circuitikz)
+    latex += r"\begin{center} \begin{circuitikz} \draw"
 
-    # Esquema simple
-    clock_sym = "> " if edge == 'Subida' else "o>"
-    ascii_ckt = (
-        f"      +-------+          +-------+\n"
-        f" E ---|{ff_type:<5}  Q|---Q0----|{ff_type:<5}  Q|--- Q1\n"
-        f"CLK --|{clock_sym}     |          |{clock_sym}     |\n"
-        f"      +-------+          +-------+\n"
-    )
-    agregar_ascii_art(doc, ascii_ckt)
+    # Dibujamos dos FF genéricos
+    # FlipFlop 1
+    latex += r"(0,0) node[flipflop "+ff+r", dot on clock, external pins width=0](FF1){Q0}" if edge=='falling' else r"(0,0) node[flipflop "+ff+r", external pins width=0](FF1){Q0}"
+    # FlipFlop 2
+    latex += r"(5,0) node[flipflop "+ff+r", dot on clock, external pins width=0](FF2){Q1}" if edge=='falling' else r"(5,0) node[flipflop "+ff+r", external pins width=0](FF2){Q1}"
 
-    # Cronograma
+    latex += r"; \end{circuitikz} \end{center}"
+
+    latex += r"\noindent \textbf{Se pide:} a) Ecuaciones de entrada. b) Completar el cronograma."
+    latex += r"\vspace{0.5cm}"
+
+    # DIBUJO DEL CRONOGRAMA (Manual con TikZ puro para control total)
+    latex += r"\begin{center} \begin{tikzpicture}[x=1cm, y=0.5cm]"
+
     cycles = ExamSpecs.EX5_CRONO_CYCLES
-    clk_wave =  "__|--|__|--|__|--|__|--|__|--|__|--"
-    input_bits = [random.randint(0,1) for _ in range(cycles*2)]
-    input_wave = "".join(["~~~" if b else "___" for b in input_bits])
 
-    crono_art = (
-        f"       t0 t1 t2 t3 t4 t5 t6 ...\n"
-        f" CLK:  {clk_wave}\n"
-        f"  E :  {input_wave}\n"
-        f" Q0 :  ...................................\n"
-        f" Q1 :  ...................................\n"
-    )
+    # Reloj
+    latex += r"\draw (0,4) node[left]{CLK};"
+    latex += r"\draw[thick] (0,4)"
+    for _ in range(cycles):
+        latex += r" -- ++(0.5,0) -- ++(0,1) -- ++(0.5,0) -- ++(0,-1)"
+    latex += r";"
 
-    agregar_ascii_art(doc, crono_art)
+    # Entrada E (Aleatoria)
+    latex += r"\draw (0,2) node[left]{E};"
+    latex += r"\draw[thick] (0,2)"
+    curr_e = 0
+    for _ in range(cycles * 2):
+        new_e = random.randint(0,1)
+        if new_e != curr_e:
+            latex += r" -- ++(0," + str(new_e - curr_e) + r")"
+            curr_e = new_e
+        latex += r" -- ++(0.5,0)"
+    latex += r";"
 
-    doc.add_paragraph('a) Ecuaciones de entrada. b) Completar cronograma.')
+    # Líneas vacías para Q0 y Q1
+    latex += r"\draw (0,0) node[left]{Q0}; \draw[dotted] (0,0) -- (6,0);"
+    latex += r"\draw (0,-1.5) node[left]{Q1}; \draw[dotted] (0,-1.5) -- (6,-1.5);"
 
-    return {"ff": ff_type}
+    # Async signal si existe
+    if has_async:
+        latex += r"\draw (0,5.5) node[left]{ASYNC};"
+        # Pulso inicial
+        latex += r"\draw[thick] (0,5.5) -- (0.2, 5.5) -- (0.2, 6.5) -- (1.5, 6.5) -- (1.5, 5.5) -- (6, 5.5);"
+
+    latex += r"\end{tikzpicture} \end{center}"
+
+    return latex
 
 # ==============================================================================
 # MAIN
 # ==============================================================================
 
-def guardar_documento(doc: Document):
-    nombre_final = 'Examen_Electronica_Digital.docx'
-    try:
-        doc.save(nombre_final)
-        print(f"\n✅ ¡ÉXITO! Examen generado correctamente.")
-        print(f"📂 Archivo: {os.path.abspath(nombre_final)}")
-    except PermissionError:
-        nuevo_nombre = f'Examen_Electronica_Digital_{random.randint(100, 999)}.docx'
-        doc.save(nuevo_nombre)
-        print(f"✅ ¡GUARDADO! Copia nueva: {nuevo_nombre}")
-
 def main():
-    doc = Document()
-    configurar_estilos(doc)
-    agregar_encabezado(doc)
+    valores_ej1 = [] # Para pasar datos entre 1a y 1b
 
-    valores_ej1 = generar_ejercicio_1(doc)
-    generar_ejercicio_1_parte_b(doc, valores_ej1)
+    latex_code = get_latex_preamble()
+    latex_code += gen_latex_ej1(valores_ej1)
+    latex_code += gen_latex_ej2()
+    latex_code += r"\newpage"
+    latex_code += gen_latex_ej3()
+    latex_code += gen_latex_ej4()
+    latex_code += r"\newpage"
+    latex_code += gen_latex_ej5()
 
-    valores_ej2 = generar_ejercicio_2(doc)
-    valores_ej3 = generar_ejercicio_3(doc)
-    valores_ej4 = generar_ejercicio_4(doc)
-    valores_ej5 = generar_ejercicio_5(doc)
+    latex_code += r"\end{document}"
 
-    guardar_documento(doc)
+    filename = "Examen_Electronica_Digital.tex"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(latex_code)
+
+    print(f"✅ ¡ÉXITO! Archivo generado: {os.path.abspath(filename)}")
 
 if __name__ == "__main__":
     main()
