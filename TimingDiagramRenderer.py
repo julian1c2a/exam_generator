@@ -3,12 +3,13 @@ from ExamDataModel import Exercise5Data
 class TimingDiagramRenderer:
     def render(self, data: Exercise5Data) -> str:
         # Usamos resizebox para asegurar que el cronograma se ajuste al ancho de la página.
-        # arraystretch=0 para eliminar el espaciado vertical de la tabla, dejando solo la altura de la señal.
+        # y=0.35cm: Altura validada por el usuario.
+        # arraystretch=0: Eliminar espaciado extra.
         
         latex = r"\begin{center}" + "\n"
         latex += r"\resizebox{\textwidth}{!}{%" + "\n"
-        latex += r"\renewcommand{\arraystretch}{0}" + "\n" # Cero espacio extra entre filas
-        latex += r"\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=1.0cm]" + "\n" # y=1.0 para buena altura
+        latex += r"\renewcommand{\arraystretch}{0}" + "\n"
+        latex += r"\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=0.35cm]" + "\n"
         
         # Clock
         latex += fr"CLK\hspace{{1em}} & {data.clk_sequence} \\" + "\n"
