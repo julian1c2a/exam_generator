@@ -7,11 +7,6 @@ from typing import List, Tuple, Any, Dict, Optional
 # ==============================================================================
 
 class ExamSpecs:
-    """
-    Contenedor centralizado de especificaciones.
-    Define los datos del examen independientemente del formato de salida.
-    """
-
     TITLE = "Fundamentos de Electrónica"
     SUBTITLE = "Parte I: Electrónica Digital"
     STUDENT_FIELD = "Nombre: ............................................................................ Fecha: ...................."
@@ -59,7 +54,7 @@ class ExamSpecs:
     EX5_CRONO_CYCLES = 6
 
 # ==============================================================================
-# CAPA DE LÓGICA (Conversiones y Cálculos)
+# CAPA DE LÓGICA
 # ==============================================================================
 
 def int_to_bin_str(val: int, bits: int) -> str:
@@ -90,7 +85,7 @@ def get_latex_preamble() -> str:
 \usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
 \usepackage{tikz}
 \usepackage{circuitikz}
-\usepackage{tikz-timing} % PAQUETE ESPECIALIZADO PARA CRONOGRAMAS
+\usepackage{tikz-timing}
 \usepackage{amsmath}
 \usepackage{array}
 \usepackage{multirow}
@@ -102,7 +97,7 @@ def get_latex_preamble() -> str:
 % Configuración de TikZ y tikz-timing
 \usetikzlibrary{calc}
 
-% Configuración de tcolorbox para los enunciados
+% Configuración de tcolorbox
 \tcbset{
     colback=gray!5!white,
     colframe=gray!75!black,
@@ -127,12 +122,9 @@ def get_latex_preamble() -> str:
 \vspace{0.5cm}
 """
 
-# --- NUEVAS FUNCIONES REUTILIZABLES ---
+# --- FUNCIONES AUXILIARES DE LATEX ---
 
 def gen_latex_tabla_verdad(vars_in: List[str], var_out: str, valores: Optional[List[int]]) -> str:
-    """
-    Genera el código LaTeX para una tabla de verdad genérica.
-    """
     num_vars = len(vars_in)
     num_rows = 2**num_vars
     col_def = "|" + "c|" * (num_vars + 1)
@@ -156,9 +148,6 @@ def gen_latex_tabla_verdad(vars_in: List[str], var_out: str, valores: Optional[L
     return latex
 
 def gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_trap=True, empty_headers=False) -> str:
-    """
-    Genera el código LaTeX para la plantilla de un Mapa de Karnaugh de 4 variables.
-    """
     if empty_headers: show_trap = False
     if show_trap:
         grid_cols = 7; h_cols = 3; h_rows = 3
@@ -203,6 +192,7 @@ def gen_latex_ej1(valores_out: List[Tuple[str, int]]) -> str:
     latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
     latex += r"\noindent \textbf{a)} Complete la tabla adjunta. El registro es de " + str(ExamSpecs.EX1_N_BITS) + r" bits. Si no es representable, escriba 'NR'." + "\n"
     latex += r"\end{tcolorbox}" + "\n"
+
     latex += r"\textbf{Respuesta:}" + "\n"
     latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}" + "\n"
     latex += r"\begin{tabular}{|c|c|c|c|c|c|} \hline" + "\n"
@@ -332,23 +322,22 @@ def gen_latex_ej4() -> str:
     elif tipo == 'COMPARADOR':
         val_a = random.randint(0, 15); val_b = random.randint(0, 15)
         latex += r"\draw[thick] (0,0) rectangle (4,4);"
-        # Movemos el texto para que no estorbe a los nuevos inputs intermedios
+        # TEXTO REORGANIZADO
         latex += r"\node at (2,3.5) {\textbf{COMPARADOR}};"
         latex += r"\node at (2,0.5) {\textbf{4 BITS}};"
 
-        # BUS A (Arriba, y=3)
+        # BUSES A Y B (GRUESOS Y DESPLAZADOS)
         latex += r"\draw[ultra thick] (-1.2, 3) -- (0,3);"
-        latex += r"\node[left] at (-1.2, 3) {A};" # Etiqueta al principio
+        latex += r"\node[left] at (-1.2, 3) {A};"
         latex += r"\draw[thick] (-0.7, 2.8) -- (-0.5, 3.2);" # Slash
-        latex += r"\node[above] at (-0.6, 3.1) {\scriptsize 4};" # Número bits
+        latex += r"\node[above] at (-0.6, 3.1) {\scriptsize 4};" # Num 4
 
-        # BUS B (Abajo, y=1)
         latex += r"\draw[ultra thick] (-1.2, 1) -- (0,1);"
-        latex += r"\node[left] at (-1.2, 1) {B};" # Etiqueta al principio
+        latex += r"\node[left] at (-1.2, 1) {B};"
         latex += r"\draw[thick] (-0.7, 0.8) -- (-0.5, 1.2);" # Slash
-        latex += r"\node[above] at (-0.6, 1.1) {\scriptsize 4};" # Número bits
+        latex += r"\node[above] at (-0.6, 1.1) {\scriptsize 4};" # Num 4
 
-        # ENTRADAS CASCADA INTERMEDIAS
+        # ENTRADAS CASCADA (LADO IZQUIERDO, INTERMEDIAS)
         cascada = [random.randint(0,1) for _ in range(3)]
         latex += r"\draw (-1, 2.4) -- (0, 2.4);"
         latex += r"\node[left] at (-1, 2.4) {\small $I_{>}=%d$};" % cascada[0]
@@ -357,7 +346,6 @@ def gen_latex_ej4() -> str:
         latex += r"\draw (-1, 1.6) -- (0, 1.6);"
         latex += r"\node[left] at (-1, 1.6) {\small $I_{<}=%d$};" % cascada[2]
 
-        # SALIDAS
         latex += r"\draw (4,3) -- (5,3) node[right]{$>$};"
         latex += r"\draw (4,2) -- (5,2) node[right]{$=$};"
         latex += r"\draw (4,1) -- (5,1) node[right]{$<$};"
@@ -372,7 +360,6 @@ def gen_latex_ej4() -> str:
         latex += r"\draw (4,1.5) -- (5,1.5) node[right]{Cout};"
     latex += r"\end{tikzpicture} \end{center}"
 
-    # Preguntas dentro de la caja
     if tipo == 'MUX':
         inputs = [random.randint(0,1) for _ in range(16)]
         latex += f"\\noindent Entradas de datos (I0 a I15): {inputs} \\\\"
@@ -390,8 +377,6 @@ def gen_latex_ej4() -> str:
         latex += f"\\noindent Realice la suma A ({val_a}) + B ({val_b}) + Cin. Indique S, Cout y si hay Overflow."
 
     latex += r"\end{tcolorbox}" + "\n"
-
-    # ESPACIO DE RESPUESTA
     latex += r"\textbf{Espacio de Resolución:}" + "\n"
     latex += r"\vspace{5cm}"
     return latex
@@ -404,7 +389,6 @@ def gen_latex_ej5() -> str:
     edge_txt = "Subida" if edge == 'rising' else "Bajada"
     has_async = random.choice([True, False])
 
-    # Elección lógica: SHIFT o COUNTER
     logic_type = 'SHIFT' if ff == 'D' else 'COUNTER'
 
     async_txt = "Sin Async"
@@ -419,52 +403,34 @@ def gen_latex_ej5() -> str:
 
     latex += r"\begin{center} \begin{circuitikz}[scale=1.2, transform shape] \draw"
 
-    # Definir dos Flip Flops con la sintaxis correcta de circuitikz
-    # Nota: Los FF se dibujan como nodos.
-    # FF1
-    latex += r"(0,0) node[flipflop "+ff+r", dot on clock, external pins width=0](FF1){Q0}" if edge=='falling' else r"(0,0) node[flipflop "+ff+r", external pins width=0](FF1){Q0}"
-    # FF2 (Desplazado a la derecha)
-    latex += r"(5,0) node[flipflop "+ff+r", dot on clock, external pins width=0](FF2){Q1}" if edge=='falling' else r"(5,0) node[flipflop "+ff+r", external pins width=0](FF2){Q1}"
+    # FF1 y FF2 con coordenadas
+    latex += r"(0,0) node[flipflop "+ff+r", external pins width=0](FF1){Q0}"
+    latex += r"(5,0) node[flipflop "+ff+r", external pins width=0](FF2){Q1}"
 
-    # Conexiones comunes: RELOJ
+    # CLK COMÚN
     latex += r"; \draw (FF1.pin 2) -- ++(-0.5,0) -- ++(0,-1.5) coordinate(clk_bus);"
     latex += r"\draw (FF2.pin 2) -- ++(-0.5,0) -- ++(0,-1.5) -- (clk_bus);"
     latex += r"\draw (clk_bus) -- ++(-1,0) node[left]{CLK};"
 
-    # Conexiones Lógicas según tipo
-    if logic_type == 'SHIFT': # Registro de desplazamiento
-        # Entrada E a D del primero
-        # Pin 1 es D en flipflop D
+    # LÓGICA
+    if logic_type == 'SHIFT':
         latex += r"\draw (FF1.pin 1) -- ++(-1,0) node[left]{E};"
-        # Q0 (Pin 6) a D del segundo (Pin 1)
         latex += r"\draw (FF1.pin 6) -- (FF2.pin 1);"
-        # Salidas Q
         latex += r"\draw (FF1.pin 6) -- ++(0.5,0) -- ++(0,1) node[above]{Q0};"
         latex += r"\draw (FF2.pin 6) -- ++(0.5,0) -- ++(0,1) node[above]{Q1};"
 
-    elif logic_type == 'COUNTER': # Contador simple
-        # Conectar E a entradas de control FF1
+    elif logic_type == 'COUNTER':
         if ff == 'JK':
-            # E a J, K del FF1. Pins 1(J), 3(K).
             latex += r"\draw (FF1.pin 1) -- ++(-0.5,0) coordinate(j1) -- ++(-0.5,0) node[left]{E};"
             latex += r"\draw (FF1.pin 3) -- ++(-0.5,0) -- (j1);"
-            # Q0 a J, K del FF2
             latex += r"\draw (FF1.pin 6) -- ++(0.5,0) coordinate(q0_out) -- (FF2.pin 1);"
-            latex += r"\draw (q0_out) -- ++(0,-0.5) -- ++(1.5,0) -- (FF2.pin 3);" # Aprox conexion a K2
-
+            latex += r"\draw (q0_out) -- ++(0,-0.5) -- ++(1.5,0) -- (FF2.pin 3);"
         elif ff == 'T':
-            # E a T del FF1. Pin 1(T).
             latex += r"\draw (FF1.pin 1) -- ++(-1,0) node[left]{E};"
-            # Q0 a T del FF2
             latex += r"\draw (FF1.pin 6) -- (FF2.pin 1);"
-
-        # Salidas Q
         latex += r"\draw (FF1.pin 6) -- ++(0,1) node[above]{Q0};"
         latex += r"\draw (FF2.pin 6) -- ++(0,1) node[above]{Q1};"
 
-    # Async (Solo PRE o CLR)
-    # Circuitikz anchors: pin 4 is usually PRE/CLR or up/down pins.
-    # Standard: up=set/pre, down=reset/clr
     if has_async:
         pin_name = "up" if atipo == 'PRE' else "down"
         latex += r"\draw (FF1." + pin_name + r") -- ++(0," + ("0.5" if atipo=='PRE' else "-0.5") + r") coordinate(async1);"
@@ -476,19 +442,17 @@ def gen_latex_ej5() -> str:
     latex += r"\noindent \textbf{Se pide:} a) Ecuaciones de entrada. b) Completar el cronograma."
     latex += r"\end{tcolorbox}" + "\n"
 
-    # ESPACIO DE RESPUESTA
     latex += r"\textbf{Espacio de Resolución:}" + "\n"
     latex += r"\vspace{2cm}"
 
-    # CRONOGRAMA MEJORADO (X Scale 1.5, Clean Grids)
     latex += r"\begin{center}"
-    # Se aumenta el ancho con x=1.5cm
-    latex += r"\begin{tikztimingtable}[timing/slope=0, x=1.5cm, y=0.5cm]"
+    # SCALE 1.8CM
+    latex += r"\begin{tikztimingtable}[timing/slope=0, x=1.8cm, y=0.5cm]"
 
     cycles = ExamSpecs.EX5_CRONO_CYCLES
-    width = cycles * 2 # Ancho total en unidades de medio ciclo
+    width = cycles * 2
 
-    # RELOJ
+    # CLK
     clk_str = f"{cycles}{{C}}"
     latex += r"CLK & " + clk_str + r" \\"
 
@@ -507,10 +471,9 @@ def gen_latex_ej5() -> str:
         input_str += "H" if random.randint(0,1) else "L"
     latex += r"E & " + input_str + r" \\"
 
-    # SALIDAS (Líneas vacías sobre la cuadrícula)
-    # Usamos 'U' (Unknown) con draw=none para reservar espacio pero no pintar nada.
-    # U ocupa espacio vertical y horizontal.
-    out_str = f"{width}{{U}}"
+    # SALIDAS VACÍAS
+    # Usamos 'Z' (High Impedance) con draw=none para asegurar el espacio sin dibujar
+    out_str = f"{width}{{Z}}"
 
     latex += r"Q0 & [draw=none] " + out_str + r" \\"
     latex += r"Q1 & [draw=none] " + out_str + r" \\"
