@@ -55,17 +55,33 @@ class DigitalCircuitRenderer:
 
     def render_sequential_circuit(self, data: Exercise5Data) -> str:
         ff = data.ff_type
-        clk_dot = ", dot on clock" if data.edge_type == "Bajada" else ""
+        
+        # Corrección: Usar 'clock wedge' para el triángulo.
+        # Si es bajada, añadimos el círculo manualmente con 'add bubble' si la versión lo soporta,
+        # o dibujamos un círculo pequeño en el pin 2.
+        # Para máxima compatibilidad, dibujaremos el círculo manualmente si es bajada.
+        
+        ff_style = f"flipflop {ff}"
         
         code = r"\begin{center} \begin{circuitikz}[scale=1.2, transform shape] \draw" + "\n"
         
         # Flip Flops
-        code += fr"(0,0) node[flipflop {ff}{clk_dot}, external pins width=0](FF1){{Q0}} "
-        code += fr"(5,0) node[flipflop {ff}{clk_dot}, external pins width=0](FF2){{Q1}};" + "\n"
+        code += fr"(0,0) node[{ff_style}, external pins width=0](FF1){{Q0}} "
+        code += fr"(5,0) node[{ff_style}, external pins width=0](FF2){{Q1}};" + "\n"
         
+        # Dibujar círculo de negación manualmente si es bajada
+        if data.edge_type == "Bajada":
+            code += r"\draw (FF1.pin 2) ++(-0.1,0) circle(0.1);" + "\n"
+            code += r"\draw (FF2.pin 2) ++(-0.1,0) circle(0.1);" + "\n"
+            # Ajustar el punto de conexión del reloj para que no toque el círculo
+            clk_offset = "-0.2"
+        else:
+            clk_offset = "0"
+
         # Clock Bus
-        code += r"\draw (FF1.pin 2) -- ++(-1.5,0) -- ++(0,-2.5) coordinate(clk_bus);" + "\n"
-        code += r"\draw (FF2.pin 2) -- ++(-1.5,0) -- ++(0,-2.5) -- (clk_bus);" + "\n"
+        # Conectamos al pin 2 (clock) ajustando si hay círculo
+        code += fr"\draw (FF1.pin 2) ++({clk_offset},0) -- ++(-1.3,0) -- ++(0,-2.5) coordinate(clk_bus);" + "\n"
+        code += fr"\draw (FF2.pin 2) ++({clk_offset},0) -- ++(-1.3,0) -- ++(0,-2.5) -- (clk_bus);" + "\n"
         code += r"\draw (clk_bus) -- ++(-1.0,0) node[left]{CLK};" + "\n"
 
         # Lógica específica (Shift vs Counter)

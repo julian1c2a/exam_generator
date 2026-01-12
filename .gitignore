@@ -22,4 +22,4 @@ ENV/
 *.log
 *.pdf
 *.gz
-*.tex
+# *.tex  <-- Comentado para permitir lectura

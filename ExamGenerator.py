@@ -130,7 +130,7 @@ class ExamGenerator:
         ff = random.choice(['JK', 'D', 'T'])
         has_async = random.choice([True, False])
         total_cycles = 12 # Ciclos visuales completos
-        width_units = total_cycles * 2 # Unidades de medio ciclo
+        width_units = total_cycles * 2 # Unidades de medio ciclo (24)
 
         # Generar secuencias
         input_seq = "".join(["H" if random.randint(0, 1) else "L" for _ in range(width_units)])
@@ -158,8 +158,8 @@ class ExamGenerator:
             async_type=async_type,
             async_level=async_level,
             total_cycles=total_cycles,
-            clk_sequence=f"{total_cycles}{{C}}",
+            clk_sequence=f"{width_units}{{C}}", # CORREGIDO: 24{C}
             async_sequence=async_seq,
             input_sequence=input_seq,
-            output_placeholder=f"{width_units}{{U}}" # Unknown/Empty space
+            output_placeholder=f"{width_units}{{}}" # CORREGIDO: 24{}
         )
