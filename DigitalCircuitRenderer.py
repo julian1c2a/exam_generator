@@ -1,4 +1,4 @@
-from exam_model import Exercise5Data
+from ExamDataModel import Exercise5Data
 
 class DigitalCircuitRenderer:
     def render_mux(self) -> str:

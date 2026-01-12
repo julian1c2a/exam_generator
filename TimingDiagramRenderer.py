@@ -1,4 +1,4 @@
-from exam_model import Exercise5Data
+from ExamDataModel import Exercise5Data
 
 class TimingDiagramRenderer:
     def render(self, data: Exercise5Data) -> str:

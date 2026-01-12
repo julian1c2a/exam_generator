@@ -1,7 +1,7 @@
 import random
 import json
 from typing import List
-from exam_model import *
+from ExamDataModel import *
 
 class ExamGenerator:
     def __init__(self, scenarios_file: str):

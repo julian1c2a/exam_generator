@@ -1,7 +1,7 @@
 import json
 import os
 from typing import List, Optional
-from exam_model import *
+from ExamDataModel import *
 from TruthTableRenderer import TruthTableRenderer
 from KarnaughMapRenderer import KarnaughMapRenderer
 from DigitalCircuitRenderer import DigitalCircuitRenderer
