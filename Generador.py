@@ -1,6 +1,6 @@
 import os
 import random
-from typing import List, Tuple, Any, Dict
+from typing import List, Tuple, Any, Dict, Optional
 
 # ==============================================================================
 # CAPA DE CONFIGURACIÓN (AGNÓSTICA)
@@ -96,9 +96,20 @@ def get_latex_preamble() -> str:
 \usepackage{colortbl}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{tcolorbox} % Para las cajas de enunciado
 
 % Configuración de TikZ para cronogramas
 \usetikzlibrary{calc}
+
+% Configuración de tcolorbox para los enunciados
+\tcbset{
+    colback=gray!5!white, % Fondo gris muy claro
+    colframe=gray!75!black, % Borde gris oscuro
+    title=\textbf{ENUNCIADO}, % Título por defecto
+    fonttitle=\bfseries,
+    boxrule=0.5mm,
+    arc=2mm
+}
 
 \begin{document}
 
@@ -117,12 +128,12 @@ def get_latex_preamble() -> str:
 
 # --- NUEVAS FUNCIONES REUTILIZABLES ---
 
-def gen_latex_tabla_verdad(vars_in: List[str], var_out: str, valores: List[int]) -> str:
+def gen_latex_tabla_verdad(vars_in: List[str], var_out: str, valores: Optional[List[int]]) -> str:
     """
     Genera el código LaTeX para una tabla de verdad genérica.
-    :param vars_in: Lista de nombres de variables de entrada (ej: ['A', 'B', 'C', 'D']).
-    :param var_out: Nombre de la variable de salida (ej: 'F').
-    :param valores: Lista de valores de salida (0 o 1). Debe tener 2^len(vars_in) elementos.
+    :param vars_in: Lista de nombres de variables de entrada.
+    :param var_out: Nombre de la variable de salida.
+    :param valores: Lista de valores de salida (0 o 1). Si es None, deja la columna vacía.
     """
     num_vars = len(vars_in)
     num_rows = 2**num_vars
@@ -143,28 +154,30 @@ def gen_latex_tabla_verdad(vars_in: List[str], var_out: str, valores: List[int])
         # Generar binario para las entradas
         bin_str = format(i, f'0{num_vars}b')
         input_cells = " & ".join(list(bin_str))
-        output_cell = r"\textbf{" + str(valores[i]) + r"}"
+
+        if valores is not None:
+            output_cell = r"\textbf{" + str(valores[i]) + r"}"
+        else:
+            output_cell = r" " # Celda vacía
+
         latex += f"{input_cells} & {output_cell} \\\\ \\hline\n"
 
     latex += r"\end{tabular} \end{table}" + "\n"
     return latex
 
-def gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_trap=True) -> str:
+def gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_trap=True, empty_headers=False) -> str:
     """
     Genera el código LaTeX para la plantilla de un Mapa de Karnaugh de 4 variables.
-    :param label_izq: Etiqueta para las filas (ej: 'AB').
-    :param label_sup: Etiqueta para las columnas (ej: 'CD').
-    :param label_out: Etiqueta para la función en la esquina (ej: 'F').
-    :param show_trap: Si True, incluye la doble numeración (Binario/Gray) para que el alumno elija.
-                      Si False, incluye solo la numeración correcta (Gray).
     """
-    # Configuraciones según si hay trampa o no
+    if empty_headers:
+        show_trap = False
+
     if show_trap:
-        grid_cols = 7 # 3 headers + 4 data
-        h_cols = 3    # Columnas que ocupa la esquina/headers laterales
-        h_rows = 3    # Filas que ocupa la esquina/headers superiores
+        grid_cols = 7
+        h_cols = 3
+        h_rows = 3
     else:
-        grid_cols = 6 # 2 headers + 4 data
+        grid_cols = 6
         h_cols = 2
         h_rows = 2
 
@@ -173,43 +186,36 @@ def gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_
     latex = r"\begin{table}[H] \centering \renewcommand{\arraystretch}{2}" + "\n"
     latex += r"\begin{tabular}{" + col_def + r"} \hline" + "\n"
 
-    # --- FILA 1: Esquina + Etiqueta Superior ---
-    # La celda de esquina fusiona (h_rows) filas y (h_cols) columnas
+    # --- FILA 1 ---
     latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{\multirow{" + str(h_rows) + r"}{*}{\Huge \textbf{" + label_out + r"}}} & \multicolumn{4}{c|}{\textbf{" + label_sup + r" =}} \\ \cline{" + str(h_cols+1) + r"-" + str(grid_cols) + r"}" + "\n"
 
     row_bins = ["00", "01", "10", "11"]
     row_grays = ["00", "01", "11", "10"]
 
-    # --- FILAS DE NUMERACIÓN SUPERIOR ---
+    if empty_headers:
+        blank = r"\hspace*{0.8cm}"
+        row_bins = [blank] * 4
+        row_grays = [blank] * 4
+
+    # --- FILAS DE NUMERACIÓN ---
     if show_trap:
-        # Fila 2: Numeración Incorrecta (Binario)
         latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{} & 00 & 01 & 10 & 11 \\ \cline{" + str(h_cols+1) + r"-" + str(grid_cols) + r"}" + "\n"
-        # Fila 3: Numeración Correcta (Gray)
         latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{} & 00 & 01 & 11 & 10 \\ \hline" + "\n"
     else:
-        # Fila 2: Numeración Correcta (Gray) solamente
-        latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{} & 00 & 01 & 11 & 10 \\ \hline" + "\n"
+        num_header = " & ".join(row_grays)
+        latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{} & " + num_header + r" \\ \hline" + "\n"
 
-    # --- FILAS DE DATOS + NUMERACIÓN LATERAL ---
+    # --- FILAS DE DATOS ---
     for i in range(4):
-        # Columna 1 (Fusionada): Etiqueta Lateral (AB=)
-        # Solo se define en la primera iteración del bucle, con un multirow de 4
         label_cell = r"\multirow{4}{*}{\rotatebox{90}{\textbf{" + label_izq + r" =}}}" if i == 0 else ""
 
-        # Columnas de numeración lateral
         if show_trap:
-            # Col 2: Binario, Col 3: Gray
             num_cells = f"& {row_bins[i]} & {row_grays[i]}"
         else:
-            # Col 2: Gray
             num_cells = f"& {row_grays[i]}"
 
-        # Celdas vacías para que el alumno rellene
         grid_cells = "& & & &"
 
-        # Comando de línea horizontal (\cline o \hline)
-        # Debe saltarse la columna 1 (donde está la etiqueta vertical) para no cortarla
-        # El rango de cline empieza en la columna 2 y termina en el final
         start_cline = 2
         end_cline = grid_cols
         line_cmd = r"\cline{" + str(start_cline) + r"-" + str(end_cline) + r"}" if i < 3 else r"\hline"
@@ -223,8 +229,13 @@ def gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_
 
 def gen_latex_ej1(valores_out: List[Tuple[str, int]]) -> str:
     latex = r"\section*{Ejercicio 1: Sistemas de Representación (" + str(ExamSpecs.EX1_N_BITS) + r" bits)}"
-    latex += r"\noindent \textbf{a) Complete la tabla.} El registro es de " + str(ExamSpecs.EX1_N_BITS) + r" bits. Si no es representable, escriba 'NR'."
 
+    # ENUNCIADO EN CAJA
+    latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
+    latex += r"\noindent \textbf{a)} Complete la tabla adjunta. El registro es de " + str(ExamSpecs.EX1_N_BITS) + r" bits. Si no es representable, escriba 'NR'." + "\n"
+    latex += r"\end{tcolorbox}" + "\n"
+
+    latex += r"\textbf{Respuesta:}" + "\n"
     latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}" + "\n"
     latex += r"\begin{tabular}{|c|c|c|c|c|c|} \hline" + "\n"
     latex += r"\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{C2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline" + "\n"
@@ -256,7 +267,11 @@ def gen_latex_ej1(valores_out: List[Tuple[str, int]]) -> str:
 
     # Parte B
     if len(valores_out) >= 2:
-        latex += r"\noindent \textbf{b) Realice las siguientes operaciones aritméticas} utilizando los valores de la tabla:"
+        latex += r"\begin{tcolorbox}[title=Enunciado (Parte b)]" + "\n"
+        latex += r"\noindent \textbf{b)} Realice las siguientes operaciones aritméticas utilizando los valores de la tabla anterior." + "\n"
+        latex += r"\end{tcolorbox}" + "\n"
+
+        latex += r"\textbf{Respuesta:}" + "\n"
         latex += r"\begin{itemize}"
         for i in range(1, 3):
             fila1 = random.choice(valores_out)
@@ -283,30 +298,31 @@ def gen_latex_ej2() -> str:
     default_val = 0 if es_minterms else 1
     outputs = [default_val] * 16
 
-    # Generar adyacencias
     for _ in range(random.randint(3, 6)):
         idx1 = random.randint(0, 15)
         idx2 = idx1 ^ (1 << random.randint(0, 3))
         outputs[idx1] = target_val
         outputs[idx2] = target_val
 
-    latex += r"\noindent Dada la función $F(A,B,C,D)$ definida por la siguiente tabla de verdad:"
-    latex += r"\vspace{0.3cm}"
-
-    # USO DE LA NUEVA FUNCIÓN PARA LA TABLA DE VERDAD
+    # CAJA DE ENUNCIADO: Incluye el texto y la tabla llena (ya que es el dato de entrada)
+    latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
+    latex += r"\noindent Dada la función $F(A,B,C,D)$ definida por la siguiente tabla de verdad:" + "\n"
     latex += gen_latex_tabla_verdad(['A','B','C','D'], 'F', outputs)
-
-    latex += r"\noindent Utilice el siguiente esquema para simplificar. \textbf{Nota: La numeración incluye opciones correctas (Gray) e incorrectas (Binario Nat.), táchese la que no proceda.}"
-    latex += r"\vspace{0.5cm}"
-
-    # USO DE LA NUEVA FUNCIÓN PARA KARNAUGH (Con trampa)
-    latex += gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_trap=True)
-
+    latex += r"\noindent Se pide:" + "\n"
     latex += r"\begin{enumerate}[label=\alph*)]" + "\n"
     latex += f"\\item Obtener la expresión canónica mediante {tipo_canonico}.\n"
-    latex += r"\item Simplificar usando el mapa (identificando numeración correcta)." + "\n"
+    latex += r"\item Simplificar usando el mapa de Karnaugh (identificando numeración correcta)." + "\n"
     latex += f"\\item Implementar el circuito simplificado utilizando EXCLUSIVAMENTE puertas \\textbf{{{tipo_puerta}}}.\n"
-    latex += r"\end{enumerate}"
+    latex += r"\end{enumerate}" + "\n"
+    latex += r"\end{tcolorbox}" + "\n"
+
+    # ESPACIO DE RESPUESTA
+    latex += r"\textbf{Espacio de Resolución:}" + "\n"
+    latex += r"\vspace{0.2cm}"
+    latex += r"\noindent \textit{Utilice el siguiente esquema (tache la numeración incorrecta):}"
+    latex += gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_trap=True, empty_headers=False)
+
+    latex += r"\vspace{3cm} \hrule \vspace{0.2cm} \textit{Espacio para esquema lógico...}"
 
     return latex
 
@@ -315,45 +331,91 @@ def gen_latex_ej3() -> str:
     escenario = random.choice(ExamSpecs.EX3_SCENARIOS)
     logica = random.choice(escenario["logicas"])
 
-    latex += f"\\noindent \\textbf{{Contexto: {escenario['titulo']}}} \\\\"
+    vars_clean = [v.split(':')[0].strip() for v in escenario["vars"]]
+    out_clean = escenario["salida"].split(':')[0].strip()
+
+    # CAJA DE ENUNCIADO
+    latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
+    latex += f"\\noindent \\textbf{{Contexto: {escenario['titulo']}}} \\\\" + "\n"
     latex += r"\begin{itemize}"
     for var in escenario["vars"]:
         latex += f"\\item {var}"
     latex += f"\\item Salida: {escenario['salida']}"
-    latex += r"\end{itemize}"
+    latex += r"\end{itemize}" + "\n"
 
-    latex += f"\\noindent \\textit{{\\textbf{{Lógica de funcionamiento:}} {logica}}}"
-    latex += r"\vspace{0.3cm} \\ \noindent \textbf{Se pide:} (Justifique todos los pasos)"
-    latex += r"\begin{enumerate} \item Tabla de Verdad. \item Mapa de Karnaugh y simplificación. \item Esquema lógico final. \end{enumerate}"
+    latex += f"\\noindent \\textit{{\\textbf{{Lógica de funcionamiento:}} {logica}}}" + "\n"
+    latex += r"\vspace{0.3cm} \\ \noindent \textbf{Se pide:} (Justifique todos los pasos)" + "\n"
+    latex += r"\begin{enumerate} \item Tabla de Verdad. \item Mapa de Karnaugh y simplificación. \item Esquema lógico final. \end{enumerate}" + "\n"
+    latex += r"\end{tcolorbox}" + "\n"
+
+    # ESPACIO DE RESPUESTA
+    latex += r"\textbf{Espacio de Resolución:}" + "\n"
+
+    latex += r"\vspace{0.2cm}"
+    latex += r"\noindent \textbf{1. Complete la Tabla de Verdad:}"
+    latex += gen_latex_tabla_verdad(vars_clean, out_clean, valores=None)
+
+    latex += r"\newpage" # Salto para que el mapa quede arriba en la siguiente si es necesario, o solo vspace
+    # Como el ejercicio tiene su propia página, mejor no forzar newpage aqui salvo que la tabla sea larga.
+    # Vamos a dejar espacio.
+
+    latex += r"\noindent \textbf{2. Rellene la numeración y simplifique en el Mapa de Karnaugh:}"
+    l_izq = "".join(vars_clean[:2])
+    l_sup = "".join(vars_clean[2:])
+    latex += gen_latex_mapa_karnaugh(label_izq=l_izq, label_sup=l_sup, label_out=out_clean, show_trap=False, empty_headers=True)
+
+    latex += r"\vspace{1cm}"
+    latex += r"\noindent \textbf{3. Esquema Lógico:}"
+    latex += r"\vspace{4cm}"
+
     return latex
 
 def gen_latex_ej4() -> str:
     latex = r"\section*{Ejercicio 4: Análisis de Bloques MSI}"
     tipo = random.choice(['MUX', 'COMPARADOR', 'SUMADOR'])
+
+    latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
     latex += f"\\noindent Dado el siguiente componente: \\textbf{{{tipo}}}"
-    latex += r"\vspace{0.5cm}"
+    latex += r"\vspace{0.2cm}"
 
     latex += r"\begin{center} \begin{tikzpicture}"
-
     if tipo == 'MUX':
-        # Dibujo Mux 16:1
         latex += r"\draw[thick] (0,0) -- (0,8) -- (4,6) -- (4,2) -- (0,0) -- cycle;"
         latex += r"\node at (2,4) {\textbf{MUX 16:1}};"
-        # Entradas Izq
         latex += r"\foreach \y in {0.5,1,...,7.5} \draw (-0.5,\y) -- (0,\y);"
         latex += r"\node[left] at (-0.5, 7.5) {I0}; \node[left] at (-0.5, 0.5) {I15};"
-        # Selectores
-        latex += r"\foreach \x in {1,1.6,2.2,2.8} \draw (\x, -0.5) -- (\x, {(\x-2)*0.5 + 1});" # Rough calc
+        latex += r"\foreach \x in {1,1.6,2.2,2.8} \draw (\x, -0.5) -- (\x, {(\x-2)*0.5 + 1});"
         latex += r"\node[below] at (2,-0.5) {S3..S0};"
-        # Enable
         latex += r"\draw (3.5, -0.5) -- (3.5, 2.8); \node[below] at (3.5,-0.5) {$\overline{E}$}; \node[circle,draw,inner sep=1pt] at (3.5, 2.9) {};"
-        # Salidas
         latex += r"\draw (4,4) -- (5,4) node[right]{Y};"
         latex += r"\draw (4,3) -- (4.5,3); \node[circle,draw,inner sep=1pt] at (4.6,3) {}; \draw (4.7,3) -- (5,3) node[right]{$\overline{Y}$};"
+    elif tipo == 'COMPARADOR':
+        latex += r"\draw[thick] (0,0) rectangle (4,4);"
+        latex += r"\node at (2,3) {\textbf{COMPARADOR}};"
+        latex += r"\node at (2,2) {\textbf{4 BITS}};"
+        latex += r"\draw (-1, 3) -- (0,3) node[midway, above]{A(4)};"
+        latex += r"\draw (-1, 1) -- (0,1) node[midway, above]{B(4)};"
+        cascada = [random.randint(0,1) for _ in range(3)]
+        latex += r"\draw (1, -1) -- (1,0) node[below, yshift=-1cm]{I($>$)=%d};" % cascada[0]
+        latex += r"\draw (2, -1) -- (2,0) node[below, yshift=-1cm]{I($=$)=%d};" % cascada[1]
+        latex += r"\draw (3, -1) -- (3,0) node[below, yshift=-1cm]{I($<$)=%d};" % cascada[2]
+        latex += r"\draw (4,3) -- (5,3) node[right]{$>$};"
+        latex += r"\draw (4,2) -- (5,2) node[right]{$=$};"
+        latex += r"\draw (4,1) -- (5,1) node[right]{$<$};"
+    elif tipo == 'SUMADOR':
+        cin = random.randint(0,1)
+        latex += r"\draw[thick] (0,0) rectangle (4,4);"
+        latex += r"\node at (2,2) {\textbf{SUMADOR 4 BITS}};"
+        latex += r"\draw (-1,3) -- (0,3) node[midway, above]{A};"
+        latex += r"\draw (-1,1) -- (0,1) node[midway, above]{B};"
+        latex += r"\draw (2,4) -- (2,5) node[above]{Cin=%d};" % cin
+        latex += r"\draw (4,2.5) -- (5,2.5) node[right]{S(4)};"
+        latex += r"\draw (4,1.5) -- (5,1.5) node[right]{Cout};"
+    latex += r"\end{tikzpicture} \end{center}"
 
+    # Preguntas dentro de la caja
+    if tipo == 'MUX':
         inputs = [random.randint(0,1) for _ in range(16)]
-        latex += r"\end{tikzpicture} \end{center}"
-
         latex += f"\\noindent Entradas de datos (I0 a I15): {inputs} \\\\"
         latex += r"Determine las salidas $Y$ y $\overline{Y}$ para:"
         latex += r"\begin{enumerate}"
@@ -362,40 +424,18 @@ def gen_latex_ej4() -> str:
             ena = random.choice([0,1])
             latex += f"\\item Enable={ena}, Dirección={addr:04b}"
         latex += r"\end{enumerate}"
-
     elif tipo == 'COMPARADOR':
         val_a = random.randint(0, 15); val_b = random.randint(0, 15)
-        latex += r"\draw[thick] (0,0) rectangle (4,4);"
-        latex += r"\node at (2,3) {\textbf{COMPARADOR}};"
-        latex += r"\node at (2,2) {\textbf{4 BITS}};"
-        # Inputs A y B
-        latex += r"\draw (-1, 3) -- (0,3) node[midway, above]{A(4)};"
-        latex += r"\draw (-1, 1) -- (0,1) node[midway, above]{B(4)};"
-        # Cascadas
-        cascada = [random.randint(0,1) for _ in range(3)]
-        latex += r"\draw (1, -1) -- (1,0) node[below, yshift=-1cm]{I($>$)=%d};" % cascada[0]
-        latex += r"\draw (2, -1) -- (2,0) node[below, yshift=-1cm]{I($=$)=%d};" % cascada[1]
-        latex += r"\draw (3, -1) -- (3,0) node[below, yshift=-1cm]{I($<$)=%d};" % cascada[2]
-        # Salidas
-        latex += r"\draw (4,3) -- (5,3) node[right]{$>$};"
-        latex += r"\draw (4,2) -- (5,2) node[right]{$=$};"
-        latex += r"\draw (4,1) -- (5,1) node[right]{$<$};"
-        latex += r"\end{tikzpicture} \end{center}"
-
         latex += f"\\noindent Datos: A = {val_a} ({val_a:04b}), B = {val_b} ({val_b:04b}). Determine las 3 salidas."
-
     elif tipo == 'SUMADOR':
-        val_a = random.randint(0, 15); val_b = random.randint(0, 15); cin = random.randint(0,1)
-        latex += r"\draw[thick] (0,0) rectangle (4,4);"
-        latex += r"\node at (2,2) {\textbf{SUMADOR 4 BITS}};"
-        latex += r"\draw (-1,3) -- (0,3) node[midway, above]{A};"
-        latex += r"\draw (-1,1) -- (0,1) node[midway, above]{B};"
-        latex += r"\draw (2,4) -- (2,5) node[above]{Cin=%d};" % cin
-        latex += r"\draw (4,2.5) -- (5,2.5) node[right]{S(4)};"
-        latex += r"\draw (4,1.5) -- (5,1.5) node[right]{Cout};"
-        latex += r"\end{tikzpicture} \end{center}"
-
+        val_a = random.randint(0, 15); val_b = random.randint(0, 15)
         latex += f"\\noindent Realice la suma A ({val_a}) + B ({val_b}) + Cin. Indique S, Cout y si hay Overflow."
+
+    latex += r"\end{tcolorbox}" + "\n"
+
+    # ESPACIO DE RESPUESTA
+    latex += r"\textbf{Espacio de Resolución:}" + "\n"
+    latex += r"\vspace{5cm}"
 
     return latex
 
@@ -403,7 +443,7 @@ def gen_latex_ej5() -> str:
     latex = r"\section*{Ejercicio 5: Sistemas Secuenciales}"
 
     ff = random.choice(['JK', 'D', 'T'])
-    edge = random.choice(['rising', 'falling']) # TikZ timing naming convention
+    edge = random.choice(['rising', 'falling'])
     edge_txt = "Subida" if edge == 'rising' else "Bajada"
     has_async = random.choice([True, False])
 
@@ -413,36 +453,29 @@ def gen_latex_ej5() -> str:
         alvl = random.choice(['1', '0'])
         async_txt = f"Entrada asíncrona {atipo} activa a nivel {alvl}"
 
+    latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
     latex += f"\\noindent Sistema secuencial síncrono por flanco de \\textbf{{{edge_txt}}}. Biestables tipo \\textbf{{{ff}}}. {async_txt}."
     latex += r"\vspace{0.5cm}"
 
-    # DIBUJO DEL ESQUEMA LÓGICO (Básico con Circuitikz)
     latex += r"\begin{center} \begin{circuitikz} \draw"
-
-    # Dibujamos dos FF genéricos
-    # FlipFlop 1
     latex += r"(0,0) node[flipflop "+ff+r", dot on clock, external pins width=0](FF1){Q0}" if edge=='falling' else r"(0,0) node[flipflop "+ff+r", external pins width=0](FF1){Q0}"
-    # FlipFlop 2
     latex += r"(5,0) node[flipflop "+ff+r", dot on clock, external pins width=0](FF2){Q1}" if edge=='falling' else r"(5,0) node[flipflop "+ff+r", external pins width=0](FF2){Q1}"
-
     latex += r"; \end{circuitikz} \end{center}"
 
     latex += r"\noindent \textbf{Se pide:} a) Ecuaciones de entrada. b) Completar el cronograma."
-    latex += r"\vspace{0.5cm}"
+    latex += r"\end{tcolorbox}" + "\n"
 
-    # DIBUJO DEL CRONOGRAMA (Manual con TikZ puro para control total)
+    # ESPACIO DE RESPUESTA
+    latex += r"\textbf{Espacio de Resolución:}" + "\n"
+    latex += r"\vspace{2cm}" # Espacio para ecuaciones
+
     latex += r"\begin{center} \begin{tikzpicture}[x=1cm, y=0.5cm]"
-
     cycles = ExamSpecs.EX5_CRONO_CYCLES
-
-    # Reloj
     latex += r"\draw (0,4) node[left]{CLK};"
     latex += r"\draw[thick] (0,4)"
     for _ in range(cycles):
         latex += r" -- ++(0.5,0) -- ++(0,1) -- ++(0.5,0) -- ++(0,-1)"
     latex += r";"
-
-    # Entrada E (Aleatoria)
     latex += r"\draw (0,2) node[left]{E};"
     latex += r"\draw[thick] (0,2)"
     curr_e = 0
@@ -453,17 +486,11 @@ def gen_latex_ej5() -> str:
             curr_e = new_e
         latex += r" -- ++(0.5,0)"
     latex += r";"
-
-    # Líneas vacías para Q0 y Q1
     latex += r"\draw (0,0) node[left]{Q0}; \draw[dotted] (0,0) -- (6,0);"
     latex += r"\draw (0,-1.5) node[left]{Q1}; \draw[dotted] (0,-1.5) -- (6,-1.5);"
-
-    # Async signal si existe
     if has_async:
         latex += r"\draw (0,5.5) node[left]{ASYNC};"
-        # Pulso inicial
         latex += r"\draw[thick] (0,5.5) -- (0.2, 5.5) -- (0.2, 6.5) -- (1.5, 6.5) -- (1.5, 5.5) -- (6, 5.5);"
-
     latex += r"\end{tikzpicture} \end{center}"
 
     return latex
@@ -473,13 +500,15 @@ def gen_latex_ej5() -> str:
 # ==============================================================================
 
 def main():
-    valores_ej1 = [] # Para pasar datos entre 1a y 1b
+    valores_ej1 = []
 
     latex_code = get_latex_preamble()
     latex_code += gen_latex_ej1(valores_ej1)
+    latex_code += r"\newpage"
     latex_code += gen_latex_ej2()
     latex_code += r"\newpage"
     latex_code += gen_latex_ej3()
+    latex_code += r"\newpage"
     latex_code += gen_latex_ej4()
     latex_code += r"\newpage"
     latex_code += gen_latex_ej5()
