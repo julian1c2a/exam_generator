@@ -25,3 +25,18 @@ ENV/
 # *.tex  <-- Comentado para permitir lectura
 /Examen_Electronica_Digital.tex
 /Examen_Final.tex
+/_legacy_original/DigitalCircuitRenderer.py
+/_legacy_original/DocxRenderer.py
+/_legacy_original/ExamDataModel.py
+/_legacy_original/ExamGenerator.py
+/_legacy_original/KarnaughMapRenderer.py
+/_legacy_original/LatexRenderer.py
+/_legacy_original/Main.py
+/_legacy_original/README.md
+/_legacy_original/scenarios.json
+/_legacy_original/scoring_config.json
+/_legacy_original/TimingDiagramRenderer.py
+/_legacy_original/TruthTableRenderer.py
+/_legacy_original/image_38294.png
+/_legacy_original/header_config.json
+/_legacy_original/.gitignore
