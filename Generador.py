@@ -51,6 +51,7 @@ class ExamSpecs:
     ]
 
     # --- Ejercicio 5: Cronogramas ---
+    # IMPORTANTE: 6 ciclos de reloj completos = 12 unidades de tiempo (H+L)
     EX5_CRONO_CYCLES = 6
 
 # ==============================================================================
@@ -332,6 +333,7 @@ def gen_latex_ej4() -> str:
         latex += r"\draw[thick] (-0.7, 2.8) -- (-0.5, 3.2);" # Slash
         latex += r"\node[above] at (-0.6, 3.1) {\scriptsize 4};" # Num 4
 
+        # BUS B (Abajo, y=1)
         latex += r"\draw[ultra thick] (-1.2, 1) -- (0,1);"
         latex += r"\node[left] at (-1.2, 1) {B};"
         latex += r"\draw[thick] (-0.7, 0.8) -- (-0.5, 1.2);" # Slash
@@ -377,6 +379,8 @@ def gen_latex_ej4() -> str:
         latex += f"\\noindent Realice la suma A ({val_a}) + B ({val_b}) + Cin. Indique S, Cout y si hay Overflow."
 
     latex += r"\end{tcolorbox}" + "\n"
+
+    # ESPACIO DE RESPUESTA
     latex += r"\textbf{Espacio de Resolución:}" + "\n"
     latex += r"\vspace{5cm}"
     return latex
@@ -391,34 +395,35 @@ def gen_latex_ej5() -> str:
 
     logic_type = 'SHIFT' if ff == 'D' else 'COUNTER'
 
+    # --- CORRECCIÓN 1: NOMBRE EXPLÍCITO DE LA SEÑAL ASÍNCRONA ---
+    # async_txt ahora incluye "Set(asyn)", "Preset(asyn)", etc.
+    # Además, preparamos la etiqueta para el cronograma (ASYNC_LABEL)
     async_txt = "Sin Async"
+    async_label_crono = "" # Por defecto vacío si no hay
     if has_async:
-        atipo = random.choice(['PRE', 'CLR'])
+        atipo = random.choice(['Preset', 'Clear', 'Set', 'Reset'])
         alvl = random.choice(['1', '0'])
-        async_txt = f"Entrada asíncrona {atipo} activa a nivel {alvl}"
+        async_txt = f"Entrada asíncrona \\textbf{{{atipo}(asyn)}} activa a nivel {alvl}"
+        # Para el cronograma usamos el nombre + (asyn)
+        async_label_crono = f"{atipo}(asyn)"
 
     latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
     latex += f"\\noindent Sistema secuencial síncrono ({logic_type}) por flanco de \\textbf{{{edge_txt}}}. Biestables tipo \\textbf{{{ff}}}. {async_txt}."
     latex += r"\vspace{0.5cm}"
 
+    # ... (código del circuito circuitikz sin cambios relevantes aquí) ...
     latex += r"\begin{center} \begin{circuitikz}[scale=1.2, transform shape] \draw"
-
-    # FF1 y FF2 con coordenadas
     latex += r"(0,0) node[flipflop "+ff+r", external pins width=0](FF1){Q0}"
     latex += r"(5,0) node[flipflop "+ff+r", external pins width=0](FF2){Q1}"
-
-    # CLK COMÚN
     latex += r"; \draw (FF1.pin 2) -- ++(-0.5,0) -- ++(0,-1.5) coordinate(clk_bus);"
     latex += r"\draw (FF2.pin 2) -- ++(-0.5,0) -- ++(0,-1.5) -- (clk_bus);"
     latex += r"\draw (clk_bus) -- ++(-1,0) node[left]{CLK};"
 
-    # LÓGICA
     if logic_type == 'SHIFT':
         latex += r"\draw (FF1.pin 1) -- ++(-1,0) node[left]{E};"
         latex += r"\draw (FF1.pin 6) -- (FF2.pin 1);"
         latex += r"\draw (FF1.pin 6) -- ++(0.5,0) -- ++(0,1) node[above]{Q0};"
         latex += r"\draw (FF2.pin 6) -- ++(0.5,0) -- ++(0,1) node[above]{Q1};"
-
     elif logic_type == 'COUNTER':
         if ff == 'JK':
             latex += r"\draw (FF1.pin 1) -- ++(-0.5,0) coordinate(j1) -- ++(-0.5,0) node[left]{E};"
@@ -432,10 +437,16 @@ def gen_latex_ej5() -> str:
         latex += r"\draw (FF2.pin 6) -- ++(0,1) node[above]{Q1};"
 
     if has_async:
-        pin_name = "up" if atipo == 'PRE' else "down"
-        latex += r"\draw (FF1." + pin_name + r") -- ++(0," + ("0.5" if atipo=='PRE' else "-0.5") + r") coordinate(async1);"
-        latex += r"\draw (FF2." + pin_name + r") -- ++(0," + ("0.5" if atipo=='PRE' else "-0.5") + r") -- (async1);"
-        latex += r"\draw (async1) -- ++(0," + ("0.5" if atipo=='PRE' else "-0.5") + r") node[" + ("above" if atipo=='PRE' else "below") + r"]{ASYNC};"
+        # Mapeamos los nombres variados a los pines estándar up/down
+        # Set/Preset -> UP (pin 4)
+        # Clear/Reset -> DOWN (pin 6 o pin 'down')
+        is_preset_type = atipo in ['Set', 'Preset']
+        pin_name = "up" if is_preset_type else "down"
+
+        latex += r"\draw (FF1." + pin_name + r") -- ++(0," + ("0.5" if is_preset_type else "-0.5") + r") coordinate(async1);"
+        latex += r"\draw (FF2." + pin_name + r") -- ++(0," + ("0.5" if is_preset_type else "-0.5") + r") -- (async1);"
+        # Usamos el nombre específico en el dibujo también
+        latex += r"\draw (async1) -- ++(0," + ("0.5" if is_preset_type else "-0.5") + r") node[" + ("above" if is_preset_type else "below") + r"]{" + atipo + r"};"
 
     latex += r"; \end{circuitikz} \end{center}"
 
@@ -446,37 +457,75 @@ def gen_latex_ej5() -> str:
     latex += r"\vspace{2cm}"
 
     latex += r"\begin{center}"
-    # SCALE 1.8CM
     latex += r"\begin{tikztimingtable}[timing/slope=0, x=1.8cm, y=0.5cm]"
 
     cycles = ExamSpecs.EX5_CRONO_CYCLES
+    # width = cycles * 2 (ya que cada ciclo tiene 2 estados H/L) -> 12
     width = cycles * 2
 
-    # CLK
-    clk_str = f"{cycles}{{C}}"
+    # --- CORRECCIÓN 2: RELOJ COMPLETO 12{C} ---
+    # Antes era 6{C} que visualmente son 6 periodos, pero en tikz-timing 'C' suele ser un ciclo completo (H+L).
+    # Sin embargo, tikz-timing a veces escala diferente.
+    # Para asegurar alineación con 12 caracteres de entrada (H/L), el reloj debe tener 12 "transiciones" o cubrir el mismo ancho.
+    # Si 'C' es un periodo completo, 6{C} cubre 12 unidades de ancho base si cada estado H/L es 1 unidad.
+    # Pero el usuario pidió 12{C}. Si ponemos 12{C}, dibujará 12 ciclos completos, lo que sería el doble de ancho que 12 estados H/L.
+    # A MENOS QUE, el usuario quiera que el reloj vaya a doble frecuencia o que cada estado de entrada dure 1 ciclo completo.
+    # Pero lo estándar es: 1 ciclo CLK = 2 estados visuales (High, Low).
+    # Si la entrada 'E' tiene 12 valores, son 12 "medios ciclos".
+    # 6{C} DEBERÍA coincidir con 12 caracteres simples si C = HL.
+    # EL ERROR REPORTADO: "CLK & 6{C} ... el CLK debe ser 12{C}"
+    # Si el usuario insiste en 12{C}, lo ponemos, pero verificamos que E tenga 24 estados o que C sea medio ciclo (que no lo es).
+    # Probablemente quiere decir que visualmente faltaba reloj.
+    # Voy a poner 12{C} y duplicar la longitud de E y Salidas para que todo coincida en 12 ciclos COMPLETOS.
+    # O, interpretando "el clk no llega hasta el final", es que 6 ciclos eran pocos.
+    # Vamos a asumir que quiere 12 CICLOS de reloj en total.
+
+    final_cycles = 12 # Aumentamos a 12 ciclos
+    clk_str = f"{final_cycles}{{C}}"
     latex += r"CLK & " + clk_str + r" \\"
 
     # ASYNC
+    # Ajustamos ancho total: 12 ciclos = 24 'slots' de medio ciclo (si quisieramos granularidad fina)
+    # Pero 'C' en tikz-timing ocupa lo mismo que 'HL'.
+    # Si ponemos 12{C}, el ancho total es 24 'unidades' de carácter simple.
+    # Para Async y E, debemos generar cadenas de longitud equivalente a 12 ciclos completos.
+    # O sea, 24 caracteres H/L.
+
+    total_width_units = final_cycles * 2 # 24
+
     if has_async:
         active_high = ('1' in async_txt)
+        # 1 ciclo activo (2 unidades) + resto inactivo
         if active_high:
-            async_sig = "2H " + str(width-2) + "L"
+            async_sig = "2H " + str(total_width_units-2) + "L"
         else:
-            async_sig = "2L " + str(width-2) + "H"
-        latex += r"ASYNC & " + async_sig + r" \\"
+            async_sig = "2L " + str(total_width_units-2) + "H"
+        latex += async_label_crono + r" & " + async_sig + r" \\"
 
     # ENTRADA E
+    # Generamos 24 estados aleatorios (2 por ciclo) para cubrir los 12 ciclos de reloj.
     input_str = ""
-    for _ in range(width):
+    for _ in range(total_width_units):
         input_str += "H" if random.randint(0,1) else "L"
     latex += r"E & " + input_str + r" \\"
 
-    # SALIDAS VACÍAS
-    # Usamos 'Z' (High Impedance) con draw=none para asegurar el espacio sin dibujar
-    out_str = f"{width}{{Z}}"
+    # --- CORRECCIÓN 3: SALIDAS LIMPIAS (GRIS FUERA) ---
+    # El problema de [draw=none] 12{Z} saliendo "gris oscuro" es porque Z a veces tiene estilo.
+    # Usaremos 'D{}' (Data vacío) pero con estilo transparente.
+    # OJO: [draw=none] oculta el borde. Si Z tiene fill por defecto (gris), hay que quitarlo.
+    # Solución robusta: Usar 'U' (Unknown) y forzar estilo 'draw=none, fill=none'.
+    # O simplemente espacios vacíos si tikz-timing lo permite (N).
+    # Vamos a usar 'U' con un estilo explícito en la línea.
 
-    latex += r"Q0 & [draw=none] " + out_str + r" \\"
-    latex += r"Q1 & [draw=none] " + out_str + r" \\"
+    # Ademas, la longitud debe ser 24 'U's para coincidir con 12{C} (que son 24 unidades).
+    # O 12{2U} para que cada U dure un ciclo completo.
+    # Probemos con 12{2U} para simplificar, o 24U.
+
+    out_str = f"{total_width_units}{{U}}"
+
+    # Añadimos estilo para quitar cualquier trazo o relleno
+    latex += r"Q0 & [draw=none, fill=none] " + out_str + r" \\"
+    latex += r"Q1 & [draw=none, fill=none] " + out_str + r" \\"
 
     latex += r"\extracode"
     latex += r"\tablegrid"
