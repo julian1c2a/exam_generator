@@ -17,4 +17,4 @@ ENV/
 *.swo
 
 # Generated files
-*.docx
+*.docx*
