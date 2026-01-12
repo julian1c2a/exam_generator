@@ -23,3 +23,5 @@ ENV/
 *.pdf
 *.gz
 # *.tex  <-- Comentado para permitir lectura
+/Examen_Electronica_Digital.tex
+/Examen_Final.tex
