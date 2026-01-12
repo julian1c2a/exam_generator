@@ -3,11 +3,12 @@ from ExamDataModel import Exercise5Data
 class TimingDiagramRenderer:
     def render(self, data: Exercise5Data) -> str:
         # Usamos resizebox para asegurar que el cronograma se ajuste al ancho de la página.
-        # y=0.6cm: Reduce drásticamente la separación entre filas.
+        # Forzamos arraystretch bajo para comprimir filas.
         
         latex = r"\begin{center}" + "\n"
         latex += r"\resizebox{\textwidth}{!}{%" + "\n"
-        latex += r"\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=0.6cm]" + "\n"
+        latex += r"\renewcommand{\arraystretch}{0.5}" + "\n" # Comprimir filas
+        latex += r"\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=0.8cm]" + "\n" # y=0.8 para que la señal tenga cuerpo
         
         # Clock
         latex += fr"CLK\hspace{{1em}} & {data.clk_sequence} \\" + "\n"
