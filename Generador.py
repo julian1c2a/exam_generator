@@ -408,18 +408,21 @@ def gen_latex_ej5() -> str:
     latex += f"\\noindent Sistema secuencial síncrono ({logic_type}) por flanco de \\textbf{{{edge_txt}}}. Biestables tipo \\textbf{{{ff}}}. {async_txt}." + "\n"
     latex += r"\vspace{0.5cm}" + "\n"
 
+    # Diagrama de circuito con separaciones optimizadas
     latex += r"\begin{center} \begin{circuitikz}[scale=1.2, transform shape] \draw" + "\n"
     latex += r"(0,0) node[flipflop "+ff+r", external pins width=0](FF1){Q0}" + "\n"
     latex += r"(5,0) node[flipflop "+ff+r", external pins width=0](FF2){Q1}" + "\n"
-    latex += r"; \draw (FF1.pin 2) -- ++(-0.5,0) -- ++(0,-2.5) coordinate(clk_bus);" + "\n" # Bajamos más el bus
-    latex += r"\draw (FF2.pin 2) -- ++(-0.5,0) -- ++(0,-2.5) -- (clk_bus);" + "\n"
-    latex += r"\draw (clk_bus) -- ++(-1.5,0) node[left]{CLK};" + "\n" # Alejamos la etiqueta
+
+    # FIX: Bus de reloj bajado y desplazado para no cruzar J/K/E
+    latex += r"; \draw (FF1.pin 2) -- ++(-1.5,0) -- ++(0,-2.5) coordinate(clk_bus);" + "\n"
+    latex += r"\draw (FF2.pin 2) -- ++(-1.5,0) -- ++(0,-2.5) -- (clk_bus);" + "\n"
+    latex += r"\draw (clk_bus) -- ++(-1.0,0) node[left]{CLK};" + "\n"
 
     if logic_type == 'SHIFT':
         latex += r"\draw (FF1.pin 1) -- ++(-1,0) node[left]{E};" + "\n"
         latex += r"\draw (FF1.pin 6) -- (FF2.pin 1);" + "\n"
-        latex += r"\draw (FF1.pin 6) -- ++(0.5,0) -- ++(0,1.5) node[above]{Q0};" + "\n" # Subimos más Q0
-        latex += r"\draw (FF2.pin 6) -- ++(0.5,0) -- ++(0,1.5) node[above]{Q1};" + "\n"
+        latex += r"\draw (FF1.pin 6) -- ++(0.5,0) -- ++(0,1) node[above]{Q0};" + "\n"
+        latex += r"\draw (FF2.pin 6) -- ++(0.5,0) -- ++(0,1) node[above]{Q1};" + "\n"
     elif logic_type == 'COUNTER':
         if ff == 'JK':
             latex += r"\draw (FF1.pin 1) -- ++(-0.5,0) coordinate(j1) -- ++(-0.5,0) node[left]{E};" + "\n"
@@ -429,8 +432,8 @@ def gen_latex_ej5() -> str:
         elif ff == 'T':
             latex += r"\draw (FF1.pin 1) -- ++(-1,0) node[left]{E};" + "\n"
             latex += r"\draw (FF1.pin 6) -- (FF2.pin 1);" + "\n"
-        latex += r"\draw (FF1.pin 6) -- ++(0,1.5) node[above]{Q0};" + "\n" # Subimos más Q0
-        latex += r"\draw (FF2.pin 6) -- ++(0,1.5) node[above]{Q1};" + "\n"
+        latex += r"\draw (FF1.pin 6) -- ++(0,1) node[above]{Q0};" + "\n"
+        latex += r"\draw (FF2.pin 6) -- ++(0,1) node[above]{Q1};" + "\n"
 
     if has_async:
         is_preset_type = atipo in ['Set', 'Preset']
@@ -447,12 +450,13 @@ def gen_latex_ej5() -> str:
     latex += r"\textbf{Espacio de Resolución:}" + "\n"
     latex += r"\vspace{2cm}" + "\n"
 
+    # CRONOGRAMA
     latex += r"\begin{center}" + "\n"
     latex += r"\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=2.5cm]" + "\n"
 
     total_steps = 24
 
-    # AJUSTE SEPARACIÓN HORIZONTAL PARA CLK (hace que la etiqueta esté más a la izquierda)
+    # CLK
     clk_str = f"{total_steps}{{C}}"
     latex += r"CLK\hspace{1em} & " + clk_str + r" \\" + "\n"
 
