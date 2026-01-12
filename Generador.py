@@ -11,12 +11,10 @@ class ExamSpecs:
     SUBTITLE = "Parte I: Electrónica Digital"
     STUDENT_FIELD = "Nombre: ............................................................................ Fecha: ...................."
 
-    # --- Ejercicio 1: Representación Numérica ---
     EX1_N_BITS = 8
     EX1_HEADERS = ['Id', 'Decimal', 'Binario Nat.', 'C2', 'Signo-Magnitud', 'BCD']
     EX1_ROW_LABELS = ['a', 'b', 'c', 'd']
 
-    # --- Ejercicio 3: Escenarios ---
     EX3_SCENARIOS = [
         {
             "titulo": "Sistema de Seguridad de Bóveda Bancaria",
@@ -50,12 +48,11 @@ class ExamSpecs:
         }
     ]
 
-    # --- Ejercicio 5: Cronogramas ---
     # 12 ciclos visuales completos (24 transiciones)
     EX5_CRONO_CYCLES = 12
-    # Escala del cronograma (Ajustable aquí)
-    EX5_TIMING_X_SCALE = 2.0   # Ancho por unidad de tiempo (cm)
-    EX5_TIMING_Y_SCALE = 0.8   # Altura de la señal y separación base (cm)
+    # Escala del cronograma
+    EX5_TIMING_X_SCALE = 2.0
+    EX5_TIMING_Y_SCALE = 0.8
 
 # ==============================================================================
 # CAPA DE LÓGICA
@@ -91,6 +88,7 @@ def get_latex_preamble() -> str:
 \usepackage{circuitikz}
 \usepackage{tikz-timing}
 \usepackage{amsmath}
+\usepackage{amssymb} % <--- CORRECCIÓN 1: AÑADIDO AMSSYMB PARA \square
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{colortbl}
@@ -125,8 +123,6 @@ def get_latex_preamble() -> str:
 \hrule
 \vspace{0.5cm}
 """
-
-# --- FUNCIONES AUXILIARES DE LATEX ---
 
 def gen_latex_tabla_verdad(vars_in: List[str], var_out: str, valores: Optional[List[int]]) -> str:
     num_vars = len(vars_in)
@@ -191,8 +187,6 @@ def gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_
     latex += r"    \end{tabular}" + "\n"
     latex += r"\end{table}" + "\n"
     return latex
-
-# --- GENERADORES DE EJERCICIOS ---
 
 def gen_latex_ej1(valores_out: List[Tuple[str, int]]) -> str:
     latex = r"\section*{Ejercicio 1: Sistemas de Representación (" + str(ExamSpecs.EX1_N_BITS) + r" bits)}" + "\n"
@@ -479,8 +473,11 @@ def gen_latex_ej5() -> str:
         input_str += "H" if random.randint(0,1) else "L"
     latex += r"    E\hspace{2.5em} & " + input_str + r" \\" + "\n"
 
-    # SALIDAS (Limpio)
-    out_str = f"{total_steps}{{' '}}"
+    # --- CORRECCIÓN 2: USAR ESTADO 'U' PARA LIMPIEZA TOTAL ---
+    # Usar '24{U}' es la forma estándar de "Unknown" o "Undefined" en tikz-timing.
+    # Al aplicarle [draw=none, fill=none], no debería pintar nada (ni gris, ni trama), solo espacio.
+    out_str = f"{total_steps}{{U}}"
+
     latex += r"    Q0 & [draw=none, fill=none] " + out_str + r" \\" + "\n"
     latex += r"    Q1 & [draw=none, fill=none] " + out_str + r" \\" + "\n"
 
