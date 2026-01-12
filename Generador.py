@@ -21,9 +21,6 @@ class ExamSpecs:
     EX1_HEADERS = ['Id', 'Decimal', 'Binario Nat.', 'C2', 'Signo-Magnitud', 'BCD']
     EX1_ROW_LABELS = ['a', 'b', 'c', 'd']
 
-    # --- Ejercicio 2: Karnaugh ---
-    # En LaTeX controlamos anchos con p{...} o celdas estándar
-
     # --- Ejercicio 3: Escenarios ---
     EX3_SCENARIOS = [
         {
@@ -118,13 +115,119 @@ def get_latex_preamble() -> str:
 \vspace{0.5cm}
 """
 
+# --- NUEVAS FUNCIONES REUTILIZABLES ---
+
+def gen_latex_tabla_verdad(vars_in: List[str], var_out: str, valores: List[int]) -> str:
+    """
+    Genera el código LaTeX para una tabla de verdad genérica.
+    :param vars_in: Lista de nombres de variables de entrada (ej: ['A', 'B', 'C', 'D']).
+    :param var_out: Nombre de la variable de salida (ej: 'F').
+    :param valores: Lista de valores de salida (0 o 1). Debe tener 2^len(vars_in) elementos.
+    """
+    num_vars = len(vars_in)
+    num_rows = 2**num_vars
+
+    # Definición de columnas: |c|c|...|c|
+    col_def = "|" + "c|" * (num_vars + 1)
+
+    latex = r"\begin{table}[H] \centering" + "\n"
+    latex += r"\begin{tabular}{" + col_def + r"} \hline" + "\n"
+
+    # Cabecera
+    headers = [r"\textbf{" + v + r"}" for v in vars_in]
+    header_row = " & ".join(headers) + r" & \textbf{" + var_out + r"} \\ \hline" + "\n"
+    latex += r"\rowcolor[gray]{0.9} " + header_row
+
+    # Filas de datos
+    for i in range(num_rows):
+        # Generar binario para las entradas
+        bin_str = format(i, f'0{num_vars}b')
+        input_cells = " & ".join(list(bin_str))
+        output_cell = r"\textbf{" + str(valores[i]) + r"}"
+        latex += f"{input_cells} & {output_cell} \\\\ \\hline\n"
+
+    latex += r"\end{tabular} \end{table}" + "\n"
+    return latex
+
+def gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_trap=True) -> str:
+    """
+    Genera el código LaTeX para la plantilla de un Mapa de Karnaugh de 4 variables.
+    :param label_izq: Etiqueta para las filas (ej: 'AB').
+    :param label_sup: Etiqueta para las columnas (ej: 'CD').
+    :param label_out: Etiqueta para la función en la esquina (ej: 'F').
+    :param show_trap: Si True, incluye la doble numeración (Binario/Gray) para que el alumno elija.
+                      Si False, incluye solo la numeración correcta (Gray).
+    """
+    # Configuraciones según si hay trampa o no
+    if show_trap:
+        grid_cols = 7 # 3 headers + 4 data
+        h_cols = 3    # Columnas que ocupa la esquina/headers laterales
+        h_rows = 3    # Filas que ocupa la esquina/headers superiores
+    else:
+        grid_cols = 6 # 2 headers + 4 data
+        h_cols = 2
+        h_rows = 2
+
+    col_def = "|" + "c|" * grid_cols
+
+    latex = r"\begin{table}[H] \centering \renewcommand{\arraystretch}{2}" + "\n"
+    latex += r"\begin{tabular}{" + col_def + r"} \hline" + "\n"
+
+    # --- FILA 1: Esquina + Etiqueta Superior ---
+    # La celda de esquina fusiona (h_rows) filas y (h_cols) columnas
+    latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{\multirow{" + str(h_rows) + r"}{*}{\Huge \textbf{" + label_out + r"}}} & \multicolumn{4}{c|}{\textbf{" + label_sup + r" =}} \\ \cline{" + str(h_cols+1) + r"-" + str(grid_cols) + r"}" + "\n"
+
+    row_bins = ["00", "01", "10", "11"]
+    row_grays = ["00", "01", "11", "10"]
+
+    # --- FILAS DE NUMERACIÓN SUPERIOR ---
+    if show_trap:
+        # Fila 2: Numeración Incorrecta (Binario)
+        latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{} & 00 & 01 & 10 & 11 \\ \cline{" + str(h_cols+1) + r"-" + str(grid_cols) + r"}" + "\n"
+        # Fila 3: Numeración Correcta (Gray)
+        latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{} & 00 & 01 & 11 & 10 \\ \hline" + "\n"
+    else:
+        # Fila 2: Numeración Correcta (Gray) solamente
+        latex += r"\multicolumn{" + str(h_cols) + r"}{|c|}{} & 00 & 01 & 11 & 10 \\ \hline" + "\n"
+
+    # --- FILAS DE DATOS + NUMERACIÓN LATERAL ---
+    for i in range(4):
+        # Columna 1 (Fusionada): Etiqueta Lateral (AB=)
+        # Solo se define en la primera iteración del bucle, con un multirow de 4
+        label_cell = r"\multirow{4}{*}{\rotatebox{90}{\textbf{" + label_izq + r" =}}}" if i == 0 else ""
+
+        # Columnas de numeración lateral
+        if show_trap:
+            # Col 2: Binario, Col 3: Gray
+            num_cells = f"& {row_bins[i]} & {row_grays[i]}"
+        else:
+            # Col 2: Gray
+            num_cells = f"& {row_grays[i]}"
+
+        # Celdas vacías para que el alumno rellene
+        grid_cells = "& & & &"
+
+        # Comando de línea horizontal (\cline o \hline)
+        # Debe saltarse la columna 1 (donde está la etiqueta vertical) para no cortarla
+        # El rango de cline empieza en la columna 2 y termina en el final
+        start_cline = 2
+        end_cline = grid_cols
+        line_cmd = r"\cline{" + str(start_cline) + r"-" + str(end_cline) + r"}" if i < 3 else r"\hline"
+
+        latex += f"{label_cell} {num_cells} {grid_cells} \\\\ {line_cmd}\n"
+
+    latex += r"\end{tabular} \end{table}" + "\n"
+    return latex
+
+# --- GENERADORES DE EJERCICIOS ---
+
 def gen_latex_ej1(valores_out: List[Tuple[str, int]]) -> str:
     latex = r"\section*{Ejercicio 1: Sistemas de Representación (" + str(ExamSpecs.EX1_N_BITS) + r" bits)}"
     latex += r"\noindent \textbf{a) Complete la tabla.} El registro es de " + str(ExamSpecs.EX1_N_BITS) + r" bits. Si no es representable, escriba 'NR'."
 
-    latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}"
-    latex += r"\begin{tabular}{|c|c|c|c|c|c|} \hline"
-    latex += r"\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{C2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline"
+    latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}" + "\n"
+    latex += r"\begin{tabular}{|c|c|c|c|c|c|} \hline" + "\n"
+    latex += r"\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{C2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline" + "\n"
 
     for label in ExamSpecs.EX1_ROW_LABELS:
         opciones_columna = [1, 1, 2, 3, 3, 4, 4, 5]
@@ -147,9 +250,9 @@ def gen_latex_ej1(valores_out: List[Tuple[str, int]]) -> str:
         cells[col_idx] = text_val
         valores_out.append((label, val))
 
-        latex += " & ".join(cells) + r" \\ \hline"
+        latex += " & ".join(cells) + r" \\ \hline" + "\n"
 
-    latex += r"\end{tabular} \end{table}"
+    latex += r"\end{tabular} \end{table}" + "\n"
 
     # Parte B
     if len(valores_out) >= 2:
@@ -190,50 +293,19 @@ def gen_latex_ej2() -> str:
     latex += r"\noindent Dada la función $F(A,B,C,D)$ definida por la siguiente tabla de verdad:"
     latex += r"\vspace{0.3cm}"
 
-    # TABLA DE VERDAD (Estrecha)
-    latex += r"\begin{table}[H] \centering"
-    latex += r"\begin{tabular}{|c|c|c|c|c|} \hline"
-    latex += r"\rowcolor[gray]{0.9} \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{F} \\ \hline"
-    for i in range(16):
-        b = f"{i:04b}"
-        latex += f"{b[0]} & {b[1]} & {b[2]} & {b[3]} & \\textbf{{{outputs[i]}}} \\\\ \\hline"
-    latex += r"\end{tabular} \end{table}"
+    # USO DE LA NUEVA FUNCIÓN PARA LA TABLA DE VERDAD
+    latex += gen_latex_tabla_verdad(['A','B','C','D'], 'F', outputs)
 
     latex += r"\noindent Utilice el siguiente esquema para simplificar. \textbf{Nota: La numeración incluye opciones correctas (Gray) e incorrectas (Binario Nat.), táchese la que no proceda.}"
     latex += r"\vspace{0.5cm}"
 
-    # MAPA DE KARNAUGH (Tabla compleja)
-    # Estructura 7x7
-    # Filas: [Header CD] [Num Bad] [Num Good] [Row 00] [Row 01] [Row 11] [Row 10]
-    # Cols:  [Header AB] [Num Bad] [Num Good] [Col 00] [Col 01] [Col 11] [Col 10]
+    # USO DE LA NUEVA FUNCIÓN PARA KARNAUGH (Con trampa)
+    latex += gen_latex_mapa_karnaugh(label_izq="AB", label_sup="CD", label_out="F", show_trap=True)
 
-    latex += r"\begin{table}[H] \centering \renewcommand{\arraystretch}{2}"
-    latex += r"\begin{tabular}{|c|c|c|c|c|c|c|} \hline"
-
-    # Fila 1: F (merged 3x3) | CD Label (merged 1x4)
-    latex += r"\multicolumn{3}{|c|}{\multirow{3}{*}{\Huge \textbf{F}}} & \multicolumn{4}{c|}{\textbf{CD =}} \\ \cline{4-7}"
-
-    # Fila 2: Num Bad (Cols)
-    latex += r"\multicolumn{3}{|c|}{} & 00 & 01 & 10 & 11 \\ \cline{4-7}"
-
-    # Fila 3: Num Good (Cols)
-    latex += r"\multicolumn{3}{|c|}{} & 00 & 01 & 11 & 10 \\ \hline"
-
-    # Filas de la cuadrícula
-    row_bins = ["00", "01", "10", "11"]
-    row_grays = ["00", "01", "11", "10"]
-
-    for i in range(4):
-        # Columna 1: AB Label (merged 4x1) -> Solo en la primera iteración
-        col1 = r"\multirow{4}{*}{\rotatebox{90}{\textbf{AB =}}}" if i == 0 else ""
-        latex += f"{col1} & {row_bins[i]} & {row_grays[i]} & & & & \\\\ \\hline"
-
-    latex += r"\end{tabular} \end{table}"
-
-    latex += r"\begin{enumerate}[label=\alph*)]"
-    latex += f"\item Obtener la expresión canónica mediante {tipo_canonico}."
-    latex += r"\item Simplificar usando el mapa (identificando numeración correcta)."
-    latex += f"\item Implementar el circuito simplificado utilizando EXCLUSIVAMENTE puertas \\textbf{{{tipo_puerta}}}."
+    latex += r"\begin{enumerate}[label=\alph*)]" + "\n"
+    latex += f"\\item Obtener la expresión canónica mediante {tipo_canonico}.\n"
+    latex += r"\item Simplificar usando el mapa (identificando numeración correcta)." + "\n"
+    latex += f"\\item Implementar el circuito simplificado utilizando EXCLUSIVAMENTE puertas \\textbf{{{tipo_puerta}}}.\n"
     latex += r"\end{enumerate}"
 
     return latex

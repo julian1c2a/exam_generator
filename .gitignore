@@ -18,3 +18,8 @@ ENV/
 
 # Generated files
 *.docx*
+/Examen_Electronica_Digital.aux
+/Examen_Electronica_Digital.log
+/Examen_Electronica_Digital.pdf
+/Examen_Electronica_Digital.synctex.gz
+/Examen_Electronica_Digital.tex
