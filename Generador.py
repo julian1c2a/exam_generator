@@ -38,7 +38,7 @@ class ExamSpecs:
 
     # --- Ejercicio 2: Karnaugh y Tablas ---
     EX2_TT_COL_WIDTH_CM = 1.0      # Ancho estrecho para columnas de Tabla de Verdad
-    EX2_KMAP_CELL_DIM_CM = 1.2     # Dimensiones cuadradas (ancho y alto) para celdas del mapa
+    EX2_KMAP_CELL_DIM_CM = 0.6     # <--- ACTUALIZADO: Dimensiones reducidas a la mitad (0.6 cm)
     EX2_KMAP_GRID_SIZE = 7         # Tamaño de la cuadrícula (7x7)
     EX2_TITLE_FONT_SIZE = 24       # Tamaño de la letra 'F' en la esquina
 
@@ -244,6 +244,10 @@ def generar_ejercicio_2(doc: Document) -> Dict[str, Any]:
     table_tv.style = 'Table Grid'
     table_tv.alignment = WD_TABLE_ALIGNMENT.CENTER
     table_tv.allow_autofit = False
+
+    # Forzar ancho de columnas globalmente (SOLUCIÓN ROBUSTA)
+    for col in table_tv.columns:
+        col.width = Cm(ExamSpecs.EX2_TT_COL_WIDTH_CM)
 
     headers_tv = ['A', 'B', 'C', 'D', 'F']
     # Cabeceras
