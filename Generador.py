@@ -51,7 +51,7 @@ class ExamSpecs:
     ]
 
     # --- Ejercicio 5: Cronogramas ---
-    # IMPORTANTE: 12 ciclos de reloj completos (visuales)
+    # 12 ciclos visuales completos (24 transiciones)
     EX5_CRONO_CYCLES = 12
 
 # ==============================================================================
@@ -339,14 +339,14 @@ def gen_latex_ej4() -> str:
         latex += r"\draw[thick] (-0.7, 0.8) -- (-0.5, 1.2);" # Slash
         latex += r"\node[above] at (-0.6, 1.1) {\scriptsize 4};" # Num 4
 
-        # ENTRADAS CASCADA (LADO IZQUIERDO, INTERMEDIAS)
+        # ENTRADAS CASCADA CON NOMBRES SEGUROS
         cascada = [random.randint(0,1) for _ in range(3)]
         latex += r"\draw (-1, 2.4) -- (0, 2.4);"
-        latex += r"\node[left] at (-1, 2.4) {\small $I_{>}=%d$};" % cascada[0]
+        latex += r"\node[left] at (-1, 2.4) {\small $I_{gr}=%d$};" % cascada[0] # I_gr en vez de >
         latex += r"\draw (-1, 2.0) -- (0, 2.0);"
-        latex += r"\node[left] at (-1, 2.0) {\small $I_{=}=%d$};" % cascada[1]
+        latex += r"\node[left] at (-1, 2.0) {\small $I_{eq}=%d$};" % cascada[1] # I_eq
         latex += r"\draw (-1, 1.6) -- (0, 1.6);"
-        latex += r"\node[left] at (-1, 1.6) {\small $I_{<}=%d$};" % cascada[2]
+        latex += r"\node[left] at (-1, 1.6) {\small $I_{le}=%d$};" % cascada[2] # I_le en vez de <
 
         latex += r"\draw (4,3) -- (5,3) node[right]{$>$};"
         latex += r"\draw (4,2) -- (5,2) node[right]{$=$};"
@@ -448,54 +448,33 @@ def gen_latex_ej5() -> str:
     latex += r"\vspace{2cm}"
 
     latex += r"\begin{center}"
-    latex += r"\begin{tikztimingtable}[timing/slope=0, x=1.8cm, y=0.5cm]"
+    # SCALE 2.0CM Horizontal, 2.5CM Vertical
+    latex += r"\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=2.5cm]"
 
-    # 24 chars de ancho total (12 ciclos completos)
-    # CLK = 24{C} (si C es medio ciclo en tu config) o 12{C} (si C es ciclo completo).
-    # En tikz-timing por defecto 'C' es un ciclo H+L (width 2).
-    # '24{C}' produciría 24 ciclos completos (ancho 48).
-    # '12{C}' produce 12 ciclos completos (ancho 24).
-    # Tu requerimiento explícito es '24{C}'.
-    # Esto implica que quieres 24 transiciones o que tu C es medio ciclo?
-    # NO: Si pides '24{C}', es porque quieres 24 periodos de reloj.
-    # Entonces E debe tener longitud 48 (2 por periodo).
-    # Si quieres que coincida con la cadena E de 24 caracteres (LHH...), entonces CLK debe ser '12{C}'.
-    # Pero si me pides explícitamente "CLK & 24{C}", obedezco, pero ajusto E a 48 chars.
-    # O ajusto E a 24 chars y asumo que cada char de E dura UN ciclo completo de reloj (24 ciclos total).
-
-    # Asumiré que quieres 12 CICLOS REALES de reloj (ancho 24 unidades base).
-    # Entonces CLK debe ser 12{C}.
-    # E debe ser 24 caracteres (cambia a mitad de ciclo).
-    # Salidas Q 24 chars vacíos.
-
-    # Sin embargo, tu prompt dice textualmente: "CLK & 24{C} ... E & LHH... (24 chars)".
-    # Si CLK tiene 24 'C's y E tiene 24 caracteres, entonces cada caracter de E dura UN CICLO de reloj.
-    # Esto es válido. Haré exactamente lo que pides.
-
+    # IMPORTANTE: 12 ciclos de reloj completos (visuales)
     total_steps = 24
 
     # CLK
     clk_str = f"{total_steps}{{C}}"
-    latex += r"CLK & " + clk_str + r" \\"
+    # Añadimos un pequeño espacio horizontal extra en la primera columna para evitar solape
+    latex += r"CLK\hspace{0.5em} & " + clk_str + r" \\"
 
     # ASYNC
     if has_async:
         active_high = ('1' in async_txt)
-        # 2 ciclos activos, resto inactivos
         if active_high:
             async_sig = "2H " + str(total_steps-2) + "L"
         else:
             async_sig = "2L " + str(total_steps-2) + "H"
-        latex += async_label_crono + r" & " + async_sig + r" \\"
+        latex += async_label_crono + r"\hspace{0.5em} & " + async_sig + r" \\"
 
     # ENTRADA E (24 chars)
     input_str = ""
     for _ in range(total_steps):
         input_str += "H" if random.randint(0,1) else "L"
-    latex += r"E & " + input_str + r" \\"
+    latex += r"E\hspace{2.5em} & " + input_str + r" \\" # Más espacio para E que suele ser corto
 
-    # SALIDAS VACÍAS
-    # Usamos espacio vacío ' ' repetido 24 veces con draw=none
+    # SALIDAS VACÍAS (Con espacios vacíos ' ' repetido 24 veces con draw=none)
     out_str = f"{total_steps}{{' '}}"
 
     latex += r"Q0 & [draw=none, fill=none] " + out_str + r" \\"
