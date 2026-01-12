@@ -1,6 +1,6 @@
-from exam_generator import ExamGenerator
-from latex_renderer import LatexRenderer
-from docx_renderer import DocxRenderer
+from ExamGenerator import ExamGenerator
+from LatexRenderer import LatexRenderer
+from DocxRenderer import DocxRenderer
 
 def main():
     # 1. Configuración
