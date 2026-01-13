@@ -1,0 +1,198 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2cm, right=2cm, headheight=2cm]{geometry}
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usepackage{tikz-timing}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{diagbox}
+\usepackage{xcolor} % Para resaltar soluciones
+
+\usetikzlibrary{calc}
+\tcbset{colback=gray!5!white, colframe=gray!75!black, title=\textbf{ENUNCIADO}, fonttitle=\bfseries, boxrule=0.5mm, arc=2mm}
+
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{B}{>{\centering\arraybackslash}p{0.5cm}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\lhead{\includegraphics[height=1.5cm]{../../resources/png/image_38294.png}}
+\chead{\textbf{UNIVERSIDAD DE MÁLAGA} \\ Departamento de Tecnología Electrónica}
+\rhead{\textbf{Fundamentos de Electrónica} \\ 1er Cuatrimestre \\ Curso 2025/2026}
+
+\lfoot{\small Examen de Teoría - Parte Digital}
+\cfoot{\small Profesores: Almudena | Julián}
+\rfoot{\small Página \thepage\ de \pageref{LastPage}}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{Examen de Teoría - Parte Digital}} \\ \vspace{0.2cm}
+    {\Large \textbf{21 de Enero de 2026}}
+\end{center}
+
+\vspace{0.5cm}
+\noindent \textbf{Apellido y Nombre:} ............................................................................ \hfill \textbf{Grupo:} ....................
+\vspace{0.5cm} \hrule \vspace{0.5cm}
+\section*{Ejercicio 1: Sistemas de Representación (8 bits)}
+\begin{tcolorbox}[title=Enunciado]
+\noindent \textbf{a)} Complete la tabla. Registro de 8 bits. Si no es representable, escriba 'NR'.
+\end{tcolorbox}
+
+\textbf{Respuesta:}
+\begin{table}[H] \centering \renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|c|c|C{2.8cm}|C{2.8cm}|C{2.8cm}|C{2.8cm}|} \hline
+\rowcolor[gray]{0.9} \textbf{Id} & \textbf{Decimal} & \textbf{Binario Nat.} & \textbf{Compl. 2} & \textbf{Signo-Mag.} & \textbf{BCD} \\ \hline
+a) &  &  & 11001001 &  &  \\ \hline
+b) &  & 01000001 &  &  &  \\ \hline
+c) &  &  & 11001100 &  &  \\ \hline
+d) & -77 &  &  &  &  \\ \hline
+\end{tabular} \end{table}
+\begin{tcolorbox}[title=Enunciado (Parte b)]
+\noindent \textbf{b)} Realice las siguientes operaciones aritméticas.
+\end{tcolorbox}
+\par \vspace{0.5cm} \noindent \textbf{1) Suma en Binario Natural:} Fila a + Fila b
+\begin{center} \renewcommand{\arraystretch}{1.5}
+\begin{tabular}{r|B|B|B|B|B|B|B|B|}
+\tiny{Acarreo} &  &  &  &  &  &  &  &  \\ \cline{2-9}
+Op. 1 &  &  &  &  &  &  &  &  \\ \cline{2-9}
+Op. 2 &  &  &  &  &  &  &  &  \\ \hline \hline
+\textbf{Res.} &  &  &  &  &  &  &  &  \\ \cline{2-9}
+\end{tabular} \end{center}
+\par \vspace{0.2cm}
+\noindent \textit{¿Overflow? $\square$ \hspace{1cm} ¿Underflow? $\square$ \hspace{1cm} ¿Correcto? $\square$}
+\par \vspace{0.3cm}
+\noindent \hspace{0.5cm} \textbf{¿Por qué?}
+\par \vspace{0.8cm}
+\par \vspace{0.5cm} \noindent \textbf{2) Suma en Complemento a 2:} Fila a + Fila d
+\begin{center} \renewcommand{\arraystretch}{1.5}
+\begin{tabular}{r|B|B|B|B|B|B|B|B|}
+\tiny{Acarreo} &  &  &  &  &  &  &  &  \\ \cline{2-9}
+Op. 1 &  &  &  &  &  &  &  &  \\ \cline{2-9}
+Op. 2 &  &  &  &  &  &  &  &  \\ \hline \hline
+\textbf{Res.} &  &  &  &  &  &  &  &  \\ \cline{2-9}
+\end{tabular} \end{center}
+\par \vspace{0.2cm}
+\noindent \textit{¿Overflow? $\square$ \hspace{1cm} ¿Underflow? $\square$ \hspace{1cm} ¿Correcto? $\square$}
+\par \vspace{0.3cm}
+\noindent \hspace{0.5cm} \textbf{¿Por qué?}
+\par \vspace{0.8cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% >>>>>> INICIO EJERCICIO 2: Diseño y Simplificación Lógica <<<<<<
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage \section*{Ejercicio 2: Diseño y Simplificación Lógica}
+\begin{tcolorbox}[title=Enunciado]
+\noindent Dada la función definida por la siguiente tabla de verdad:
+\begin{table}[H] \centering \renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|c|c|c|c|c|} \hline
+\rowcolor[gray]{0.9} \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{F} \\ \hline
+0 & 0 & 0 & 0 & \textbf{1} \\ \hline
+0 & 0 & 0 & 1 & \textbf{1} \\ \hline
+0 & 0 & 1 & 0 & \textbf{1} \\ \hline
+0 & 0 & 1 & 1 & \textbf{1} \\ \hline
+0 & 1 & 0 & 0 & \textbf{0} \\ \hline
+0 & 1 & 0 & 1 & \textbf{1} \\ \hline
+0 & 1 & 1 & 0 & \textbf{1} \\ \hline
+0 & 1 & 1 & 1 & \textbf{1} \\ \hline
+1 & 0 & 0 & 0 & \textbf{0} \\ \hline
+1 & 0 & 0 & 1 & \textbf{0} \\ \hline
+1 & 0 & 1 & 0 & \textbf{1} \\ \hline
+1 & 0 & 1 & 1 & \textbf{0} \\ \hline
+1 & 1 & 0 & 0 & \textbf{0} \\ \hline
+1 & 1 & 0 & 1 & \textbf{0} \\ \hline
+1 & 1 & 1 & 0 & \textbf{1} \\ \hline
+1 & 1 & 1 & 1 & \textbf{0} \\ \hline
+\end{tabular} \end{table}
+\noindent Se pide:
+\begin{enumerate}[label=\alph*)]
+\item Obtener la expresión canónica (Minitérminos (Suma de Productos)).
+\item Simplificar por Karnaugh.
+\item Implementar con puertas \textbf{NAND}.
+\end{enumerate} \end{tcolorbox}
+\textbf{Espacio de Resolución:}
+\input{components/ej2_kmap.tex}
+\vspace{3cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% >>>>>> INICIO EJERCICIO 3: Problema de Diseño Lógico <<<<<<
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage \section*{Ejercicio 3: Problema de Diseño Lógico}
+\begin{tcolorbox}[title=Enunciado]
+\textbf{Contexto: Sistema de Seguridad de Bóveda Bancaria}
+\begin{itemize}
+\item A: Sensor Reloj (1=Laboral)
+\item B: Llave Director (1=Si)
+\item C: Llave Gerente (1=Si)
+\item D: Código (1=OK)
+\item Salida: Z: Apertura
+\end{itemize}
+\textit{Lógica: La puerta se abre siempre que el código de seguridad sea correcto, SALVO que estemos fuera de horario laboral y falte alguna de las llaves (Director o Gerente).}
+\end{tcolorbox}
+\textbf{1. Tabla de Verdad:}
+\begin{table}[H] \centering \renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|c|c|c|c|c|} \hline
+\rowcolor[gray]{0.9} \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{Z} \\ \hline
+0 & 0 & 0 & 0 &   \\ \hline
+0 & 0 & 0 & 1 &   \\ \hline
+0 & 0 & 1 & 0 &   \\ \hline
+0 & 0 & 1 & 1 &   \\ \hline
+0 & 1 & 0 & 0 &   \\ \hline
+0 & 1 & 0 & 1 &   \\ \hline
+0 & 1 & 1 & 0 &   \\ \hline
+0 & 1 & 1 & 1 &   \\ \hline
+1 & 0 & 0 & 0 &   \\ \hline
+1 & 0 & 0 & 1 &   \\ \hline
+1 & 0 & 1 & 0 &   \\ \hline
+1 & 0 & 1 & 1 &   \\ \hline
+1 & 1 & 0 & 0 &   \\ \hline
+1 & 1 & 0 & 1 &   \\ \hline
+1 & 1 & 1 & 0 &   \\ \hline
+1 & 1 & 1 & 1 &   \\ \hline
+\end{tabular} \end{table}
+\newpage \textbf{2. Mapa de Karnaugh:}
+\input{components/ej3_problem_kmap.tex}
+\vspace{1cm}
+\noindent \textbf{3. Esquema Lógico:}
+\vspace{4cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% >>>>>> INICIO EJERCICIO 4: Análisis de Bloques MSI <<<<<<
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage \section*{Ejercicio 4: Análisis de Bloques MSI}
+\begin{tcolorbox}[title=Enunciado]
+Dado el siguiente esquema lógico (SUMADOR):
+\input{components/ej4_msi_sumador.tex}
+\noindent Determine la salida S y el acarreo de salida Cout.
+\end{tcolorbox} \vspace{5cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% >>>>>> INICIO EJERCICIO 5: Sistemas Secuenciales <<<<<<
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage \section*{Ejercicio 5: Sistemas Secuenciales}
+\begin{tcolorbox}[title=Enunciado]
+Síncrono (COUNTER) por Subida. FF T. Async \textbf{Set(asyn)} a nivel 0.
+\input{components/ej5_seq_circuit.tex}
+\end{tcolorbox}
+\input{components/ej5_seq_timing.tex}
+\vspace{0.5cm}
+\noindent \textbf{Se pide:}
+\begin{enumerate}[label=\alph*)]
+\item Completar el cronograma (salidas Q0, Q1).
+\item Determinar la secuencia de estados.
+\end{enumerate}
+\end{document}

@@ -11,7 +11,7 @@ class LatexAssetManager:
         os.makedirs(self.components_path, exist_ok=True)
 
     def get_component(self, name_id: str, content_generator_func: Callable[[], str]) -> str:
-        """
+        r"""
         Gestiona un componente LaTeX (ej: un diagrama TikZ).
         
         1. Busca si existe un archivo fijo en /resources/latex/{name_id}.tex

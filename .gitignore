@@ -52,4 +52,3 @@ ENV/
 !/TruthTableRenderer.py
 !/scenarios.json
 !/scoring_config.json
-/build/latex/Examen_V2.tex
