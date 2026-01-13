@@ -1,15 +1,21 @@
-% --- COMPONENTE GENERADO: ej5_seq_timing ---
-% ID: ej5_seq_timing
-% Si quieres fijar este diseño, copia este archivo a 'resources/latex/ej5_seq_timing.tex' y edítalo.
-\begin{center}
-\resizebox{\textwidth}{!}{%
-\renewcommand{\arraystretch}{0}
-\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=0.35cm]
-CLK\hspace{1em} & 24{C} \\
-Set(asyn)\hspace{1em} & 2L 22H \\
-E\hspace{2.5em} & LLLLLLLLLHHHHLHLHHLLLLLH \\
-Q0 & [draw=none, fill=none] 24{} \\
-Q1 & [draw=none, fill=none] 24{} \\
-\extracode \tablegrid \end{tikztimingtable}%
-}
-\end{center}
+% --- PRUEBA DE ALINEACIÓN IZQUIERDA Y COMPRESIÓN VERTICAL ---
+\begin{flushleft}
+	% arraystretch=0 elimina el padding proporcional.
+	\renewcommand{\arraystretch}{0}
+	% extrarowheight negativo elimina altura fija extra. Ajusta este valor (-2pt, -5pt, etc.)
+	\setlength{\extrarowheight}{0pt}
+	
+	\begin{tikztimingtable}[
+		timing/slope=0,
+		timing/xunit=0.60cm,
+		timing/yunit=0.35cm,
+		timing/coldist=2pt
+	]
+		CLK & 24{C} \\
+		Set(asyn) & 2L 22H \\
+		E & LLLLLLLLLHHHHLHLHHLLLLLH \\
+		Q0 & [draw=none, fill=none] 24{} \\
+		Q1 & [draw=none, fill=none] 24{} \\
+		\extracode \tablegrid
+	\end{tikztimingtable}
+\end{flushleft}
