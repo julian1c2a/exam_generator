@@ -2,7 +2,6 @@ from modules.secuencial.models import SequentialExerciseData
 
 class TimingDiagramRenderer:
     def render(self, data: SequentialExerciseData) -> str:
-        # Formateo basado en la plantilla definitiva de resources/latex/ej5_seq_timing.tex
         
         # Construcción de filas
         rows = []
