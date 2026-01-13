@@ -12,7 +12,6 @@ from renderers.latex.secuencial_renderer import SecuencialLatexRenderer
 class LatexExamRenderer:
     def __init__(self, is_solution: bool = False):
         self.is_solution = is_solution
-        # Pasamos el flag a los sub-renderizadores
         self.numeracion_renderer = NumeracionLatexRenderer(is_solution)
         self.combinacional_renderer = CombinacionalLatexRenderer(is_solution)
         self.secuencial_renderer = SecuencialLatexRenderer(is_solution)
@@ -38,6 +37,7 @@ class LatexExamRenderer:
                 latex += self.secuencial_renderer.render(ex_data, i)
             else:
                 latex += f"\\section*{{Ejercicio {i}: Tipo desconocido}}\n"
+                latex += f"No hay renderizador para {type(ex_data).__name__}\n"
         
         latex += self._get_footer()
         return latex
@@ -48,7 +48,6 @@ class LatexExamRenderer:
         full_exam_title = h.get('exam_title', '')
         if h.get('exam_type'): full_exam_title += fr" - {h.get('exam_type')}"
         
-        # Añadir indicativo de SOLUCIÓN si corresponde
         if self.is_solution:
             full_exam_title += r" \textcolor{red}{(SOLUCIÓN)}"
             
@@ -56,6 +55,14 @@ class LatexExamRenderer:
         if h.get('semester'): right_header += fr" \\ {h.get('semester')}"
         if h.get('term'): right_header += fr" \\ {h.get('term')}"
         date_str = h.get('date', '')
+
+        # Lógica para mostrar profesores
+        show_prof = h.get("show_professors", False)
+        # Aceptamos booleanos o strings "si"/"yes"
+        if isinstance(show_prof, str) and show_prof.lower() in ["si", "yes", "true"]:
+            show_prof = True
+            
+        cfoot_content = fr"{{\small {h.get('professors', '')}}}" if show_prof else ""
 
         return fr"""\documentclass[a4paper,11pt]{{article}}
 \usepackage[utf8]{{inputenc}}
@@ -76,7 +83,7 @@ class LatexExamRenderer:
 \usepackage{{fancyhdr}}
 \usepackage{{lastpage}}
 \usepackage{{diagbox}}
-\usepackage{{xcolor}} % Para resaltar soluciones
+\usepackage{{xcolor}}
 
 \usetikzlibrary{{calc}}
 \tcbset{{colback=gray!5!white, colframe=gray!75!black, title=\textbf{{ENUNCIADO}}, fonttitle=\bfseries, boxrule=0.5mm, arc=2mm}}
@@ -94,7 +101,7 @@ class LatexExamRenderer:
 \rhead{{{right_header}}}
 
 \lfoot{{\small {full_exam_title}}}
-\cfoot{{\small {h.get('professors', '')}}}
+\cfoot{{{cfoot_content}}}
 \rfoot{{\small Página \thepage\ de \pageref{{LastPage}}}}
 
 \begin{{document}}

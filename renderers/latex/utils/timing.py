@@ -2,30 +2,32 @@ from modules.secuencial.models import SequentialExerciseData
 
 class TimingDiagramRenderer:
     def render(self, data: SequentialExerciseData) -> str:
-        # Usamos resizebox para asegurar que el cronograma se ajuste al ancho de la página.
-        # y=0.35cm: Altura validada por el usuario.
-        # arraystretch=0: Eliminar espaciado extra.
+        # Formateo limpio y legible del código LaTeX generado
         
-        latex = r"\begin{center}" + "\n"
-        latex += r"\resizebox{\textwidth}{!}{%" + "\n"
-        latex += r"\renewcommand{\arraystretch}{0}" + "\n"
-        latex += r"\begin{tikztimingtable}[timing/slope=0, x=2.0cm, y=0.35cm]" + "\n"
+        sep = r"\hspace{1ex}"
         
-        # Clock
-        latex += fr"CLK\hspace{{1em}} & {data.clk_sequence} \\" + "\n"
+        # Construcción de filas
+        rows = []
+        rows.append(fr"            CLK{sep} & {data.clk_sequence} \\")
         
-        # Async signal (si existe)
         if data.has_async:
-            latex += fr"{data.async_type}(asyn)\hspace{{1em}} & {data.async_sequence} \\" + "\n"
+            rows.append(fr"            {data.async_type}(asyn){sep} & {data.async_sequence} \\")
             
-        # Input signal
-        latex += fr"E\hspace{{2.5em}} & {data.input_sequence} \\" + "\n"
+        rows.append(fr"            E{sep} & {data.input_sequence} \\")
+        rows.append(fr"            Q0{sep} & [draw=none, fill=none] {data.output_placeholder} \\")
+        rows.append(fr"            Q1{sep} & [draw=none, fill=none] {data.output_placeholder} \\")
         
-        # Output placeholders
-        latex += fr"Q0 & [draw=none, fill=none] {data.output_placeholder} \\" + "\n"
-        latex += fr"Q1 & [draw=none, fill=none] {data.output_placeholder} \\" + "\n"
-        
-        latex += r"\extracode \tablegrid \end{tikztimingtable}%" + "\n"
-        latex += r"}" + "\n" # Cierre de resizebox
-        latex += r"\end{center}" + "\n"
-        return latex
+        rows_str = "\n".join(rows)
+
+        return fr"""
+\begin{{center}}
+    \resizebox{{\textwidth}}{{!}}{{%
+        \renewcommand{{\arraystretch}}{{0}}
+        \begin{{tikztimingtable}}[timing/slope=0, x=2.0cm, y=0.35cm]
+{rows_str}
+            \extracode
+            \tablegrid
+        \end{{tikztimingtable}}%
+    }}
+\end{{center}}
+"""
