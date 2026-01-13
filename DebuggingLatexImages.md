@@ -1,53 +1,38 @@
-# Guía de Depuración de Imágenes LaTeX
+# Guía de Depuración de Imágenes LaTeX (Flujo Mejorado)
 
-Este proyecto utiliza un sistema de **Gestión de Recursos (Asset Manager)** que permite separar la generación automática de diagramas (TikZ, Circuitikz) de su corrección manual.
+Este proyecto utiliza un sistema de **Gestión de Recursos (Asset Manager)** que permite separar la generación automática de diagramas de su corrección manual.
 
-## 🔄 Flujo de Trabajo
+## 🔄 Flujo de Trabajo de Depuración
 
-Cuando ejecutas `main_v2.py`, el sistema sigue estos pasos para cada diagrama (Mapas de Karnaugh, Circuitos, Cronogramas):
+Si un diagrama generado automáticamente (ej: un circuito o cronograma) no se ve bien en el PDF final:
 
-1.  **Busca un recurso fijo**: Verifica si existe un archivo `.tex` corregido manualmente en `resources/latex/`.
-2.  **Si existe**: Lo utiliza directamente (`\input{../../resources/latex/archivo.tex}`).
-3.  **Si NO existe**:
-    *   Genera el código LaTeX dinámicamente desde Python.
-    *   Guarda ese código en un archivo "borrador" en `build/latex/components/`.
-    *   Utiliza ese borrador en el examen (`\input{components/archivo.tex}`).
+1.  **Localizar el Borrador**:
+    *   Ve a `build/latex/components/`.
+    *   Encuentra el archivo problemático (ej: `ej5_seq_timing.tex`).
+    *   Copia su contenido.
 
-## 🛠 Cómo Corregir una Imagen Mal Generada
+2.  **Preparar el Candidato**:
+    *   Ve a `resources/latex/debugging/`.
+    *   Abre (o crea) el archivo `candidate.tex`.
+    *   Pega el contenido del borrador allí.
 
-Si un diagrama (por ejemplo, el cronograma del Ejercicio 5) no se ve bien:
+3.  **Visualizar y Corregir**:
+    *   Abre y compila `resources/latex/debugging/test_component.tex`.
+    *   Verás el diagrama renderizado en un entorno aislado.
+    *   Edita `candidate.tex` y recompila `test_component.tex` hasta que el diagrama esté perfecto.
 
-1.  **Identifica el archivo generado**:
-    *   Ve a la carpeta `build/latex/components/`.
-    *   Busca el archivo correspondiente (ej: `ej5_seq_timing.tex`). El nombre suele ser descriptivo (`ej{numero}_{tipo}.tex`).
+4.  **Promover a Producción**:
+    *   Una vez corregido, guarda el contenido de `candidate.tex` en un nuevo archivo en la carpeta superior: `resources/latex/`.
+    *   **Importante:** El nombre del archivo debe coincidir con el ID que espera el generador (ej: `ej5_seq_timing.tex`). Puedes ver este nombre en la cabecera del archivo generado original.
 
-2.  **Copia a Recursos**:
-    *   Copia ese archivo `.tex` a la carpeta `resources/latex/`.
+5.  **Verificar**:
+    *   Ejecuta `python main_v2.py`.
+    *   El sistema detectará tu archivo en `resources/latex/` y lo usará automáticamente.
 
-3.  **Edita Manualmente**:
-    *   Abre el archivo en `resources/latex/ej5_seq_timing.tex` con tu editor de texto o IDE LaTeX favorito.
-    *   Modifica el código TikZ/LaTeX hasta que se vea como quieres.
-    *   *Tip:* Puedes crear un pequeño archivo `test.tex` temporal que incluya ese componente para compilarlo y verlo rápido sin generar todo el examen.
+## 📂 Estructura de Carpetas
 
-4.  **Regenera el Examen**:
-    *   Ejecuta `python main_v2.py` de nuevo.
-    *   El sistema detectará tu archivo en `resources/latex/` y lo usará en lugar de generar uno nuevo.
-    *   Verás en el log o en el archivo `.tex` final un comentario como: `% [RECURSO FIJO DETECTADO: ej5_seq_timing.tex]`.
-
-## 📂 Estructura de Archivos
-
-*   `build/latex/Examen_V2.tex`: Archivo principal del examen.
-*   `build/latex/components/`: **Borradores**. Se sobrescriben cada vez que ejecutas el script (si no hay recurso fijo). **NO EDITAR AQUÍ**.
-*   `resources/latex/`: **Definitivos**. Archivos corregidos manualmente. Git debe rastrear esta carpeta.
-
-## 💡 Ejemplo Práctico
-
-**Problema:** El cable del reloj en el Flip-Flop JK atraviesa el componente.
-
-1.  Ejecuto el script. Veo el error en el PDF.
-2.  Voy a `build/latex/components/ej5_seq_circuit.tex`.
-3.  Lo copio a `resources/latex/ej5_seq_circuit.tex`.
-4.  Edito `resources/latex/ej5_seq_circuit.tex`:
-    *   Cambio `\draw (FF1.pin 2) -- ...` por `\draw (FF1.clk) -- ...`.
-5.  Ejecuto el script.
-6.  El PDF final ahora usa mi versión corregida.
+*   `build/latex/components/`: **Borradores** generados por Python.
+*   `resources/latex/debugging/`: **Laboratorio**.
+    *   `test_component.tex`: El archivo que compilas para ver los cambios.
+    *   `candidate.tex`: El archivo sucio donde editas el código.
+*   `resources/latex/`: **Producción**. Archivos `.tex` finales y corregidos.

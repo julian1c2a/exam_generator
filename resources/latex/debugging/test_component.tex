@@ -1,0 +1,70 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+
+% --- PAQUETES (Idénticos al entorno de producción) ---
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usepackage{tikz-timing}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{diagbox}
+\usepackage{xcolor}
+
+% --- CONFIGURACIÓN DE RUTAS ---
+% Rutas de búsqueda para imágenes
+% 1. ../../png/ -> Para encontrar logos en resources/png/ desde resources/latex/debugging/
+% 2. ../../../ -> Para encontrar imágenes en la raíz (legacy)
+\graphicspath{{../../png/}{../../../}}
+
+% --- CONFIGURACIÓN DE LIBRERÍAS ---
+\usetikzlibrary{calc}
+\tcbset{colback=gray!5!white, colframe=gray!75!black, title=\textbf{ENUNCIADO}, fonttitle=\bfseries, boxrule=0.5mm, arc=2mm}
+
+% --- DEFINICIONES PERSONALIZADAS ---
+\newcolumntype{C}[1]{{>{\centering\arraybackslash}p{#1}}}
+\newcolumntype{B}{{>{\centering\arraybackslash}p{0.5cm}}}
+
+\begin{document}
+
+\section*{Entorno de Depuración de Componentes}
+
+% Instrucciones visuales
+\begin{tcolorbox}[colback=blue!5!white, colframe=blue!75!black, title=Instrucciones]
+    \begin{enumerate}
+        \item Pega el código del componente que quieres arreglar en el archivo \textbf{\texttt{candidate.tex}} (en esta misma carpeta).
+        \item Compila este documento (\texttt{test\_component.tex}).
+        \item Edita \texttt{candidate.tex} hasta que se vea bien.
+        \item Cuando termines, renombra o mueve \texttt{candidate.tex} a \texttt{../nombre\_final.tex}.
+    \end{enumerate}
+\end{tcolorbox}
+
+\vspace{1cm}
+\hrule
+\vspace{0.5cm}
+
+\begin{center}
+    % --- AQUÍ SE INCRUSTA TU COMPONENTE ---
+    \IfFileExists{candidate.tex}
+    {
+        \input{candidate.tex}
+    }
+    {
+        \textcolor{red}{\textbf{Error: No se encuentra el archivo 'candidate.tex'.\\ Crea ese archivo y pega ahí tu código TikZ/LaTeX.}}
+    }
+    % --------------------------------------
+\end{center}
+
+\vspace{0.5cm}
+\hrule
+
+\end{document}
