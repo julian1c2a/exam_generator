@@ -52,3 +52,7 @@ ENV/
 !/TruthTableRenderer.py
 !/scenarios.json
 !/scoring_config.json
+*.tex
+*/*.tex
+*/*/*.tex
+*/*/*/*.tex
