@@ -27,12 +27,13 @@
 \newcolumntype{C}[1]{{>{\centering\arraybackslash}p{#1}}}
 \newcolumntype{B}{{>{\centering\arraybackslash}p{0.5cm}}}
 
-% --- CONFIGURACIÓN ---
+% --- CONFIGURACIÓN DE DEPURACIÓN ---
+% Define aquí el nombre del archivo que quieres probar (sin .tex)
 \newcommand{\componentToTest}{candidate}
 
 \begin{document}
 
-% Usamos \detokenize para que los guiones bajos en el nombre no rompan el título
+% Usamos \detokenize para evitar errores con guiones bajos en el nombre del archivo al imprimirlo
 \section*{Entorno de Depuración: \texttt{\detokenize\expandafter{\componentToTest}.tex}}
 
 \begin{center}
