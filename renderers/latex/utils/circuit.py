@@ -83,6 +83,13 @@ class DigitalCircuitRenderer:
         ff = data.ff_type
         ff_style = f"flipflop {ff}"
         
+        # Determinar el pin de reloj según el tipo de FF
+        # JK: pin 2 (centro)
+        # T/D: pin 3 (abajo)
+        clk_pin = "pin 2" if ff == 'JK' else "pin 3"
+
+        print(f"DEBUG: FF Type={ff}, CLK Pin={clk_pin}") # DEBUG
+
         code = r"\begin{center} \begin{circuitikz}[scale=1.2, transform shape] \draw" + "\n"
         
         # Flip Flops
@@ -90,16 +97,18 @@ class DigitalCircuitRenderer:
         code += fr"(5,0) node[{ff_style}, external pins width=0](FF2){{Q1}};" + "\n"
         
         # Dibujar círculo de negación manualmente si es bajada
+        # Ajustar offset para que el cable no choque con el círculo
         if data.edge_type == "Bajada":
-            code += r"\draw (FF1.pin 2) ++(-0.1,0) circle(0.1);" + "\n"
-            code += r"\draw (FF2.pin 2) ++(-0.1,0) circle(0.1);" + "\n"
+            code += fr"\draw (FF1.{clk_pin}) ++(-0.1,0) circle(0.1);" + "\n"
+            code += fr"\draw (FF2.{clk_pin}) ++(-0.1,0) circle(0.1);" + "\n"
             clk_offset = "-0.2"
         else:
             clk_offset = "0"
 
         # Clock Bus
-        code += fr"\draw (FF1.pin 2) ++({clk_offset},0) -- ++(-0.5,0) -- ++(0,-2.0) coordinate(clk_bus);" + "\n"
-        code += fr"\draw (FF2.pin 2) ++({clk_offset},0) -- ++(-0.5,0) -- (clk_bus -| FF2.pin 2) -- (clk_bus);" + "\n"
+        # Usamos clk_pin dinámico
+        code += fr"\draw (FF1.{clk_pin}) ++({clk_offset},0) -- ++(-0.5,0) -- ++(0,-2.0) coordinate(clk_bus);" + "\n"
+        code += fr"\draw (FF2.{clk_pin}) ++({clk_offset},0) -- ++(-0.5,0) -- (clk_bus -| FF2.{clk_pin}) -- (clk_bus);" + "\n"
         code += r"\draw (clk_bus) -- ++(-1.0,0) node[left]{CLK};" + "\n"
 
         # Lógica específica (Shift vs Counter)

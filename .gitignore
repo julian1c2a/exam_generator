@@ -64,3 +64,7 @@ ENV/
 */*/*.synctex(busy)
 */*/*/*.synctex
 */*/*/*.synctex(busy)
+*.synctex*
+*/*.synctex*
+*/*/*.synctex*
+*/*/*/*.synctex*
