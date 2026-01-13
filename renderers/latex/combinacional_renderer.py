@@ -2,20 +2,28 @@ from modules.combinacional.models import KarnaughExerciseData, LogicProblemExerc
 from renderers.latex.utils.truth_table import TruthTableRenderer
 from renderers.latex.utils.karnaugh import KarnaughMapRenderer
 from renderers.latex.utils.circuit import DigitalCircuitRenderer
+from renderers.latex.utils.asset_manager import LatexAssetManager
 
 class CombinacionalLatexRenderer:
-    def __init__(self):
+    def __init__(self, is_solution: bool = False):
+        self.is_solution = is_solution
         self.tt_renderer = TruthTableRenderer()
         self.kmap_renderer = KarnaughMapRenderer()
         self.circuit_renderer = DigitalCircuitRenderer()
+        self.asset_manager = LatexAssetManager()
 
     def render(self, data: object, index: int) -> str:
+        # Marcador de inicio de ejercicio
+        latex = "\n" + "%" * 60 + "\n"
+        latex += f"% >>>>>> INICIO EJERCICIO {index}: {data.title} <<<<<<\n"
+        latex += "%" * 60 + "\n"
+
         if isinstance(data, KarnaughExerciseData):
-            return self._render_karnaugh(data, index)
+            return latex + self._render_karnaugh(data, index)
         elif isinstance(data, LogicProblemExerciseData):
-            return self._render_problem(data, index)
+            return latex + self._render_problem(data, index)
         elif isinstance(data, MSIExerciseData):
-            return self._render_msi(data, index)
+            return latex + self._render_msi(data, index)
         return ""
 
     def _render_karnaugh(self, data: KarnaughExerciseData, index: int) -> str:
@@ -33,9 +41,17 @@ class CombinacionalLatexRenderer:
         latex += r"\end{enumerate} \end{tcolorbox}" + "\n"
 
         latex += r"\textbf{Espacio de Resolución:}" + "\n"
+        
+        # Usar Asset Manager para el Mapa de Karnaugh
+        # ID único: ej{index}_kmap
         vars_left = "".join(data.vars_name[:2])
         vars_top = "".join(data.vars_name[2:])
-        latex += self.kmap_renderer.render_template(vars_left, vars_top, data.out_name)
+        
+        # Función lambda que genera el contenido si no existe el fijo
+        generator_func = lambda: self.kmap_renderer.render_template(vars_left, vars_top, data.out_name)
+        
+        latex += self.asset_manager.get_component(f"ej{index}_kmap", generator_func)
+        
         latex += r"\vspace{3cm}" + "\n"
         return latex
 
@@ -54,9 +70,13 @@ class CombinacionalLatexRenderer:
         latex += self.tt_renderer.render(data.vars_clean, data.out_clean, None)
         
         latex += r"\newpage \textbf{2. Mapa de Karnaugh:}" + "\n"
+        
+        # Asset Manager para KMap del problema
         l_izq = "".join(data.vars_clean[:2])
         l_sup = "".join(data.vars_clean[2:])
-        latex += self.kmap_renderer.render_template(l_izq, l_sup, data.out_clean)
+        
+        generator_func = lambda: self.kmap_renderer.render_template(l_izq, l_sup, data.out_clean)
+        latex += self.asset_manager.get_component(f"ej{index}_problem_kmap", generator_func)
         
         latex += r"\vspace{1cm}" + "\n"
         latex += r"\noindent \textbf{3. Esquema Lógico:}" + "\n"
@@ -68,12 +88,20 @@ class CombinacionalLatexRenderer:
         latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
         latex += fr"{data.description}" + "\n"
         
+        # Asset Manager para el circuito MSI
+        # ID único: ej{index}_msi_{tipo}
+        component_id = f"ej{index}_msi_{data.block_type.lower()}"
+        
         if data.block_type == 'MUX':
-            latex += self.circuit_renderer.render_mux()
+            gen_func = lambda: self.circuit_renderer.render_mux()
         elif data.block_type == 'COMPARADOR':
-            latex += self.circuit_renderer.render_comparator(data.params)
+            gen_func = lambda: self.circuit_renderer.render_comparator(data.params)
         elif data.block_type == 'SUMADOR':
-            latex += self.circuit_renderer.render_adder(data.params)
+            gen_func = lambda: self.circuit_renderer.render_adder(data.params)
+        else:
+            gen_func = lambda: "% Tipo desconocido"
+
+        latex += self.asset_manager.get_component(component_id, gen_func)
 
         if data.block_type == 'MUX':
             latex += fr"Entradas I0-I15: {data.params['inputs']} \\ Determine Y para:" + "\n"
