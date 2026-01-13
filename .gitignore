@@ -40,3 +40,15 @@ ENV/
 /_legacy_original/image_38294.png
 /_legacy_original/header_config.json
 /_legacy_original/.gitignore
+!/DigitalCircuitRenderer.py
+!/DocxRenderer.py
+!/ExamDataModel.py
+!/ExamDataModel.py
+!/ExamGenerator.py
+!/KarnaughMapRenderer.py
+!/LatexRenderer.py
+!/Main.py
+!/TimingDiagramRenderer.py
+!/TruthTableRenderer.py
+!/scenarios.json
+!/scoring_config.json
