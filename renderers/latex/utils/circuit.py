@@ -58,24 +58,33 @@ class DigitalCircuitRenderer:
         return fr"""
 \begin{{center}} \begin{{tikzpicture}}
     \draw[thick] (0,0) rectangle (4,4);
-    \node at (2,2) {{\textbf{{SUMADOR 4 BITS}}}};
     
-    % Entradas A y B (Buses)
-    \draw[ultra thick] (-1.2, 3) -- (0,3); \node[left] at (-1.2, 3) {{A}}; 
-    \node[above] at (-0.6, 3.1) {{\scriptsize 4}}; \draw[thick] (-0.7, 2.8) -- (-0.5, 3.2);
+    % Sigma (Arriba)
+    \node at (2,3.25) {{\Huge $\Sigma$}};
+    % Texto descriptivo (Abajo)
+    \node at (2,1.0) {{\textbf{{SUMADOR 4 BITS}}}};
     
-    \draw[ultra thick] (-1.2, 1) -- (0,1); \node[left] at (-1.2, 1) {{B}}; 
-    \node[above] at (-0.6, 1.1) {{\scriptsize 4}}; \draw[thick] (-0.7, 0.8) -- (-0.5, 1.2);
+    % Entradas A (Bus) en Y=3.0
+    \draw[ultra thick] (-1.2, 3.0) -- (0,3.0); 
+    \node[left] at (-1.2, 3.0) {{A}}; 
+    \node[above] at (-0.6, 3.1) {{\scriptsize 4}}; 
+    \draw[thick] (-0.7, 2.8) -- (-0.5, 3.2);
+    
+    % Entradas B (Bus) en Y=2.0
+    \draw[ultra thick] (-1.2, 2.0) -- (0,2.0); 
+    \node[left] at (-1.2, 2.0) {{B}}; 
+    \node[above] at (-0.6, 2.1) {{\scriptsize 4}}; 
+    \draw[thick] (-0.7, 1.8) -- (-0.5, 2.2);
     
     % Carry In (Parte izquierda abajo)
-    \draw (-1, 0.5) -- (0, 0.5) node[midway, above]{{Cin={params['Cin']}}};
+    \draw (-1, 0.5) -- (0, 0.5) node[midway, above]{{Cin}};
     
-    % Salida S (Bus)
+    % Salida S (Bus) en Y=2.5 (Punto medio)
     \draw[ultra thick] (4,2.5) -- (5.2,2.5); \node[right] at (5.2, 2.5) {{S}};
     \node[above] at (4.6, 2.6) {{\scriptsize 4}}; \draw[thick] (4.5, 2.3) -- (4.7, 2.7);
     
-    % Carry Out
-    \draw (4,1.5) -- (5,1.5) node[right]{{Cout}};
+    % Carry Out (Cout) en Y=0.5 (Alineado con Cin)
+    \draw (4,0.5) -- (5,0.5) node[right]{{Cout}};
 \end{{tikzpicture}} \end{{center}}
 """
 
@@ -87,55 +96,54 @@ class DigitalCircuitRenderer:
         # JK: pin 2 (centro)
         # T/D: pin 3 (abajo)
         clk_pin = "pin 2" if ff == 'JK' else "pin 3"
-
-        print(f"DEBUG: FF Type={ff}, CLK Pin={clk_pin}") # DEBUG
-
-        code = r"\begin{center} \begin{circuitikz}[scale=1.2, transform shape] \draw" + "\n"
+        
+        code = r"\begin{center} " + "\n"
+        code += r"	\begin{circuitikz}[scale=1.2, transform shape]" + "\n"
+        code += r"        \draw" + "\n"
         
         # Flip Flops
-        code += fr"(0,0) node[{ff_style}, external pins width=0](FF1){{Q0}} "
-        code += fr"(5,0) node[{ff_style}, external pins width=0](FF2){{Q1}};" + "\n"
+        code += fr"            (0,0) node[{ff_style}, external pins width=0](FF1){{Q0}}" + "\n"
+        code += fr"            (5,0) node[{ff_style}, external pins width=0](FF2){{Q1}};" + "\n"
         
         # Dibujar círculo de negación manualmente si es bajada
-        # Ajustar offset para que el cable no choque con el círculo
         if data.edge_type == "Bajada":
-            code += fr"\draw (FF1.{clk_pin}) ++(-0.1,0) circle(0.1);" + "\n"
-            code += fr"\draw (FF2.{clk_pin}) ++(-0.1,0) circle(0.1);" + "\n"
+            code += fr"        \draw (FF1.{clk_pin}) ++(-0.1,0) circle(0.1);" + "\n"
+            code += fr"        \draw (FF2.{clk_pin}) ++(-0.1,0) circle(0.1);" + "\n"
             clk_offset = "-0.2"
         else:
             clk_offset = "0"
 
-        # Clock Bus
-        # Usamos clk_pin dinámico
-        code += fr"\draw (FF1.{clk_pin}) ++({clk_offset},0) -- ++(-0.5,0) -- ++(0,-2.0) coordinate(clk_bus);" + "\n"
-        code += fr"\draw (FF2.{clk_pin}) ++({clk_offset},0) -- ++(-0.5,0) -- (clk_bus -| FF2.{clk_pin}) -- (clk_bus);" + "\n"
-        code += r"\draw (clk_bus) -- ++(-1.0,0) node[left]{CLK};" + "\n"
+        # Clock Bus (Estructura relativa mejorada)
+        code += fr"        \draw (FF1.{clk_pin}) ++({clk_offset},0) -- ++(-0.5,0) -- ++(0,-2.0) coordinate(clk_bus);" + "\n"
+        code += fr"        \draw (FF2.{clk_pin}) ++({clk_offset},0) -- ++(-0.5,0) -- ++(0,-2.0) -- (clk_bus);" + "\n"
+        code += r"        \draw (clk_bus) -- ++(-0.5,0) node[left]{CLK};" + "\n"
 
         # Lógica específica (Shift vs Counter)
         if data.logic_type == 'SHIFT':
-            code += r"\draw (FF1.pin 1) -- ++(-1,0) node[left]{E};" + "\n"
-            code += r"\draw (FF1.pin 6) -- (FF2.pin 1);" + "\n"
+            code += r"        \draw (FF1.pin 1) -- ++(-1,0) node[left]{E};" + "\n"
+            code += r"        \draw (FF1.pin 6) -- (FF2.pin 1);" + "\n"
         else: # COUNTER
             if ff == 'JK':
-                code += r"\draw (FF1.pin 1) -- ++(-0.5,0) coordinate(j1) -- ++(-0.5,0) node[left]{E};" + "\n"
-                code += r"\draw (FF1.pin 3) -- ++(-0.5,0) -- (j1);" + "\n"
-                code += r"\draw (FF1.pin 6) -- ++(0.5,0) coordinate(q0) -- (FF2.pin 1);" + "\n"
-                code += r"\draw (q0) -- ++(0,-0.5) -- ++(1.5,0) -- (FF2.pin 3);" + "\n"
+                code += r"        \draw (FF1.pin 1) -- ++(-0.5,0) coordinate(j1) -- ++(-0.5,0) node[left]{E};" + "\n"
+                code += r"        \draw (FF1.pin 3) -- ++(-0.5,0) -- (j1);" + "\n"
+                code += r"        \draw (FF1.pin 6) -- ++(0.5,0) coordinate(q0) -- (FF2.pin 1);" + "\n"
+                code += r"        \draw (q0) -- ++(0,-0.5) -- ++(1.5,0) -- (FF2.pin 3);" + "\n"
             elif ff == 'T':
-                code += r"\draw (FF1.pin 1) -- ++(-1,0) node[left]{E};" + "\n"
-                code += r"\draw (FF1.pin 6) -- (FF2.pin 1);" + "\n"
+                code += r"        \draw (FF1.pin 1) -- ++(-1,0) node[left]{E};" + "\n"
+                code += r"        \draw (FF1.pin 6) -- (FF2.pin 1);" + "\n"
         
-        # Salidas Q
-        code += r"\draw (FF1.pin 6) -- ++(0,1.5) node[above]{Q0};" + "\n"
-        code += r"\draw (FF2.pin 6) -- ++(0,1.5) node[above]{Q1};" + "\n"
+        # Salidas Q (Desplazadas a la derecha antes de subir)
+        code += r"        \draw (FF1.pin 6) -- ++(0.5, 0) -- ++(0, 1.5) node[above]{Q0};" + "\n"
+        code += r"        \draw (FF2.pin 6) -- ++(0.5, 0) -- ++(0, 1.5) node[above]{Q1};" + "\n"
 
         # Asíncrono
         if data.has_async:
             pin = "up" if data.async_type in ['Set', 'Preset'] else "down"
             y_dir = "0.5" if pin == "up" else "-0.5"
-            code += fr"\draw (FF1.{pin}) -- ++(0,{y_dir}) coordinate(a);" + "\n"
-            code += fr"\draw (FF2.{pin}) -- ++(0,{y_dir}) -- (a);" + "\n"
-            code += fr"\draw (a) -- ++(0,{y_dir}) node[above]{{{data.async_type}}};" + "\n"
+            code += fr"        \draw (FF1.{pin}) -- ++(0,{y_dir}) coordinate(a);" + "\n"
+            code += fr"        \draw (FF2.{pin}) -- ++(0,{y_dir}) -- (a);" + "\n"
+            code += fr"        \draw (a) -- ++(0,{y_dir}) node[above]{{{data.async_type}}};" + "\n"
 
-        code += r"\end{circuitikz} \end{center}"
+        code += r"    \end{circuitikz} " + "\n"
+        code += r"\end{center}"
         return code

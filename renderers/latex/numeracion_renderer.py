@@ -1,3 +1,4 @@
+from typing import Optional
 from modules.numeracion.models import ConversionExerciseData, ArithmeticOp
 
 class NumeracionLatexRenderer:
@@ -41,6 +42,8 @@ class NumeracionLatexRenderer:
             latex += r"\end{tcolorbox}" + "\n"
             
             for i, op in enumerate(data.operations, 1):
+                # Usamos minipage para evitar que una operación se corte entre páginas
+                latex += r"\noindent \begin{minipage}{\linewidth}" + "\n"
                 latex += fr"\par \vspace{{0.5cm}} \noindent \textbf{{{i}) {op.op_type} en {op.system}:}} Fila {op.operand1} {op.operator_symbol} Fila {op.operand2}" + "\n"
                 latex += self._render_grid(data.n_bits, op if self.is_solution else None)
 
@@ -54,6 +57,7 @@ class NumeracionLatexRenderer:
                 latex += r"\par \vspace{0.3cm}" + "\n"
                 latex += r"\noindent \hspace{0.5cm} \textbf{¿Por qué?}" + "\n" 
                 latex += r"\par \vspace{0.8cm}" + "\n"
+                latex += r"\end{minipage}" + "\n"
 
         return latex
 

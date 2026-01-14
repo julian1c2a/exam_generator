@@ -43,13 +43,10 @@ class CombinacionalLatexRenderer:
         latex += r"\textbf{Espacio de Resolución:}" + "\n"
         
         # Usar Asset Manager para el Mapa de Karnaugh
-        # ID único: ej{index}_kmap
         vars_left = "".join(data.vars_name[:2])
         vars_top = "".join(data.vars_name[2:])
         
-        # Función lambda que genera el contenido si no existe el fijo
         generator_func = lambda: self.kmap_renderer.render_template(vars_left, vars_top, data.out_name)
-        
         latex += self.asset_manager.get_component(f"ej{index}_kmap", generator_func)
         
         latex += r"\vspace{3cm}" + "\n"
@@ -71,7 +68,6 @@ class CombinacionalLatexRenderer:
         
         latex += r"\newpage \textbf{2. Mapa de Karnaugh:}" + "\n"
         
-        # Asset Manager para KMap del problema
         l_izq = "".join(data.vars_clean[:2])
         l_sup = "".join(data.vars_clean[2:])
         
@@ -88,8 +84,6 @@ class CombinacionalLatexRenderer:
         latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
         latex += fr"{data.description}" + "\n"
         
-        # Asset Manager para el circuito MSI
-        # ID único: ej{index}_msi_{tipo}
         component_id = f"ej{index}_msi_{data.block_type.lower()}"
         
         if data.block_type == 'MUX':
@@ -110,9 +104,12 @@ class CombinacionalLatexRenderer:
                 latex += fr"\item Enable={case['ena']}, Dir={case['addr']:04b}" + "\n"
             latex += r"\end{enumerate}" + "\n"
         elif data.block_type == 'COMPARADOR':
-            latex += r"\noindent Determine las salidas ($>, =, <$) para las entradas indicadas." + "\n"
+            latex += fr"\noindent Determine las salidas ($>, =, <$) para las entradas: \\" + "\n"
+            latex += fr"\textbf{{A}} = {data.params['A']} ({data.params['A']:04b}), \textbf{{B}} = {data.params['B']} ({data.params['B']:04b})" + "\n"
         elif data.block_type == 'SUMADOR':
-            latex += r"\noindent Determine la salida S y el acarreo de salida Cout." + "\n"
+            latex += fr"\noindent Determine la salida S y el acarreo de salida Cout para: \\" + "\n"
+            latex += fr"\textbf{{A}} = {data.params['A']} ({data.params['A']:04b}), \textbf{{B}} = {data.params['B']} ({data.params['B']:04b}) \\" + "\n"
+            latex += r"(Analice para \textbf{Cin=0} y \textbf{Cin=1})" + "\n"
 
         latex += r"\end{tcolorbox} \vspace{5cm}" + "\n"
         return latex
