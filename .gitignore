@@ -9,6 +9,7 @@ __pycache__/
 env/
 venv/
 ENV/
+VENV/
 
 # IDEs
 .idea/
@@ -68,3 +69,8 @@ ENV/
 */*.synctex*
 */*/*.synctex*
 */*/*/*.synctex*
+*.7z
+*.7Z
+*.zip
+*.Zip
+*.ZIP

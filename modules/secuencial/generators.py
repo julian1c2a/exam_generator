@@ -51,7 +51,7 @@ class SequentialGenerator(ExerciseGenerator):
             edge_type=edge_type,
             logic_type=logic_type,
             has_async=has_async,
-            async_level="0",  # <--- ¡AÑADIR ESTA LÍNEA!
+            async_level="0",
             async_type=async_type,
             clk_sequence=f"{width_units}{{C}}", # 24{C}
             input_sequence=input_sequence,
