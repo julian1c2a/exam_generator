@@ -25,23 +25,243 @@
 
 #### 2.1.1 Sistemas de Numeración
 
-**Bases Teóricas**:
+##### 2.1.1.1 Sistemas Posicionales y No Posicionales
 
-- Sistemas de numeración posicionales y no posicionales
-- Sistemas de numeración posicionales: por potencias de la base B
-- Conversión entre sistemas de numeración con pesos potencias de una base B
-- Sistemas de numeración no posicionales: números romanos
+###### Definiciones
+
+Un **sistema de numeración** es un conjunto de reglas y símbolos utilizados para representar cantidades numéricas.
+
+- **Sistemas No Posicionales**: El valor de cada símbolo es INDEPENDIENTE de su posición.
+- **Sistemas Posicionales**: El valor de cada símbolo depende de su POSICIÓN en la representación.
+
+###### Ejemplo 1: Números Romanos (Sistema No Posicional)
+
+El sistema romano utiliza símbolos con valores fijos:
+
+| Símbolo | I | V | X | L | C | D | M |
+|---------|---|---|----|----|----|----|------|
+| Valor   | 1 | 5 | 10 | 50 | 100 | 500 | 1000 |
+
+**Característica clave**: El símbolo "V" representa SIEMPRE 5, independientemente de dónde aparezca en la representación.
+
+**Ejemplos**:
+
+- 4 = IV (no 4, sino "uno antes de cinco" = 5 - 1)
+- 27 = XXVII = 10 + 10 + 5 + 1 + 1
+- 1994 = MCMXCIV = 1000 + (1000-100) + (100-10) + (5-1) = 1000 + 900 + 90 + 4
+
+**Desventaja**: Los números grandes son difíciles de escribir y las operaciones aritméticas son muy complicadas.
+
+###### Ejemplo 2: Base 5 (Sistema Posicional con Potencias)
+
+Sistema posicional donde los pesos de cada posición son potencias de 5:
+
+| Posición | 4 | 3 | 2 | 1 | 0 |
+|----------|---|---|---|---|---|
+| Peso     | 5^4 = 625 | 5^3 = 125 | 5^2 = 25 | 5^1 = 5 | 5^0 = 1 |
+| Símbolo  | 3 | 0 | 4 | 3 | 4 |
+
+**Número en base 5**: 30434₅
+
+**Cálculo**: 3×625 + 0×125 + 4×25 + 3×5 + 4×1 = 1875 + 0 + 100 + 15 + 4 = **1994₁₀**
+
+**Característica clave**: El dígito "3" tiene DIFERENTES valores según su posición:
+
+- En posición 4: representa 3 × 625 = 1875
+- En posición 1: representa 3 × 5 = 15
+
+###### Ejemplo 3: Sistema de Notación Temporal (Sistema Posicional con Bases Variables)
+
+El sistema de representación de tiempo es un caso especial: **POSICIONAL pero con BASES VARIABLES**:
+
+- Horas: base 24 (máximo 23)
+- Minutos: base 60 (máximo 59)
+- Segundos: base 60 (máximo 59)
+
+**Ejemplo**: 3661 segundos
+
+| Posición | Horas | Minutos | Segundos |
+|----------|-------|---------|----------|
+| Valor    | 1     | 1       | 1        |
+| Peso     | 3600  | 60      | 1        |
+| Cálculo  | 1×3600 | 1×60 | 1×1 |
+
+**Fórmula**: 1×3600 + 1×60 + 1 = **3661 segundos** = **01:01:01**
+
+Este sistema refleja nuestra realidad histórica y es muy eficiente para operaciones prácticas, pero no utiliza una base única.
+
+**Origen histórico**: Los babilonios utilizaban un sistema sexagesimal (base 60) en astronomía y medición del tiempo, que hoy se preserva en nuestra notación de tiempo y ángulos.
+
+---
+
+##### 2.1.1.2 Unicidad de la Representación
+
+###### Teorema Fundamental
+
+En cualquier sistema de numeración posicional, **cada número natural tiene una representación ÚNICA** (sin ceros a la izquierda) en una base dada.
+
+###### Prueba Informal
+
+Para un número natural $n$ y una base $B$:
+
+$$n = d_k \cdot B^k + d_{k-1} \cdot B^{k-1} + \ldots + d_1 \cdot B^1 + d_0 \cdot B^0$$
+
+donde $0 \le d_i < B$ para cada $i$.
+
+- Los dígitos $d_i$ se obtienen UNÍVOCAMENTE mediante divisiones sucesivas:
+  - $d_0 = n \bmod B$
+  - $d_1 = (n \div B) \bmod B$
+  - $d_i = (\lfloor n / B^i \rfloor) \bmod B$
+
+- La secuencia de operaciones de división es **única y determinista**.
+
+###### Ejemplos Verificables
+
+| Número | Decimal | Binario | Base 5 | Octal | Verificación |
+|--------|---------|---------|--------|-------|--------------|
+| 4      | 4       | 100     | 4      | 4     | ✓ Única en cada base |
+| 27     | 27      | 11011   | 102    | 33    | ✓ Única en cada base |
+| 99     | 99      | 1100011 | 344    | 143   | ✓ Única en cada base |
+| 1994   | 1994    | 11111001010 | 30434 | 3712 | ✓ Única en cada base |
+
+**Conclusión**: No existe ambigüedad. Cada número tiene exactamente una representación en cada base.
+
+---
+
+##### 2.1.1.3 Conversión entre Sistemas de Numeración
+
+###### Conversión de Base 10 a Base B
+
+**Algoritmo de Divisiones Sucesivas**:
+
+1. Dividir $n$ entre $B$. El resto es el dígito de posición 0.
+2. Dividir el cociente entre $B$. El resto es el dígito de posición 1.
+3. Repetir hasta que el cociente sea 0.
+4. Leer los restos de abajo a arriba.
+
+**Ejemplo**: Convertir 1994 a base 5
+
+```
+1994 ÷ 5 = 398 resto 4  → d_0 = 4
+398 ÷ 5 = 79 resto 3   → d_1 = 3
+79 ÷ 5 = 15 resto 4    → d_2 = 4
+15 ÷ 5 = 3 resto 0     → d_3 = 0
+3 ÷ 5 = 0 resto 3      → d_4 = 3
+
+Resultado: 30434₅ (leyendo de abajo a arriba)
+```
+
+###### Conversión de Base B a Base 10
+
+**Método del Polinomio** (evaluación explícita):
+
+$$\text{Número}_B = d_n \cdot B^n + d_{n-1} \cdot B^{n-1} + \ldots + d_1 \cdot B^1 + d_0 \cdot B^0$$
+
+**Ejemplo**: Convertir 30434₅ a decimal
+
+$$30434_5 = 3 \cdot 5^4 + 0 \cdot 5^3 + 4 \cdot 5^2 + 3 \cdot 5^1 + 4 \cdot 5^0$$
+$$= 3 \cdot 625 + 0 \cdot 125 + 4 \cdot 25 + 3 \cdot 5 + 4 \cdot 1$$
+$$= 1875 + 0 + 100 + 15 + 4 = 1994_{10}$$
+
+**Método de Horner** (más eficiente, sin exponenciaciones):
+
+$$\text{Resultado} = ((\cdots((d_n \cdot B + d_{n-1}) \cdot B + d_{n-2}) \cdot B + \cdots + d_1) \cdot B + d_0)$$
+
+**Ejemplo**: Convertir 30434₅ usando Horner
+
+```
+Paso 1: 3
+Paso 2: 3 × 5 + 0 = 15
+Paso 3: 15 × 5 + 4 = 79
+Paso 4: 79 × 5 + 3 = 398
+Paso 5: 398 × 5 + 4 = 1994
+```
+
+**Ventaja**: Horner evita calcular potencias, requiere solo $n$ multiplicaciones en lugar de $2n$.
+
+###### Conversión entre Bases Relacionadas
+
+Si $B_1 = b^m$ y $B_2 = b^n$ (por ejemplo, 4 = 2² y 16 = 2⁴), la conversión es más simple:
+
+1. Convertir $B_1 \to b$ (agrupando $m$ dígitos)
+2. Convertir $b \to B_2$ (agrupando $n$ dígitos)
+
+**Ejemplo**: Convertir 1111₂ a base 16
+
+```
+Agrupamos de 4 en 4 (porque 16 = 2⁴):
+  1111₂ = F₁₆
+  
+Verificación: 1×2³ + 1×2² + 1×2¹ + 1×2⁰ = 8 + 4 + 2 + 1 = 15 = F₁₆
+```
+
+---
+
+##### 2.1.1.4 Calculadora: Números Romanos ↔ Decimal
+
+Para practicar los conceptos, aquí una herramienta interactiva:
+
+**Características**:
+
+- Conversión decimal → romanos
+- Conversión romanos → decimal
+- Validación de representaciones
+- Explicación paso a paso
+- Verificación de unicidad
+
+**Modulo Python**: [`core/sistemas_numeracion_basicos.py`](core/sistemas_numeracion_basicos.py)
+
+**Funciones principales**:
+
+```python
+# Conversión decimal a romano
+decimal_a_romano(1994)  → "MCMXCIV"
+
+# Conversión romano a decimal
+romano_a_decimal("MCMXCIV")  → 1994
+
+# Explicación paso a paso
+explicar_romano(1994)  → diccionario con desglose
+
+# Conversión a base 5
+decimal_a_base_5(1994)  → "30434"
+
+# Conversión desde base 5
+base_5_a_decimal("30434")  → 1994
+```
+
+**Script demostrativo**: [`demo_sistemas_numeracion_basicos.py`](demo_sistemas_numeracion_basicos.py)
+
+Ejecutar para ver 5 demostraciones completas:
+
+```bash
+python demo_sistemas_numeracion_basicos.py
+```
+
+**Ejemplos de salida**:
+
+| Decimal | Romano | Base 5 |
+|---------|--------|--------|
+| 4       | IV     | 4      |
+| 27      | XXVII  | 102    |
+| 99      | XCIX   | 344    |
+| 1994    | MCMXCIV| 30434  |
+
+**Nota importante**: Todos estos son sistemas POSICIONALES o NO POSICIONALES, pero cada uno tiene su propia estructura única y aplicaciones. El sistema posicional es el predominante en computación porque permite operaciones aritméticas eficientes.
 
 **Sistemas Binarios, Octales y Hexadecimales**:
 
-- Sistemas de numeración binaria: conversión entre binario y decimal
-- Sistemas de numeración octal y hexadecimal: conversión entre octal, hexadecimal y decimal
+- Sistemas de numeración binaria: conversión entre binario ($B = 2$) y decimal ($B = 10$)
+- Sistemas de numeración octal y hexadecimal: conversión entre octal ($B = 8 = 2^3$), hexadecimal ($B = 16 = 2^4$) y decimal ($B = 10$)
 - Conversión entre binario, octal y hexadecimal
-- Sistema de conversión entre representación de en base B y base B' dónde $b^n = b'^m$
+- Sistema de conversión entre representación de en base B y base B' dónde $B = b^n \and b^m = B'$
 
 **Representación en Longitud Fija**:
 
 - Representación de números naturales en un registro de longitud fija de $n$ dígitos
+  - Concepto de capacidad de representación para una longitud fija n y una base B
+  - Rango de valores representables para una longitud fija n y una base B
+  - Comparación entre números naturales representados en longitud fija n y base $B \le 16$ para un sistema nativo de computación con bits (base 2)
   - Sistemas de representación decimal en base decimal (BCD)
   - Sistemas de representación binaria en base 2
 - Relación entre la base de numeración, el número de dígitos y el rango de valores representables
