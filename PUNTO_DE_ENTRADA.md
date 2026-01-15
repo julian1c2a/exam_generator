@@ -41,15 +41,36 @@ Esto te enseñará:
 
 ---
 
-### 3️⃣ "Quiero ver ejemplos en acción"
+### 3️⃣ "Quiero entender sistemas de numeracion posicionales vs no posicionales"
+
+👉 Lee: [SISTEMAS_NUMERACION_NAVEGACION.md](SISTEMAS_NUMERACION_NAVEGACION.md) (guia completa)
+
+Esto te enseñara:
+
+- Diferencia entre posicional y no posicional
+- Ejemplo: Numeros romanos (no posicional)
+- Ejemplo: Base 5 (posicional con potencias)
+- Ejemplo: Tiempo HH:MM:SS (posicional con bases variables)
+- Respuesta a: "¿Sistema posicional que NO sea potencias?" → Sistema temporal babilonico
+- Unicidad de representacion (matematica)
+- Metodos de conversion: Horner, Polinomio, Divisiones sucesivas
+
+Lectura rapida: [SISTEMAS_NUMERACION_RESUMEN.md](SISTEMAS_NUMERACION_RESUMEN.md) (ejecutivo, 5 min)
+
+---
+
+### 4️⃣ "Quiero ver ejemplos en accion"
 
 👉 Ejecuta scripts:
 
 ```bash
-# Conversión Base 10 → Base B
+# Sistemas de numeracion (romano, base 5, tiempo)
+python demo_sistemas_numeracion_basicos.py
+
+# Conversión Base 10 -> Base B
 python demo_base_b.py
 
-# Conversión Base B → Base 10
+# Conversión Base B -> Base 10
 python demo_base_b_a_decimal.py
 
 # Explorador interactivo (menú)
@@ -58,7 +79,7 @@ python jugar_con_bases.py
 
 ---
 
-### 4️⃣ "Quiero entender la API (programación)"
+### 5️⃣ "Quiero entender la API (programación)"
 
 👉 Lee: [BASE_B_UTILS.md](BASE_B_UTILS.md) (referencia completa)
 
@@ -71,7 +92,7 @@ Esto incluye:
 
 ---
 
-### 5️⃣ "Quiero ver las nuevas funciones de conversión inversa"
+### 6️⃣ "Quiero ver las nuevas funciones de conversión inversa"
 
 👉 Lee: [NUEVAS_FUNCIONES_BASE_B_INVERSA.md](NUEVAS_FUNCIONES_BASE_B_INVERSA.md)
 
@@ -84,7 +105,7 @@ Esto te mostrará:
 
 ---
 
-### 6️⃣ "Quiero un índice completo de todo el sistema"
+### 7️⃣ "Quiero un índice completo de todo el sistema"
 
 👉 Lee: [INDICE_COMPLETO.md](INDICE_COMPLETO.md)
 
@@ -98,7 +119,7 @@ Esto contiene:
 
 ---
 
-### 7️⃣ "Quiero un resumen visual final"
+### 8️⃣ "Quiero un resumen visual final"
 
 👉 Lee: [SISTEMA_FINAL_RESUMEN.txt](SISTEMA_FINAL_RESUMEN.txt)
 
