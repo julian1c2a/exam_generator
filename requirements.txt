@@ -1,9 +1,18 @@
 # Requisitos del Proyecto Exam Generator
 # 
-# Este proyecto NO requiere dependencias externas.
-# Solo necesita Python 3.9+ y sus librerías estándar.
-#
-# Las librerías usadas son todas incluidas en Python:
+# Dependencias principales:
+# - Python 3.9+
+
+# Para CLI (Fase D):
+# (Sin dependencias - usa librerías estándar)
+
+# Para Web Interface (Fase E):
+fastapi>=0.95.0
+uvicorn[standard]>=0.21.0
+python-multipart>=0.0.5
+httpx>=0.23.0
+
+# Librerías estándar incluidas en Python:
 # - argparse (CLI)
 # - json (serialización)
 # - sqlite3 (base de datos)
@@ -15,17 +24,14 @@
 # - enum (enums)
 # - dataclasses (dataclasses)
 # - typing (type hints)
-#
-# Para instalar el proyecto:
-# 1. Clonar repositorio:
-#    git clone https://github.com/julian1c2a/exam_generator.git
-#
-# 2. Cambiar a rama GeneratorFEExercises:
-#    git checkout GeneratorFEExercises
-#
-# 3. Usar directamente (sin instalación de paquetes):
+
+# Instalación:
+# 1. CLI solo: No requiere instalación adicional
 #    python -m cli --help
 #
-# Para más información: ver INSTALACION_Y_USO.md
-
-# No hay dependencias
+# 2. CLI + Web:
+#    pip install -r requirements.txt
+#    python -m uvicorn web.app:app --reload
+#
+# 3. Con Docker:
+#    docker-compose up -d
