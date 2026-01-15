@@ -1,6 +1,7 @@
 import random
 from typing import Dict, Any
 from core.generator_base import ExerciseGenerator, ExerciseRandomizer
+from core.numeracion_utils import decimal_a_binario_con_pasos
 from modules.numeracion.models import ConversionExerciseData, ConversionRow, ArithmeticOp
 
 class ConversionRowRandomizer(ExerciseRandomizer):
