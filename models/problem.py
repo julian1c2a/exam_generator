@@ -137,7 +137,10 @@ class Problem:
         Returns:
             Dict serializable a JSON
         """
-        return asdict(self)
+        data = asdict(self)
+        # Convertir enum type a string para que sea serializable
+        data['type'] = self.type.value if self.type else None
+        return data
     
     def to_json_string(self) -> str:
         """

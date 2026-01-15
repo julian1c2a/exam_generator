@@ -237,7 +237,6 @@ class ExerciseGenerator(ABC):
     IMPORTANTE: NO genera valores aleatorios. Los recibe como entrada.
     """
     
-    @abstractmethod
     def generate_from_problem(self, problem_dict: Dict[str, Any]) -> ExerciseData:
         """
         MÉTODO PRINCIPAL: Genera ejercicio completo desde parámetros del problema.
@@ -256,8 +255,12 @@ class ExerciseGenerator(ABC):
         
         Raises:
             ValueError: Si falta algún campo requerido del problema.
+            
+        NOTA: Por defecto usa generate(). Subclases pueden sobrescribir si necesitan.
         """
-        pass
+        # Default implementation: fallback to legacy generate()
+        # Subclases pueden sobrescribir si necesitan comportamiento específico
+        return self.generate(difficulty=1)
     
     def generate(self, difficulty: int = 1) -> ExerciseData:
         """
@@ -274,7 +277,7 @@ class ExerciseGenerator(ABC):
         """
         # Por defecto: si no hay aleatorizador, error
         raise NotImplementedError(
-            f"{self.__class__.__name__} debe implementar generate_from_problem() "
+            f"{self.__class__.__name__} debe implementar generate() "
             "o proporcionar un aleatorizador en ExamBuilder."
         )
     

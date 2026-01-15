@@ -34,6 +34,9 @@ MAPPERS = {
     ProblemType.SECUENCIAL: SequentialMapper(),
 }
 
+# Alias para Fase C (ExamBuilder integration)
+MAPPER_REGISTRY = MAPPERS
+
 
 def get_mapper(problem_type: ProblemType) -> ProblemMapper:
     """
