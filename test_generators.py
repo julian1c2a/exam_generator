@@ -25,16 +25,16 @@ def test_generator_availability():
     available = {k: v for k, v in results.items() if v['status'] == 'available'}
     missing = {k: v for k, v in results.items() if v['status'] == 'missing'}
     
-    print(f"\n✓ DISPONIBLES: {len(available)}")
+    print(f"\n[OK] DISPONIBLES: {len(available)}")
     for topic_id, info in available.items():
         config = ExerciseMapper.get_generator_config(topic_id)
         print(f"  {topic_id:15} -> {info['class']:45} ({config.description[:40]}...)")
     
     if missing:
-        print(f"\n✗ FALTANTES: {len(missing)}")
+        print(f"\n[FALTA] FALTANTES: {len(missing)}")
         for topic_id, info in missing.items():
             config = ExerciseMapper.get_generator_config(topic_id)
-            print(f"  {topic_id:15} -> {config.class_name:45} (FALTA IMPLEMENTACIÓN)")
+            print(f"  {topic_id:15} -> {config.class_name:45} (FALTA IMPLEMENTACION)")
             print(f"    Error: {info['error']}")
     
     print(f"\nRESUMEN: {len(available)} generadores disponibles, {len(missing)} pendientes")
