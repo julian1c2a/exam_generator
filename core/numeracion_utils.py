@@ -287,3 +287,271 @@ def decimal_a_hexadecimal_divisiones(numero: Union[int, str], bits: int = None) 
         resultado = resultado.zfill(bits)
     
     return f"{resultado}₁₆"
+
+
+# ============================================================================
+# FUNCIONES GENERALIZADAS PARA CUALQUIER BASE (2-36)
+# ============================================================================
+
+def validar_base(base: int) -> bool:
+    """
+    Valida que una base esté en el rango permitido (2-36).
+    
+    Bases soportadas:
+    - 2-10: Dígitos 0-9
+    - 11-36: Dígitos 0-9 + Letras A-Z
+    
+    Args:
+        base: Base numérica a validar
+    
+    Returns:
+        True si la base es válida, False en caso contrario
+    """
+    return isinstance(base, int) and 2 <= base <= 36
+
+
+def obtener_digitos_para_base(base: int) -> str:
+    """
+    Obtiene el conjunto de dígitos válidos para una base.
+    
+    Para bases 2-10: '0123456789'
+    Para bases 11-36: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    
+    Args:
+        base: Base numérica (2-36)
+    
+    Returns:
+        String con los dígitos válidos para esa base
+    
+    Raises:
+        ValueError: Si la base no está en rango 2-36
+    """
+    if not validar_base(base):
+        raise ValueError(f"Base debe estar entre 2 y 36, recibido: {base}")
+    
+    return "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:base]
+
+
+def decimal_a_base_b_divisiones(numero: Union[int, str], base: int, bits: int = None) -> str:
+    """
+    Convierte un número decimal a una base B (2-36) usando divisiones sucesivas.
+    
+    Método:
+        - Dividir el número entre la base
+        - Guardar el resto (dígito en la nueva base)
+        - Continuar con el cociente
+        - Repetir hasta cociente = 0
+        - Los restos en orden inverso forman el resultado
+    
+    Args:
+        numero: Número decimal (int o str)
+        base: Base destino (2-36)
+            - 2: Binario
+            - 8: Octal
+            - 10: Decimal (sin cambio)
+            - 16: Hexadecimal
+            - 36: Alphanumeric (máximo soportado)
+        bits: (Opcional) Número mínimo de dígitos para padding
+    
+    Returns:
+        String con el número en la base especificada, con subíndice
+        Ej: "1A5₁₆", "373₈", "10101₂"
+    
+    Raises:
+        ValueError: Si el input no es válido o base está fuera de rango
+    
+    Ejemplos:
+        >>> decimal_a_base_b_divisiones(173, 2)  # Binario
+        '10101101₂'
+        
+        >>> decimal_a_base_b_divisiones(255, 16)  # Hexadecimal
+        'FF₁₆'
+        
+        >>> decimal_a_base_b_divisiones(100, 36)  # Base 36
+        '2S₃₆'
+        
+        >>> decimal_a_base_b_divisiones(42, 8)  # Octal
+        '52₈'
+    """
+    # Validar base
+    if not validar_base(base):
+        raise ValueError(f"Base debe estar entre 2 y 36, recibido: {base}")
+    
+    # Validar y convertir número
+    try:
+        if isinstance(numero, str):
+            num = int(numero.strip())
+        else:
+            num = int(numero)
+    except (ValueError, TypeError):
+        raise ValueError(f"No se puede convertir '{numero}' a número entero")
+    
+    if num < 0:
+        raise ValueError(f"El número debe ser no-negativo, recibido: {num}")
+    
+    # Obtener dígitos permitidos para esta base
+    digitos = obtener_digitos_para_base(base)
+    
+    # Caso especial: cero
+    if num == 0:
+        resultado = "0"
+    else:
+        # Algoritmo de divisiones sucesivas
+        digitos_resultado = []
+        while num > 0:
+            resto = num % base  # Dígito en la nueva base
+            digitos_resultado.append(digitos[resto])  # Convertir a carácter
+            num //= base  # Dividir entre la base
+        
+        # Los dígitos están en orden inverso
+        resultado = "".join(reversed(digitos_resultado))
+    
+    # Padding si se especifica
+    if bits is not None:
+        if len(resultado) > bits:
+            raise ValueError(f"Resultado requiere más de {bits} dígitos (necesita {len(resultado)})")
+        resultado = resultado.zfill(bits)
+    
+    # Crear subíndice para la base
+    # Convertir números de base > 9 a subíndice (ej: 16 → ₁₆)
+    base_str = str(base)
+    subindices = {
+        '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+        '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+    }
+    base_subindice = ''.join(subindices.get(d, d) for d in base_str)
+    
+    return f"{resultado}{base_subindice}"
+
+
+def decimal_a_base_b_con_pasos(numero: Union[int, str], base: int) -> dict:
+    """
+    Convierte decimal a base B mostrando todos los pasos de las divisiones.
+    
+    Útil para fines educativos y demostraciones.
+    
+    Args:
+        numero: Número decimal (int o str)
+        base: Base destino (2-36)
+    
+    Returns:
+        Dict con:
+        - 'numero': Número original
+        - 'base': Base destino
+        - 'pasos': Lista de pasos [(dividendo, cociente, resto_digito), ...]
+        - 'digitos': Lista de dígitos en orden inverso
+        - 'resultado': Resultado final con notación "xxxxx_base"
+        - 'explicacion': Texto explicativo del proceso
+    
+    Ejemplos:
+        >>> resultado = decimal_a_base_b_con_pasos(255, 16)
+        >>> print(resultado['resultado'])
+        'FF₁₆'
+    """
+    # Validar base
+    if not validar_base(base):
+        raise ValueError(f"Base debe estar entre 2 y 36, recibido: {base}")
+    
+    # Validar y convertir
+    try:
+        if isinstance(numero, str):
+            numero_int = int(numero.strip())
+        else:
+            numero_int = int(numero)
+    except (ValueError, TypeError):
+        raise ValueError(f"No se puede convertir '{numero}' a número entero")
+    
+    if numero_int < 0:
+        raise ValueError("El número debe ser no-negativo")
+    
+    digitos_tabla = obtener_digitos_para_base(base)
+    numero_original = numero_int
+    pasos = []
+    digitos = []
+    
+    if numero_int == 0:
+        pasos.append((0, 0, "0"))
+        digitos.append("0")
+        base_str = str(base)
+        subindices = {
+            '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+            '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+        }
+        base_subindice = ''.join(subindices.get(d, d) for d in base_str)
+        resultado_final = f"0{base_subindice}"
+    else:
+        dividendo = numero_int
+        while dividendo > 0:
+            cociente = dividendo // base
+            resto = dividendo % base
+            digito_char = digitos_tabla[resto]
+            
+            pasos.append((dividendo, cociente, digito_char))
+            digitos.append(digito_char)
+            dividendo = cociente
+        
+        # Invertir dígitos para obtener el resultado
+        resultado = "".join(reversed(digitos))
+        
+        base_str = str(base)
+        subindices = {
+            '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+            '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+        }
+        base_subindice = ''.join(subindices.get(d, d) for d in base_str)
+        resultado_final = f"{resultado}{base_subindice}"
+    
+    # Construir explicación paso a paso
+    explicacion_lineas = []
+    explicacion_lineas.append(f"Convirtiendo {numero_original} a base {base}:")
+    explicacion_lineas.append("")
+    
+    for dividendo, cociente, digito in pasos:
+        explicacion_lineas.append(f"{dividendo} ÷ {base} = {cociente} resto {digito}")
+    
+    explicacion_lineas.append("")
+    explicacion_lineas.append(f"Leyendo los restos de abajo hacia arriba: {resultado_final}")
+    
+    explicacion = "\n".join(explicacion_lineas)
+    
+    return {
+        'numero': numero_original,
+        'base': base,
+        'pasos': pasos,
+        'digitos': digitos,
+        'resultado': resultado_final,
+        'explicacion': explicacion
+    }
+
+
+def decimal_a_base_b_verbose(numero: Union[int, str], base: int) -> str:
+    """
+    Convierte decimal a base B retornando explicación visual completa.
+    
+    Args:
+        numero: Número decimal (int o str)
+        base: Base destino (2-36)
+    
+    Returns:
+        String con explicación completa del proceso de conversión
+    """
+    resultado = decimal_a_base_b_con_pasos(numero, base)
+    
+    lineas = [
+        f"Convertir {resultado['numero']} a base {resultado['base']} (divisiones sucesivas):",
+        ""
+    ]
+    
+    # Agregar pasos con indentación visual
+    for dividendo, cociente, digito in resultado['pasos']:
+        espacios = " " * (len(str(dividendo)) - 2) if dividendo >= 10 else ""
+        lineas.append(f"{espacios}{dividendo} ÷ {base} = {cociente} resto {digito}")
+    
+    lineas.extend([
+        "",
+        f"Resultado: {resultado['resultado']}",
+        "",
+        "(Leer los restos de abajo hacia arriba)"
+    ])
+    
+    return "\n".join(lineas)
