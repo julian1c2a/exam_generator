@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Set
-from core.generator_base import ProblemSolutionExerciseData
+from core.generator_base import ProblemSolutionExerciseData, ExerciseData
 
 # Mapeo de índices a tipos de representación
 COLUMN_NAMES = {
