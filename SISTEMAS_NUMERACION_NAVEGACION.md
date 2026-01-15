@@ -81,6 +81,124 @@ Esta sección cubre los **Sistemas de Numeración Posicionales y No Posicionales
 
 ---
 
+### Sección 2.1.1.5 - Sistemas Binarios, Octales y Hexadecimales
+
+**Subsecciones**:
+
+- **2.1.1.5.1** - Sistemas de numeración binaria
+  - Conversión entre binario ($B = 2$) y decimal ($B = 10$)
+
+- **2.1.1.5.2** - Sistemas de numeración octal y hexadecimal
+  - Conversión entre octal ($B = 8 = 2^3$), hexadecimal ($B = 16 = 2^4$) y decimal
+
+- **2.1.1.5.3** - Conversión entre binario, octal y hexadecimal
+  - Métodos de agrupación de dígitos
+
+- **2.1.1.5.4** - Sistema de conversión entre bases relacionadas
+  - Conversión entre base $B$ y base $B'$ donde $B = b^n$ y $b^m = B'$
+
+---
+
+### Sección 2.1.1.6 - Representación en Longitud Fija
+
+**Subsecciones**:
+
+- **2.1.1.6.1** - Representación de números naturales
+  - Capacidad de representación para longitud fija n y base B (2.1.1.6.1.1)
+  - Rango de valores representables (2.1.1.6.1.2)
+  - Comparación entre números en sistemas nativos (2.1.1.6.1.3)
+  - Sistemas BCD - Codificación Decimal Binaria (2.1.1.6.1.4)
+  - Sistemas de representación binaria en base 2 (2.1.1.6.1.5)
+
+- **2.1.1.6.2** - Relación base-dígitos-rango
+  - Relación entre base, número de dígitos y rango de valores
+
+---
+
+### Sección 2.1.1.7 - Números Enteros con Signo
+
+**Subsecciones**:
+
+- **2.1.1.7.1** - Magnitud y signo
+  - Representación en longitud fija
+
+- **2.1.1.7.2** - Complemento a la base B
+  - Complemento a 2 en base 2 (2.1.1.7.2.1)
+  - Complemento a 10 en base 10 (2.1.1.7.2.2)
+  - BCD exceso a 3 y BCD Aitken (2.1.1.7.2.3)
+
+- **2.1.1.7.3** - Exceso a un sesgo k
+  - Representación con sesgo
+
+---
+
+### Sección 2.1.1.8 - Operaciones Aritméticas
+
+**Subsecciones**:
+
+- **2.1.1.8.1** - Comparación de números
+  - En magnitud y signo (2.1.1.8.1.1)
+  - En complemento a 2 (2.1.1.8.1.2)
+  - En exceso a un sesgo k (2.1.1.8.1.3)
+
+- **2.1.1.8.2** - Suma y resta de números naturales
+  - Suma y resta en base B
+
+- **2.1.1.8.3** - Operaciones de complementación
+  - Complementación a la base B y a la base B menos 1
+
+- **2.1.1.8.4** - Inversión de signo
+  - En magnitud y signo (2.1.1.8.4.1)
+  - En complemento a la base B (2.1.1.8.4.2)
+  - En exceso a un sesgo k (2.1.1.8.4.3)
+
+- **2.1.1.8.5** - Suma y resta de números enteros
+  - En magnitud y signo (2.1.1.8.5.1)
+  - En complemento a la base B (2.1.1.8.5.2)
+  - En exceso a un sesgo k (2.1.1.8.5.3)
+
+- **2.1.1.8.6** - Multiplicación de números naturales
+  - Multiplicación en base B
+
+- **2.1.1.8.7** - División y resto
+  - División y resto entre números naturales en base B=2
+
+---
+
+### Sección 2.1.1.9 - Representación de Números con Parte Fraccionaria
+
+**Subsecciones**:
+
+- **2.1.1.9.1** - Representación fija (fixed-point)
+  - Concepto de punto fijo
+
+- **2.1.1.9.2** - Conversiones entre formatos
+  - Conversión E,L-E (parte entera, fraccionaria) (2.1.1.9.2.1)
+  - Conversión entre bases B y B' en punto fijo (2.1.1.9.2.2)
+  - Conversión entre bases 10 y 2 (2.1.1.9.2.3)
+  - Conversión entre bases potencias de común (2.1.1.9.2.4)
+  - Conversión entre bases 2, 4, 8 y 16 (2.1.1.9.2.5)
+  - Conversión entre bases 3, 9 y 27 (2.1.1.9.2.6)
+
+- **2.1.1.9.3** - Rango y precisión
+  - Rangos representables para longitud fija L (2.1.1.9.3.1)
+  - El épsilon de la representación (2.1.1.9.3.2)
+
+- **2.1.1.9.4** - Representación en punto flotante
+  - Concepto de punto flotante (2.1.1.9.4.1)
+  - Norma IEEE 754 (2.1.1.9.4.2)
+  - Épsilon de punto flotante (2.1.1.9.4.3)
+  - Rangos IEEE 754 (2.1.1.9.4.4)
+  - Formas normalizadas y denormalizadas (2.1.1.9.4.5)
+
+- **2.1.1.9.5** - Operaciones en punto flotante
+  - Redondeo y truncamiento (2.1.1.9.5.1)
+  - Función 'normalizar' (2.1.1.9.5.2)
+  - Conversión punto fijo ↔ punto flotante (2.1.1.9.5.3)
+  - Operaciones aritméticas en punto flotante (2.1.1.9.5.4)
+
+---
+
 ## 💻 Código Disponible
 
 ### Módulo Principal: `core/sistemas_numeracion_basicos.py`

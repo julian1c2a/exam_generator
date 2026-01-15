@@ -249,71 +249,138 @@ python demo_sistemas_numeracion_basicos.py
 
 **Nota importante**: Todos estos son sistemas POSICIONALES o NO POSICIONALES, pero cada uno tiene su propia estructura única y aplicaciones. El sistema posicional es el predominante en computación porque permite operaciones aritméticas eficientes.
 
-**Sistemas Binarios, Octales y Hexadecimales**:
+---
 
-- Sistemas de numeración binaria: conversión entre binario ($B = 2$) y decimal ($B = 10$)
-- Sistemas de numeración octal y hexadecimal: conversión entre octal ($B = 8 = 2^3$), hexadecimal ($B = 16 = 2^4$) y decimal ($B = 10$)
-- Conversión entre binario, octal y hexadecimal
-- Sistema de conversión entre representación de en base B y base B' dónde $B = b^n \and b^m = B'$
+##### 2.1.1.5 Sistemas Binarios, Octales y Hexadecimales
 
-**Representación en Longitud Fija**:
+**Sistemas de numeración binaria (2.1.1.5.1)**:
+
+- Conversión entre binario ($B = 2$) y decimal ($B = 10$)
+
+**Sistemas de numeración octal y hexadecimal (2.1.1.5.2)**:
+
+- Conversión entre octal ($B = 8 = 2^3$), hexadecimal ($B = 16 = 2^4$) y decimal ($B = 10$)
+
+**Conversión entre binario, octal y hexadecimal (2.1.1.5.3)**:
+
+- Métodos de agrupación de dígitos
+
+**Sistema de conversión entre representación de bases relacionadas (2.1.1.5.4)**:
+
+- Conversión entre base $B$ y base $B'$ donde $B = b^n$ y $b^m = B'$
+
+---
+
+##### 2.1.1.6 Representación en Longitud Fija
+
+**Representación de números naturales (2.1.1.6.1)**:
 
 - Representación de números naturales en un registro de longitud fija de $n$ dígitos
-  - Concepto de capacidad de representación para una longitud fija n y una base B
-  - Rango de valores representables para una longitud fija n y una base B
-  - Comparación entre números naturales representados en longitud fija n y base $B \le 16$ para un sistema nativo de computación con bits (base 2)
-  - Sistemas de representación decimal en base decimal (BCD)
-  - Sistemas de representación binaria en base 2
+  - Concepto de capacidad de representación para una longitud fija n y una base B (2.1.1.6.1.1)
+  - Rango de valores representables para una longitud fija n y una base B (2.1.1.6.1.2)
+  - Comparación entre números naturales representados en longitud fija n y base $B \le 16$ para un sistema nativo de computación con bits (base 2) (2.1.1.6.1.3)
+  - Sistemas de representación decimal en base decimal (BCD) (2.1.1.6.1.4)
+  - Sistemas de representación binaria en base 2 (2.1.1.6.1.5)
+
+**Relación base-dígitos-rango (2.1.1.6.2)**:
+
 - Relación entre la base de numeración, el número de dígitos y el rango de valores representables
 
-**Números Enteros con Signo**:
+---
 
-- Magnitud y signo (longitud fija)
-- Complemento a la base B (longitud fija)
-  - Complemento a 2 (longitud fija, base B=2)
-  - Complemento a 10 (longitud fija, base 10)
-  - BCD exceso a 3 y BCD Aitken
-- Exceso a un sesgo k (longitud fija)
+##### 2.1.1.7 Números Enteros con Signo
 
-**Operaciones Aritméticas**:
+**Magnitud y signo (2.1.1.7.1)**:
 
-- La comparación entre números representados en:
-  - Magnitud y signo
-  - Complemento a 2
-  - Exceso a un sesgo k
-- La suma y la resta de números naturales en base B
-- Las operaciones de complementación a la base B (CB) y a la base B menos 1 (CB-1)
-- La inversión de signo (IS) en números enteros representados en:
-  - Magnitud y signo
-  - Complemento a la base B
-  - Exceso a un sesgo k
-- La suma y la resta de números enteros representados en:
-  - Magnitud y signo
-  - Complemento a la base B
-  - Exceso a un sesgo k
-- La multiplicación de números naturales en base B
-- La división y el resto entre números naturales en base B=2
+- Representación en longitud fija
 
-**Representación de Números con Parte Fraccionaria**:
+**Complemento a la base B (2.1.1.7.2)**:
 
-- Representación fija (fixed-point)
-- Como pasar de una representacion E,L-E, donde E es la parte entera y L-E es la parte fraccionaria F, L es la longitud total del numero
-- Como pasar de una base B a otra B' en representación de longitud fija y punto fijo
-- Paso entre bases 10 y 2 en representación de punto fijo
-- Paso entre bases que son potencias de una base común B
-- Paso entre bases 2, 4, 8 y 16
-- Paso entre bases 3, 9 y 27
-- Rangos de valores representables para una longitud fija L y una parte entera de longitud E. Base B.
-- El épsilon de esta representación.
-- Representación de números en punto flotante
-- Representación en punto flotante según la norma IEEE 754
-- El épsilon de la representación en punto flotante
-- Los rangos de valores representables en punto flotante según la norma IEEE 754
-- Formas normalizadas y denormalizadas
-- Operaciones de redondeo y truncamiento
-- Función 'normalizar' en punto flotante
-- Conversión entre representaciones en punto fijo y punto flotante
-- Operaciones aritméticas en punto flotante: suma, resta, multiplicación y división
+- Complemento a 2 (2.1.1.7.2.1) (longitud fija, base B=2)
+- Complemento a 10 (2.1.1.7.2.2) (longitud fija, base 10)
+- BCD exceso a 3 y BCD Aitken (2.1.1.7.2.3)
+
+**Exceso a un sesgo k (2.1.1.7.3)**:
+
+- Representación con sesgo
+
+---
+
+##### 2.1.1.8 Operaciones Aritméticas
+
+**Comparación de números (2.1.1.8.1)**:
+
+- Comparación entre números representados en:
+  - Magnitud y signo (2.1.1.8.1.1)
+  - Complemento a 2 (2.1.1.8.1.2)
+  - Exceso a un sesgo k (2.1.1.8.1.3)
+
+**Suma y resta de números naturales (2.1.1.8.2)**:
+
+- Suma y resta de números naturales en base B
+
+**Operaciones de complementación (2.1.1.8.3)**:
+
+- Operaciones de complementación a la base B (CB) y a la base B menos 1 (CB-1)
+
+**Inversión de signo (2.1.1.8.4)**:
+
+- Inversión de signo (IS) en números enteros representados en:
+  - Magnitud y signo (2.1.1.8.4.1)
+  - Complemento a la base B (2.1.1.8.4.2)
+  - Exceso a un sesgo k (2.1.1.8.4.3)
+
+**Suma y resta de números enteros (2.1.1.8.5)**:
+
+- Suma y resta de números enteros representados en:
+  - Magnitud y signo (2.1.1.8.5.1)
+  - Complemento a la base B (2.1.1.8.5.2)
+  - Exceso a un sesgo k (2.1.1.8.5.3)
+
+**Multiplicación de números naturales (2.1.1.8.6)**:
+
+- Multiplicación de números naturales en base B
+
+**División y resto (2.1.1.8.7)**:
+
+- División y el resto entre números naturales en base B=2
+
+---
+
+##### 2.1.1.9 Representación de Números con Parte Fraccionaria
+
+**Representación fija (fixed-point) (2.1.1.9.1)**:
+
+- Concepto de punto fijo
+
+**Conversiones entre formatos (2.1.1.9.2)**:
+
+- Paso de una representación E,L-E, donde E es la parte entera y L-E es la parte fraccionaria F, L es la longitud total del número (2.1.1.9.2.1)
+- Paso de una base B a otra B' en representación de longitud fija y punto fijo (2.1.1.9.2.2)
+- Paso entre bases 10 y 2 en representación de punto fijo (2.1.1.9.2.3)
+- Paso entre bases que son potencias de una base común B (2.1.1.9.2.4)
+- Paso entre bases 2, 4, 8 y 16 (2.1.1.9.2.5)
+- Paso entre bases 3, 9 y 27 (2.1.1.9.2.6)
+
+**Rango y precisión (2.1.1.9.3)**:
+
+- Rangos de valores representables para una longitud fija L y una parte entera de longitud E. Base B. (2.1.1.9.3.1)
+- El épsilon de esta representación. (2.1.1.9.3.2)
+
+**Representación en punto flotante (2.1.1.9.4)**:
+
+- Representación de números en punto flotante (2.1.1.9.4.1)
+- Representación en punto flotante según la norma IEEE 754 (2.1.1.9.4.2)
+- El épsilon de la representación en punto flotante (2.1.1.9.4.3)
+- Los rangos de valores representables en punto flotante según la norma IEEE 754 (2.1.1.9.4.4)
+- Formas normalizadas y denormalizadas (2.1.1.9.4.5)
+
+**Operaciones en punto flotante (2.1.1.9.5)**:
+
+- Operaciones de redondeo y truncamiento (2.1.1.9.5.1)
+- Función 'normalizar' en punto flotante (2.1.1.9.5.2)
+- Conversión entre representaciones en punto fijo y punto flotante (2.1.1.9.5.3)
+- Operaciones aritméticas en punto flotante: suma, resta, multiplicación y división (2.1.1.9.5.4)
 
 #### 2.1.2 Sistemas de Representación Alfanumérica
 
