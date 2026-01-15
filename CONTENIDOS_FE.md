@@ -588,6 +588,159 @@ Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 
 - Relación entre la base de numeración, el número de dígitos y el rango de valores representables
 
+###### Códigos Especializados de 5 Bits (2.1.1.6.1.6)
+
+Además de BCD y DPD, existen códigos especializados de 5 bits diseñados para aplicaciones específicas. Estos códigos balancean detección de errores, cambios suaves (adyacencia) y propiedades cíclicas.
+
+**Código Biquinario (2 entre 5)**:
+
+- **Definición**: Exactamente 2 bits encendidos en 5 posiciones
+- **Capacidad**: 10 valores (0-9)
+- **Bits utilizados**: 5
+- **Eficacia de empaquetado**: $\frac{10}{2^5} = \frac{10}{32} = 0.3125$ (31.25%)
+- **Detección de errores**: Si hay 1 o 3+ bits encendidos, es un error
+
+**Tabla de Códigos Biquinarios**:
+
+| Valor | Código | Bits |
+|---|---|---|
+| 0 | 00100 | Posiciones 2 |
+| 1 | 00101 | Posiciones 2, 0 |
+| 2 | 00110 | Posiciones 2, 1 |
+| 3 | 01001 | Posiciones 3, 0 |
+| 4 | 01010 | Posiciones 3, 1 |
+| 5 | 01100 | Posiciones 3, 2 |
+| 6 | 10001 | Posiciones 4, 0 |
+| 7 | 10010 | Posiciones 4, 1 |
+| 8 | 10100 | Posiciones 4, 2 |
+| 9 | 11000 | Posiciones 4, 3 |
+
+**Características**:
+
+- Detección automática de errores simples
+- Históricamente usado en sistemas telefónicos
+- Baja eficacia (solo 31.25%)
+
+**Código Johnson (Cíclico)**:
+
+- **Definición**: Código donde cada valor sucesivo difiere exactamente en 1 bit
+- **Tipo**: Código adyacente y cíclico
+- **Capacidad**: 10 valores (0-9)
+- **Bits utilizados**: 5
+- **Eficacia de empaquetado**: $\frac{10}{2^5} = 0.3125$ (31.25%)
+
+**Tabla de Códigos Johnson**:
+
+| Valor | Código | Descripción |
+|---|---|---|
+| 0 | 00000 | Todos 0s |
+| 1 | 00001 | Un 1 encendido |
+| 2 | 00011 | Dos 1s consecutivos |
+| 3 | 00111 | Tres 1s consecutivos |
+| 4 | 01111 | Cuatro 1s consecutivos |
+| 5 | 11111 | Todos 1s (pivote) |
+| 6 | 11110 | Un 0 apagado |
+| 7 | 11100 | Dos 0s apagados |
+| 8 | 11000 | Tres 0s apagados |
+| 9 | 10000 | Cuatro 0s apagados (se envuelve a 0) |
+
+**Propiedades**:
+
+- **Adyacencia**: Valores sucesivos difieren en exactamente 1 bit
+- **Ciclicidad**: El último valor (9 = 10000) y el primero (0 = 00000) también difieren en 1 bit
+- **Cambio suave**: Ideal para contadores que deben evitar glitches
+- **Implementación simple**: Fácil de generar con flip-flops en cascada
+
+**Función Python**:
+
+```python
+johnson_a_entero(codigo_johnson: str) -> int
+# Ejemplo: johnson_a_entero('00001') -> 1
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
+
+###### Códigos Especulares, Adyacentes y Cíclicos - Código Gray (2.1.1.6.1.7)
+
+**Código Gray (o Código Reflejado)**:
+
+El **código Gray** es un sistema de codificación donde valores sucesivos difieren exactamente en un solo bit. Es simultáneamente **especular** (reflejado), **adyacente** (cambio único), y **cíclico** (se envuelve).
+
+- **Capacidad**: $2^n$ valores (para $n$ bits)
+- **Bits utilizados**: $n$
+- **Eficacia de empaquetado**: $\frac{2^n}{2^n} = 1.0$ (100%)
+
+**Código Gray de 4 Bits**:
+
+| Decimal | Binario | Gray | Cambio |
+|---|---|---|---|
+| 0 | 0000 | 0000 | - |
+| 1 | 0001 | 0001 | bit 0 |
+| 2 | 0010 | 0011 | bit 1 |
+| 3 | 0011 | 0010 | bit 0 |
+| 4 | 0100 | 0110 | bit 2 |
+| 5 | 0101 | 0111 | bit 0 |
+| 6 | 0110 | 0101 | bit 1 |
+| 7 | 0111 | 0100 | bit 0 |
+| 8 | 1000 | 1100 | bit 3 |
+| 9 | 1001 | 1101 | bit 0 |
+| 10 | 1010 | 1111 | bit 1 |
+| 11 | 1011 | 1110 | bit 0 |
+| 12 | 1100 | 1010 | bit 2 |
+| 13 | 1101 | 1011 | bit 0 |
+| 14 | 1110 | 1001 | bit 1 |
+| 15 | 1111 | 1000 | bit 0 (ciclico: 15→0) |
+
+**Fórmula Gray**:
+
+Para convertir binario a Gray:
+$$\text{Gray}_i = \text{Binario}_i \oplus \text{Binario}_{i+1}$$
+
+Para convertir Gray a binario:
+$$\text{Binario}_i = \text{Gray}_i \oplus \text{Binario}_{i+1}$$
+
+**Propiedades**:
+
+- **Especular**: Simetría en la construcción (primera mitad es negación de segunda mitad)
+- **Adyacente**: Cada valor difiere del siguiente en exactamente 1 bit
+- **Cíclico**: El último y primer valor también difieren en 1 bit
+- **Sin glitches**: Evita cambios simultáneos de múltiples bits
+
+**Aplicaciones Principales**:
+
+- **Encoders rotativos**: Detectan posición sin lecturas erráticas
+- **Contadores síncronos**: Transiciones suaves sin picos transitorios
+- **Válvulas lógicas**: Minimiza carrera de datos
+- **Computación cuántica**: Orden natural de estados
+
+**Funciones Python**:
+
+```python
+entero_a_gray_4bits(valor: int) -> str
+# Ejemplo: entero_a_gray_4bits(5) -> '0111'
+
+gray_4bits_a_entero(codigo_gray: str) -> int
+# Ejemplo: gray_4bits_a_entero('0111') -> 5
+
+analisis_codigo_especializado(codigo: str, tipo: str) -> Dict
+# Tipos: 'biquinario', 'johnson', 'gray'
+
+comparar_codigos_5bits() -> Dict
+# Comparación completa de biquinario, johnson y gray
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
+
+**Tabla Comparativa de Códigos**:
+
+| Código | Capacidad | Bits | Eficacia | Adyacente | Cíclico | Especular |
+|---|---|---|---|---|---|---|
+| **Biquinario** | 10 | 5 | 31.25% | No | No | No |
+| **Johnson** | 10 | 5 | 31.25% | Sí | Sí | No |
+| **Gray (4 bits)** | 16 | 4 | **100%** | **Sí** | **Sí** | **Sí** |
+
+**Conclusión**: El código Gray es el más eficiente (100%) y tiene todas las propiedades deseables (adyacencia, ciclicidad, simetría), convirtiéndolo en estándar industrial para aplicaciones críticas.
+
 ---
 
 ##### 2.1.1.7 Números Enteros con Signo

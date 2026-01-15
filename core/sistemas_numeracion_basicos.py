@@ -1038,3 +1038,347 @@ def _estructura_ieee(formato: str) -> str:
     elif formato == 'decimal128':
         return "128 bits: [3 bits signo | 8 bits combinación | 120 bits coeficiente]"
     return "Formato desconocido"
+
+
+# ============================================================================
+# PARTE 8: CODIGOS ESPECIALIZADOS (5 bits y Gray)
+# ============================================================================
+
+# Tablas de códigos de 5 bits
+CODIGO_BIQUINARIO = {
+    0: '00110',  # 2 bits encendidos (posiciones 2 y 1)
+    1: '01010',  # 2 bits encendidos (posiciones 3 y 1)
+    2: '01100',  # 2 bits encendidos (posiciones 3 y 2)
+    3: '10010',  # 2 bits encendidos (posiciones 4 y 1)
+    4: '10100',  # 2 bits encendidos (posiciones 4 y 2)
+    5: '11000',  # 2 bits encendidos (posiciones 4 y 3)
+    6: '01001',  # 2 bits encendidos (posiciones 3 y 0)
+    7: '10001',  # 2 bits encendidos (posiciones 4 y 0)
+    8: '00101',  # 2 bits encendidos (posiciones 2 y 0)
+    9: '00011',  # 2 bits encendidos (posiciones 1 y 0)
+}
+
+CODIGO_JOHNSON = {
+    0: '00000',
+    1: '00001',
+    2: '00011',
+    3: '00111',
+    4: '01111',
+    5: '11111',
+    6: '11110',
+    7: '11100',
+    8: '11000',
+    9: '10000',
+}
+
+CODIGO_GRAY_4BITS = {
+    0: '0000',
+    1: '0001',
+    2: '0011',
+    3: '0010',
+    4: '0110',
+    5: '0111',
+    6: '0101',
+    7: '0100',
+    8: '1100',
+    9: '1101',
+    10: '1111',
+    11: '1110',
+    12: '1010',
+    13: '1011',
+    14: '1001',
+    15: '1000',
+}
+
+
+def biquinario_a_entero(codigo_biquinario: str) -> int:
+    """
+    Convierte un código biquinario (2 entre 5) a su valor entero.
+    
+    El código biquinario tiene exactamente 2 bits encendidos en 5 posiciones,
+    lo que permite representar 10 valores (0-9).
+    
+    Tabla de búsqueda:
+    0: 00110, 1: 01010, 2: 01100, 3: 10010, 4: 10100
+    5: 11000, 6: 01001, 7: 10001, 8: 00101, 9: 00011
+    
+    Args:
+        codigo_biquinario: String de 5 caracteres '0' y '1' con exactamente 2 unos
+    
+    Returns:
+        int: Valor entero 0-9
+        
+    Ejemplo:
+        biquinario_a_entero('00110') -> 0
+        biquinario_a_entero('01010') -> 1
+        biquinario_a_entero('11000') -> 5
+        biquinario_a_entero('00011') -> 9
+    """
+    if not isinstance(codigo_biquinario, str):
+        raise ValueError("Código debe ser string")
+    
+    if len(codigo_biquinario) != 5:
+        raise ValueError("Código biquinario debe tener 5 bits")
+    
+    # Validar caracteres
+    if not all(c in '01' for c in codigo_biquinario):
+        raise ValueError("Código biquinario debe contener solo '0' y '1'")
+    
+    if codigo_biquinario.count('1') != 2:
+        raise ValueError("Código biquinario debe tener exactamente 2 bits encendidos")
+    
+    # Tabla inversa para lookup
+    tabla_inversa = {v: k for k, v in CODIGO_BIQUINARIO.items()}
+    
+    if codigo_biquinario in tabla_inversa:
+        return tabla_inversa[codigo_biquinario]
+    else:
+        raise ValueError("Código biquinario inválido")
+
+
+def johnson_a_entero(codigo_johnson: str) -> int:
+    """
+    Convierte un código Johnson (cíclico) a su valor entero.
+    
+    El código Johnson es un código cíclico donde:
+    - Cada valor sucesivo difiere en un solo bit (propiedad adyacente/cíclica)
+    - Contiene una secuencia de 0s seguida de una secuencia de 1s
+    - Se envuelve cíclicamente (último y primer valor también difieren en 1 bit)
+    
+    Tabla de Johnson:
+    0: 00000, 1: 00001, 2: 00011, 3: 00111, 4: 01111,
+    5: 11111, 6: 11110, 7: 11100, 8: 11000, 9: 10000
+    
+    Args:
+        codigo_johnson: String de 5 caracteres '0' y '1'
+    
+    Returns:
+        int: Valor entero 0-9
+        
+    Ejemplo:
+        johnson_a_entero('00000') -> 0
+        johnson_a_entero('00001') -> 1
+        johnson_a_entero('11111') -> 5
+        johnson_a_entero('10000') -> 9
+    """
+    if not isinstance(codigo_johnson, str):
+        raise ValueError("Código debe ser string")
+    
+    if len(codigo_johnson) != 5:
+        raise ValueError("Código Johnson debe tener 5 bits")
+    
+    # Validar caracteres
+    if not all(c in '01' for c in codigo_johnson):
+        raise ValueError("Código Johnson debe contener solo '0' y '1'")
+    
+    # Tabla inversa para lookup
+    tabla_inversa = {v: k for k, v in CODIGO_JOHNSON.items()}
+    
+    if codigo_johnson in tabla_inversa:
+        return tabla_inversa[codigo_johnson]
+    else:
+        raise ValueError("Código Johnson inválido: no es un código Johnson válido")
+
+
+def entero_a_gray_4bits(valor: int) -> str:
+    """
+    Convierte un entero (0-15) a código Gray de 4 bits.
+    
+    Código Gray: código reflejado donde valores sucesivos difieren en un solo bit.
+    Ventaja: ideal para encoders rotativos y contadores sin glitches.
+    
+    Fórmula: Gray = valor ^ (valor >> 1)
+    
+    Args:
+        valor: Entero 0-15
+    
+    Returns:
+        str: Código Gray de 4 bits
+        
+    Ejemplo:
+        entero_a_gray_4bits(0)  -> '0000'
+        entero_a_gray_4bits(1)  -> '0001'
+        entero_a_gray_4bits(2)  -> '0011'
+        entero_a_gray_4bits(15) -> '1000'
+    """
+    if not 0 <= valor <= 15:
+        raise ValueError("Valor debe estar entre 0 y 15")
+    
+    gray = valor ^ (valor >> 1)
+    return format(gray, '04b')
+
+
+def gray_4bits_a_entero(codigo_gray: str) -> int:
+    """
+    Convierte un código Gray de 4 bits a su valor entero.
+    
+    El proceso es invertir la transformación XOR:
+    valor = gray ^ (gray >> 1) ^ (gray >> 2) ^ (gray >> 3)
+    
+    Args:
+        codigo_gray: String de 4 caracteres '0' y '1'
+    
+    Returns:
+        int: Valor entero 0-15
+        
+    Ejemplo:
+        gray_4bits_a_entero('0000') -> 0
+        gray_4bits_a_entero('0001') -> 1
+        gray_4bits_a_entero('0011') -> 2
+        gray_4bits_a_entero('1000') -> 15
+    """
+    if len(codigo_gray) != 4:
+        raise ValueError("Código Gray debe tener 4 bits")
+    
+    gray = int(codigo_gray, 2)
+    
+    # Invertir la transformación Gray
+    valor = gray
+    gray >>= 1
+    while gray:
+        valor ^= gray
+        gray >>= 1
+    
+    return valor
+
+
+def analisis_codigo_especializado(codigo: str, tipo: str) -> Dict:
+    """
+    Análisis completo de un código especializado.
+    
+    Args:
+        codigo: String del código
+        tipo: Uno de 'biquinario', 'johnson', 'gray'
+    
+    Returns:
+        Dict: Análisis con conversión y características
+        
+    Ejemplo:
+        analisis_codigo_especializado('00100', 'biquinario')
+    """
+    if tipo == 'biquinario':
+        if len(codigo) != 5 or codigo.count('1') != 2:
+            raise ValueError("Código biquinario inválido")
+        
+        valor = biquinario_a_entero(codigo)
+        
+        return {
+            'tipo': 'biquinario',
+            'codigo': codigo,
+            'valor': valor,
+            'bits_encendidos': 2,
+            'capacidad': 10,
+            'bits_utilizados': 5,
+            'eficacia': 10 / 32,
+            'caracteristicas': [
+                'Exactamente 2 bits encendidos en 5 posiciones',
+                'Detección de errores: 1 bit encendido == error',
+                '3 bits encendidos == error'
+            ]
+        }
+    
+    elif tipo == 'johnson':
+        if len(codigo) != 5:
+            raise ValueError("Código Johnson debe tener 5 bits")
+        
+        valor = johnson_a_entero(codigo)
+        
+        return {
+            'tipo': 'johnson',
+            'codigo': codigo,
+            'valor': valor,
+            'capacidad': 10,
+            'bits_utilizados': 5,
+            'eficacia': 10 / 32,
+            'caracteristicas': [
+                'Código cíclico: valores sucesivos difieren en 1 bit',
+                'Adyacente: transición suave sin glitches',
+                'Envolvimiento cíclico: 9→0 también difiere en 1 bit'
+            ]
+        }
+    
+    elif tipo == 'gray':
+        if len(codigo) != 4:
+            raise ValueError("Código Gray debe tener 4 bits")
+        
+        valor = gray_4bits_a_entero(codigo)
+        
+        return {
+            'tipo': 'gray',
+            'codigo': codigo,
+            'valor': valor,
+            'capacidad': 16,
+            'bits_utilizados': 4,
+            'eficacia': 16 / 16,
+            'caracteristicas': [
+                'Código reflejado (especular): valores sucesivos difieren en 1 bit',
+                'Óptimo para encoders rotativos',
+                'Evita glitches en transiciones',
+                'Envolvimiento cíclico perfecto'
+            ]
+        }
+    
+    else:
+        raise ValueError(f"Tipo de código desconocido: {tipo}")
+
+
+def comparar_codigos_5bits() -> Dict:
+    """
+    Comparación completa de códigos de 5 bits.
+    
+    Returns:
+        Dict: Comparación de características, eficacias y propiedades
+    """
+    return {
+        'biquinario': {
+            'nombre': 'Código Biquinario (2 entre 5)',
+            'capacidad': 10,
+            'bits': 5,
+            'eficacia': 10 / 32,
+            'porcentaje_eficacia': (10 / 32) * 100,
+            'bits_encendidos': 2,
+            'adyacente': False,
+            'ciclico': False,
+            'especular': False,
+            'error_detection': True,
+            'caracteristicas': [
+                'Detecta errores simples',
+                'Patrón fijo: exactamente 2 bits encendidos',
+                'Usado en viejos sistemas telefónicos'
+            ]
+        },
+        'johnson': {
+            'nombre': 'Código Johnson (Cíclico)',
+            'capacidad': 10,
+            'bits': 5,
+            'eficacia': 10 / 32,
+            'porcentaje_eficacia': (10 / 32) * 100,
+            'adyacente': True,
+            'ciclico': True,
+            'especular': False,
+            'error_detection': False,
+            'caracteristicas': [
+                'Adyacente: cambio de 1 bit entre valores',
+                'Cíclico: envolvimiento perfecto',
+                'Ideal para contadores y máquinas de estados'
+            ]
+        },
+        'gray_4bits': {
+            'nombre': 'Código Gray (4 bits)',
+            'capacidad': 16,
+            'bits': 4,
+            'eficacia': 16 / 16,
+            'porcentaje_eficacia': 100.0,
+            'adyacente': True,
+            'ciclico': True,
+            'especular': True,
+            'error_detection': False,
+            'caracteristicas': [
+                'Reflejado/Especular: simetría perfecta',
+                'Adyacente: cambio de 1 bit entre valores',
+                'Cíclico: transición suave sin glitches',
+                'Óptimo para encoders rotativos'
+            ]
+        }
+    }
+
