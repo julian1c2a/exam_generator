@@ -555,3 +555,396 @@ def decimal_a_base_b_verbose(numero: Union[int, str], base: int) -> str:
     ])
     
     return "\n".join(lineas)
+
+
+# ============================================================================
+# FUNCIONES PARA CONVERSIÓN INVERSA: BASE B → DECIMAL (CON POLINOMIO Y HORNER)
+# ============================================================================
+
+def validar_numero_en_base(numero_str: str, base: int) -> Tuple[bool, str]:
+    """
+    Valida si un string representa un número válido en una base específica.
+    
+    Args:
+        numero_str: String representando el número en la base
+        base: Base numérica (2-36)
+    
+    Returns:
+        Tupla (es_válido: bool, mensaje: str)
+    
+    Ejemplos:
+        >>> validar_numero_en_base("1010", 2)
+        (True, "1010 es un número binario válido")
+        
+        >>> validar_numero_en_base("FF", 16)
+        (True, "FF es un número en base 16 válido")
+        
+        >>> validar_numero_en_base("G", 16)
+        (False, "G no es un dígito válido en base 16")
+    """
+    if not validar_base(base):
+        return False, f"Base inválida: {base}"
+    
+    digitos_validos = obtener_digitos_para_base(base)
+    numero_upper = numero_str.strip().upper()
+    
+    if not numero_upper:
+        return False, "El número no puede estar vacío"
+    
+    for digito in numero_upper:
+        if digito not in digitos_validos:
+            return False, f"'{digito}' no es un dígito válido en base {base}"
+    
+    return True, f"{numero_upper} es un número en base {base} válido"
+
+
+def valor_digito_en_base(digito_char: str, base: int) -> int:
+    """
+    Obtiene el valor numérico de un dígito en una base específica.
+    
+    Ejemplos:
+        >>> valor_digito_en_base('5', 10)
+        5
+        
+        >>> valor_digito_en_base('F', 16)
+        15
+        
+        >>> valor_digito_en_base('Z', 36)
+        35
+    """
+    digitos_tabla = obtener_digitos_para_base(base)
+    digito_upper = digito_char.upper()
+    
+    if digito_upper not in digitos_tabla:
+        raise ValueError(f"'{digito_char}' no es un dígito válido en base {base}")
+    
+    return digitos_tabla.index(digito_upper)
+
+
+def base_b_a_decimal_simple(numero_str: str, base: int) -> int:
+    """
+    Convierte un número de base B a decimal (simple).
+    
+    Usa el algoritmo directo: suma de (dígito × base^posición)
+    
+    Args:
+        numero_str: String con el número en la base especificada
+        base: Base numérica (2-36)
+    
+    Returns:
+        int: Número en base 10
+    
+    Raises:
+        ValueError: Si el número no es válido para la base
+    
+    Ejemplos:
+        >>> base_b_a_decimal_simple("1101", 2)
+        13
+        
+        >>> base_b_a_decimal_simple("FF", 16)
+        255
+        
+        >>> base_b_a_decimal_simple("377", 8)
+        255
+    """
+    # Validar
+    es_valido, msg = validar_numero_en_base(numero_str, base)
+    if not es_valido:
+        raise ValueError(msg)
+    
+    numero_upper = numero_str.strip().upper()
+    resultado = 0
+    
+    # Calcular: suma de (dígito × base^posición)
+    for posicion, digito_char in enumerate(reversed(numero_upper)):
+        valor_digito = valor_digito_en_base(digito_char, base)
+        potencia = base ** posicion
+        resultado += valor_digito * potencia
+    
+    return resultado
+
+
+def base_b_a_decimal_con_polinomio(numero_str: str, base: int) -> dict:
+    """
+    Convierte de base B a decimal mostrando el polinomio de evaluación.
+    
+    Muestra cómo se calcula el número usando el método estándar:
+    d_n × base^n + d_(n-1) × base^(n-1) + ... + d_1 × base^1 + d_0 × base^0
+    
+    Args:
+        numero_str: String con el número en la base especificada
+        base: Base numérica (2-36)
+    
+    Returns:
+        Dict con:
+        - 'numero_original': El string original
+        - 'base': La base usada
+        - 'decimal': Resultado en base 10
+        - 'polinomio_terminos': Lista de términos del polinomio
+        - 'polinomio_str': Representación en string del polinomio
+        - 'calculos': Lista de cálculos paso a paso
+        - 'explicacion': Texto explicativo completo
+    
+    Ejemplos:
+        >>> resultado = base_b_a_decimal_con_polinomio("1101", 2)
+        >>> print(resultado['polinomio_str'])
+        1×2³ + 1×2² + 0×2¹ + 1×2⁰
+    """
+    # Validar
+    es_valido, msg = validar_numero_en_base(numero_str, base)
+    if not es_valido:
+        raise ValueError(msg)
+    
+    numero_upper = numero_str.strip().upper()
+    n_digitos = len(numero_upper)
+    
+    # Calcular términos del polinomio
+    terminos = []
+    calculos = []
+    total = 0
+    
+    for posicion, digito_char in enumerate(reversed(numero_upper)):
+        valor_digito = valor_digito_en_base(digito_char, base)
+        exponente = n_digitos - 1 - posicion
+        potencia = base ** exponente
+        termino_valor = valor_digito * potencia
+        
+        terminos.append({
+            'digito': digito_char,
+            'valor_digito': valor_digito,
+            'exponente': exponente,
+            'base': base,
+            'potencia': potencia,
+            'termino_valor': termino_valor
+        })
+        
+        # Crear notación
+        calculos.append(f"{valor_digito}×{base}^{exponente} = {termino_valor}")
+        total += termino_valor
+    
+    # Construir polinomio
+    polinomio_partes = []
+    for termino in terminos:
+        polinomio_partes.append(f"{termino['digito']}×{termino['base']}^{termino['exponente']}")
+    
+    polinomio_str = " + ".join(polinomio_partes)
+    
+    # Explicación
+    explicacion_lineas = [
+        f"Convertir {numero_upper} desde base {base} a decimal (Polinomio):",
+        "",
+        f"Polinomio: {polinomio_str}",
+        ""
+    ]
+    
+    for calc in calculos:
+        explicacion_lineas.append(f"  {calc}")
+    
+    explicacion_lineas.extend([
+        "",
+        f"Resultado: {total}"
+    ])
+    
+    return {
+        'numero_original': numero_upper,
+        'base': base,
+        'decimal': total,
+        'polinomio_terminos': terminos,
+        'polinomio_str': polinomio_str,
+        'calculos': calculos,
+        'explicacion': '\n'.join(explicacion_lineas)
+    }
+
+
+def base_b_a_decimal_con_horner(numero_str: str, base: int) -> dict:
+    """
+    Convierte de base B a decimal usando el método de Horner.
+    
+    El método de Horner es más eficiente pues transforma:
+    d_n × base^n + d_(n-1) × base^(n-1) + ... + d_0 × base^0
+    
+    En:
+    (...((d_n × base + d_(n-1)) × base + d_(n-2)) × ... × base + d_0)
+    
+    Esto reduce operaciones de potencias a simples multiplicaciones.
+    
+    Args:
+        numero_str: String con el número en la base especificada
+        base: Base numérica (2-36)
+    
+    Returns:
+        Dict con:
+        - 'numero_original': El string original
+        - 'base': La base usada
+        - 'decimal': Resultado en base 10
+        - 'pasos_horner': Lista de pasos del algoritmo
+        - 'forma_horner': Representación con paréntesis anidados
+        - 'explicacion': Texto explicativo completo
+    
+    Ejemplos:
+        >>> resultado = base_b_a_decimal_con_horner("1101", 2)
+        >>> print(resultado['forma_horner'])
+        ((1×2 + 1)×2 + 0)×2 + 1
+    """
+    # Validar
+    es_valido, msg = validar_numero_en_base(numero_str, base)
+    if not es_valido:
+        raise ValueError(msg)
+    
+    numero_upper = numero_str.strip().upper()
+    
+    # Algoritmo de Horner
+    pasos = []
+    resultado = 0
+    
+    for i, digito_char in enumerate(numero_upper):
+        valor_digito = valor_digito_en_base(digito_char, base)
+        
+        # Paso: resultado = resultado × base + digito
+        resultado_anterior = resultado
+        resultado = resultado * base + valor_digito
+        
+        pasos.append({
+            'paso': i + 1,
+            'digito': digito_char,
+            'valor_digito': valor_digito,
+            'base': base,
+            'resultado_anterior': resultado_anterior,
+            'multiplicacion': resultado_anterior * base,
+            'suma': valor_digito,
+            'resultado_actual': resultado,
+            'formula': f"({resultado_anterior} × {base}) + {valor_digito} = {resultado}"
+        })
+    
+    # Construir forma de Horner (paréntesis anidados)
+    forma_horner_partes = []
+    for digito_char in numero_upper:
+        forma_horner_partes.append(digito_char)
+    
+    # Construir manualmente la forma de Horner
+    if len(numero_upper) == 1:
+        forma_horner = numero_upper[0]
+    else:
+        forma_horner = f"(({numero_upper[0]}"
+        for digito in numero_upper[1:]:
+            forma_horner += f")×{base} + {digito}"
+        forma_horner += ")"
+    
+    # Explicación
+    explicacion_lineas = [
+        f"Convertir {numero_upper} desde base {base} a decimal (Horner):",
+        "",
+        f"Forma de Horner: {forma_horner}",
+        "",
+        "Pasos del algoritmo (resultado = resultado × base + dígito):",
+        ""
+    ]
+    
+    for paso in pasos:
+        explicacion_lineas.append(
+            f"Paso {paso['paso']}: Dígito {paso['digito']} (valor {paso['valor_digito']})"
+        )
+        explicacion_lineas.append(
+            f"        {paso['resultado_anterior']} × {base} + {paso['valor_digito']} = {paso['resultado_actual']}"
+        )
+    
+    explicacion_lineas.extend([
+        "",
+        f"Resultado: {resultado}"
+    ])
+    
+    return {
+        'numero_original': numero_upper,
+        'base': base,
+        'decimal': resultado,
+        'pasos_horner': pasos,
+        'forma_horner': forma_horner,
+        'explicacion': '\n'.join(explicacion_lineas)
+    }
+
+
+def comparar_metodos_conversion(numero_str: str, base: int) -> dict:
+    """
+    Compara los dos métodos de conversión: Polinomio vs Horner.
+    
+    Muestra ambos métodos lado a lado para demostrar que, aunque
+    llegan al mismo resultado, Horner es más eficiente.
+    
+    Args:
+        numero_str: String con el número en la base especificada
+        base: Base numérica (2-36)
+    
+    Returns:
+        Dict con:
+        - 'polinomio': Dict de resultado polinomio
+        - 'horner': Dict de resultado Horner
+        - 'comparacion': Análisis comparativo
+        - 'explicacion': Texto comparativo
+    """
+    resultado_polinomio = base_b_a_decimal_con_polinomio(numero_str, base)
+    resultado_horner = base_b_a_decimal_con_horner(numero_str, base)
+    
+    # Contar operaciones
+    n = len(numero_str)
+    
+    # Polinomio: (n-1) multiplicaciones (para potencias) + n multiplicaciones
+    # Realmente: n exponenciaciones + n multiplicaciones
+    ops_polinomio = {
+        'multiplicaciones': n,
+        'exponenciaciones': n,
+        'sumas': n - 1,
+        'total_operaciones_significativas': n + (n - 1)
+    }
+    
+    # Horner: n-1 multiplicaciones + n sumas
+    ops_horner = {
+        'multiplicaciones': n - 1,
+        'exponenciaciones': 0,
+        'sumas': n,
+        'total_operaciones_significativas': (n - 1) + n
+    }
+    
+    # Explicación
+    explicacion = f"""
+COMPARACIÓN DE MÉTODOS
+═══════════════════════════════════════════════════════════
+
+Número: {numero_str} (Base {base})
+Resultado decimal: {resultado_polinomio['decimal']}
+
+MÉTODO 1: POLINOMIO (Forma Estándar)
+──────────────────────────────────────
+{resultado_polinomio['polinomio_str']}
+
+Operaciones:
+  • Multiplicaciones: {ops_polinomio['multiplicaciones']}
+  • Exponenciaciones: {ops_polinomio['exponenciaciones']}
+  • Sumas: {ops_polinomio['sumas']}
+  • Total significativo: {ops_polinomio['total_operaciones_significativas']}
+
+MÉTODO 2: HORNER (Más Eficiente)
+─────────────────────────────────
+{resultado_horner['forma_horner']}
+
+Operaciones:
+  • Multiplicaciones: {ops_horner['multiplicaciones']}
+  • Exponenciaciones: {ops_horner['exponenciaciones']}
+  • Sumas: {ops_horner['sumas']}
+  • Total significativo: {ops_horner['total_operaciones_significativas']}
+
+CONCLUSIÓN
+──────────
+Polinomio requiere {ops_polinomio['exponenciaciones']} exponenciaciones.
+Horner requiere 0 exponenciaciones.
+
+¡Horner es más eficiente porque evita calcular potencias!
+Especialmente importante con números muy grandes o bases inusuales.
+"""
+    
+    return {
+        'polinomio': resultado_polinomio,
+        'horner': resultado_horner,
+        'operaciones_polinomio': ops_polinomio,
+        'operaciones_horner': ops_horner,
+        'explicacion': explicacion.strip()
+    }
