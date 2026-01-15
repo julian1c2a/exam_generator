@@ -1,5 +1,5 @@
 from typing import Optional
-from modules.numeracion.models import ConversionExerciseData, ArithmeticOp
+from modules.numeracion.models import ConversionExerciseData, ArithmeticOp, COLUMN_NAMES
 
 class NumeracionLatexRenderer:
     def __init__(self, is_solution: bool = False):
@@ -7,8 +7,12 @@ class NumeracionLatexRenderer:
 
     def render(self, data: ConversionExerciseData, index: int) -> str:
         latex = fr"\section*{{Ejercicio {index}: {data.title} ({data.n_bits} bits)}}" + "\n"
+        
+        # Enunciado con indicación de la columna activa
+        active_systems = ", ".join(sorted(set(COLUMN_NAMES[row.target_col_idx] for row in data.rows)))
         latex += r"\begin{tcolorbox}[title=Enunciado]" + "\n"
-        latex += fr"\noindent \textbf{{a)}} {data.description} Si no es representable, escriba 'NR'." + "\n"
+        latex += fr"\noindent \textbf{{a)}} {data.description}\\" + "\n"
+        latex += fr"\noindent Convierte a: \textbf{{{active_systems}}}. Si no es representable, escribe 'NR'." + "\n"
         latex += r"\end{tcolorbox}" + "\n\n"
 
         # Tabla
@@ -22,15 +26,18 @@ class NumeracionLatexRenderer:
             cells[0] = f"{row.label})"
 
             if self.is_solution:
-                # Mostrar todos los valores en rojo
+                # Mostrar TODOS los valores en rojo (soluciones completas)
                 cells[1] = fr"\textcolor{{red}}{{{row.val_decimal}}}"
                 cells[2] = fr"\textcolor{{red}}{{{row.sol_bin}}}"
                 cells[3] = fr"\textcolor{{red}}{{{row.sol_c2}}}"
                 cells[4] = fr"\textcolor{{red}}{{{row.sol_sm}}}"
                 cells[5] = fr"\textcolor{{red}}{{{row.sol_bcd}}}"
             else:
-                # Mostrar solo el valor objetivo
-                cells[row.target_col_idx] = row.target_val_str
+                # Mostrar SOLO la columna activa (target_col_idx)
+                # El alumno debe completar solo esta columna
+                cells[1] = ""  # Columna decimal vacía para que escriba el alumno
+                cells[row.target_col_idx + 2] = f"\\textbf{{{row.target_val_str}}}"  # +2 porque col 0=label, col 1=decimal
+                # Las otras columnas quedan vacías
 
             latex += " & ".join(cells) + r" \\ \hline" + "\n"
         latex += r"\end{tabular} \end{table}" + "\n"
