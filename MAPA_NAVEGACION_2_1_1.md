@@ -145,20 +145,26 @@
 
 **Qué cubre:**
 
-- Números naturales en longitud fija
-- Rango de valores representables
+- Capacidad de representación: $B^n$ (número de valores representables)
+- Rango de valores representables: [0, $B^n - 1$]
+- Función de longitud de representación (logaritmo entero en base B)
 - BCD (Codificación Decimal Binaria)
 - Relación base-dígitos-rango
 
 **Dónde encontrarlo:**
 
-- 📚 [CONTENIDOS_FE.md - línea 196](CONTENIDOS_FE.md#L196)
+- 📚 [CONTENIDOS_FE.md - línea 276](CONTENIDOS_FE.md#L276)
 - 🧭 [SISTEMAS_NUMERACION_NAVEGACION.md - línea 100](SISTEMAS_NUMERACION_NAVEGACION.md#L100)
-- 📑 [INDICE_COMPLETO_SECCION_2_1_1.md - línea 125](INDICE_COMPLETO_SECCION_2_1_1.md#L125)
+- 📑 [INDICE_COMPLETO_SECCION_2_1_1.md - línea 93](INDICE_COMPLETO_SECCION_2_1_1.md#L93)
 
 **Subsecciones:**
 
 - 2.1.1.6.1 - Representación de Naturales
+  - 2.1.1.6.1.1 - Capacidad de Representación ($B^n$)
+  - 2.1.1.6.1.2 - Rango de Valores ([0, $B^n - 1$])
+  - 2.1.1.6.1.3 - Comparación en Sistemas Binarios-Hexadecimales
+  - 2.1.1.6.1.4 - Codificación BCD
+  - 2.1.1.6.1.5 - Representación Binaria
 - 2.1.1.6.2 - Relación Base-Dígitos-Rango
 
 ---

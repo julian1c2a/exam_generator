@@ -94,13 +94,20 @@ Esta es la **estructura numérica completa** de la sección 2.1.1. Úsala para r
 
 - **2.1.1.6.1** Representación de Números Naturales
   - **2.1.1.6.1.1** Capacidad de representación para longitud n y base B
+    - **2.1.1.6.1.1.1** Definición: capacidad = $B^n$
+    - **2.1.1.6.1.1.2** Función capacidad(B, n)
+    - **2.1.1.6.1.1.3** Ejemplos de capacidades en diferentes bases
   - **2.1.1.6.1.2** Rango de valores representables
+    - **2.1.1.6.1.2.1** Definición: rango = [0, $B^n - 1$]
+    - **2.1.1.6.1.2.2** Justificación matemática (mínimo y máximo)
+    - **2.1.1.6.1.2.3** Tabla de rangos por base y longitud
+    - **2.1.1.6.1.2.4** Función longitud(x, B) - logaritmo entero
   - **2.1.1.6.1.3** Comparación en sistemas con bits (base 2) hasta base 16
   - **2.1.1.6.1.4** Sistemas BCD - Codificación Decimal Binaria
   - **2.1.1.6.1.5** Sistemas de representación binaria en base 2
   
 - **2.1.1.6.2** Relación Base-Dígitos-Rango
-  - **2.1.1.6.2.1** Fórmula: rango = B^n
+  - **2.1.1.6.2.1** Fórmula: rango = $B^n$
   - **2.1.1.6.2.2** Tabla de valores máximos
   - **2.1.1.6.2.3** Implicaciones prácticas
 

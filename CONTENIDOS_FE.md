@@ -275,12 +275,82 @@ python demo_sistemas_numeracion_basicos.py
 
 **Representación de números naturales (2.1.1.6.1)**:
 
-- Representación de números naturales en un registro de longitud fija de $n$ dígitos
-  - Concepto de capacidad de representación para una longitud fija n y una base B (2.1.1.6.1.1)
-  - Rango de valores representables para una longitud fija n y una base B (2.1.1.6.1.2)
-  - Comparación entre números naturales representados en longitud fija n y base $B \le 16$ para un sistema nativo de computación con bits (base 2) (2.1.1.6.1.3)
-  - Sistemas de representación decimal en base decimal (BCD) (2.1.1.6.1.4)
-  - Sistemas de representación binaria en base 2 (2.1.1.6.1.5)
+Representación de números naturales en un registro de longitud fija de $n$ dígitos.
+
+###### Capacidad de Representación (2.1.1.6.1.1)
+
+Llamamos **capacidad de representación** para una longitud dada $n$ y una base $B$ al número $B^n$, que indica cuántos números diferentes se pueden representar en esa configuración.
+
+**Definición formal**:
+
+La capacidad de representación es una función:
+
+$$\text{capacidad}(B, n) = B^n$$
+
+Donde:
+
+- $B$ es la base del sistema de numeración
+- $n$ es la longitud (número de dígitos)
+- El resultado es el número total de representaciones distintas posibles
+
+**Ejemplos**:
+
+| Base | Longitud | Capacidad | Rango |
+|------|----------|-----------|-------|
+| 2    | 3        | 2³ = 8    | 0-7 |
+| 2    | 8        | 2⁸ = 256  | 0-255 |
+| 10   | 3        | 10³ = 1000 | 0-999 |
+| 16   | 2        | 16² = 256  | 0-255 (FF) |
+
+**Función de Longitud de Representación**:
+
+Además, definimos la **longitud de representación** como la función que devuelve el mínimo número de dígitos necesarios para representar un número $x$ en una base $B$:
+
+$$\text{longitud}(x, B) = \lfloor \log_B(x) \rfloor + 1$$
+
+Esta es essencialmente el **logaritmo entero** del número en base $B$.
+
+**Ejemplos**:
+
+- Número 27 en base 10: $\log_{10}(27) \approx 1.43 \Rightarrow \lfloor 1.43 \rfloor + 1 = 2$ dígitos ✓
+- Número 255 en base 2: $\log_2(255) \approx 7.99 \Rightarrow \lfloor 7.99 \rfloor + 1 = 8$ dígitos ✓
+- Número 1994 en base 5: $\log_5(1994) \approx 4.72 \Rightarrow \lfloor 4.72 \rfloor + 1 = 5$ dígitos (verifica: 30434₅) ✓
+
+###### Rango de Valores Representables (2.1.1.6.1.2)
+
+El **rango de representación** para un registro de longitud $l$ en base $B$ es el intervalo $[0, B^l - 1]$ (cerrado).
+
+**Justificación**:
+
+- **Mínimo**: Con todos los dígitos igual a 0, obtenemos $0 \cdot B^{l-1} + \ldots + 0 \cdot B + 0 = 0$
+
+- **Máximo**: Con todos los dígitos igual a $(B-1)$, obtenemos:
+  $$(B-1) \cdot B^{l-1} + (B-1) \cdot B^{l-2} + \ldots + (B-1) \cdot B + (B-1)$$
+  $$= (B-1)(B^{l-1} + B^{l-2} + \ldots + B + 1)$$
+  $$= (B-1) \cdot \frac{B^l - 1}{B - 1} = B^l - 1$$
+
+**Ejemplos**:
+
+| Base | Longitud | Rango | Capacidad |
+|------|----------|-------|-----------|
+| 2    | 3        | [0, 7]      | 8 |
+| 2    | 8        | [0, 255]    | 256 |
+| 10   | 2        | [0, 99]     | 100 |
+| 16   | 2        | [0, 255]    | 256 |
+| 5    | 5        | [0, 3124]   | 3125 |
+
+**Verificación para el ejemplo 1994 en base 5 con 5 dígitos**:
+
+- Capacidad: $5^5 = 3125$ (se pueden representar 3125 números diferentes)
+- Rango: $[0, 5^5 - 1] = [0, 3124]$
+- Verificación: 1994 está en el rango $[0, 3124]$ ✓
+- Representación: 30434₅ (5 dígitos)
+
+###### Puntos adicionales (2.1.1.6.1.3-2.1.1.6.1.5)
+
+- Comparación entre números naturales representados en longitud fija n y base $B \le 16$ para un sistema nativo de computación con bits (base 2)
+- Sistemas de representación decimal en base decimal (BCD)
+- Sistemas de representación binaria en base 2
 
 **Relación base-dígitos-rango (2.1.1.6.2)**:
 
