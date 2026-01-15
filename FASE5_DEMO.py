@@ -346,48 +346,42 @@ print("=" * 80)
 
 print(r"""
 ENUNCIADO (para estudiante):
-  ┌────────────────────────────────────────┐
-  │ ENUNCIADO                              │
-  │                                        │
-  │ Convierte el numero decimal 157 a...  │
-  │                                        │
-  │ INSTRUCCIONES:                         │
-  │ Para cada base, realiza la conversion  │
-  │                                        │
-  │ [Tabla GRIS con espacios vacios]      │
-  │ | a | 157 | ___ | ___ | ___ | ___ |  │
-  │                                        │
-  │ FIN (sin explicacion)                  │
-  └────────────────────────────────────────┘
+  +---------------------------+
+  | ENUNCIADO                 |
+  |                           |
+  | Convierte 157 a...        |
+  |                           |
+  | INSTRUCCIONES:            |
+  | Para cada base...         |
+  |                           |
+  | [Tabla GRIS, vacia]       |
+  |                           |
+  | FIN                       |
+  +---------------------------+
 
 SOLUCION (para profesor):
-  ┌────────────────────────────────────────┐
-  │ SOLUCION                               │
-  │                                        │
-  │ Convierte el numero decimal 157 a...  │
-  │                                        │
-  │ INSTRUCCIONES:                         │
-  │ Para cada base, realiza la conversion  │
-  │                                        │
-  │ [Tabla VERDE con todas respuestas]    │
-  │ | a | 157 | 10011101 | ... | ... |   │
-  │                                        │
-  │ EXPLICACION:                           │
-  │ El numero 157 en decimal se convierte  │
-  │ a binario dividiendo sucesivamente...  │
-  │                                        │
-  │ PASOS DE RESOLUCION:                   │
-  │ 1. 157 / 2 = 78 resto 1               │
-  │ 2. 78 / 2 = 39 resto 0                │
-  │ ...                                    │
-  │ 12. Para BCD: 1=0001, 5=0101, 7=0111 │
-  └────────────────────────────────────────┘
+  +---------------------------+
+  | SOLUCION                  |
+  |                           |
+  | Convierte 157 a...        |
+  |                           |
+  | [Tabla VERDE, llena]      |
+  |                           |
+  | EXPLICACION:              |
+  | Dividimos sucesivamente.. |
+  |                           |
+  | PASOS:                    |
+  | 1. 157 / 2 = 78 r1        |
+  | 2. 78 / 2 = 39 r0        |
+  | ...                       |
+  | 12. BCD conversión        |
+  +---------------------------+
 
 Diferencias clave:
-  - Tabla: GRIS (enunciado) vs VERDE (solucion)
-  - Explicacion: AUSENTE (enunciado) vs PRESENTE (solucion)
-  - Pasos: AUSENTES (enunciado) vs PRESENTES (solucion)
-  - Proposito: RESOLVER (enunciado) vs EVALUAR/CORREGIR (solucion)
+  - Tabla: GRIS (enunciado) vs VERDE (solución)
+  - Explicación: AUSENTE vs PRESENTE
+  - Pasos: AUSENTES vs PRESENTES
+  - Propósito: RESOLVER vs EVALUAR/CORREGIR
 """)
 
 # ============================================================================
@@ -641,14 +635,14 @@ PROXIMOS PASOS (fuera del pipeline de 5 fases):
      - Examples
 
 VENTAJAS DE LA ARQUITECTURA COMPLETA:
-  ✓ 5 fases bien definidas
-  ✓ Cada fase independiente y testeable
-  ✓ Compilable en cada fase (para debugging)
-  ✓ Agnóstico (enunciado y solucion)
-  ✓ Determinista (reproducible)
-  ✓ Extensible (nuevas fases faciles)
-  ✓ Documentado (documentacion exhaustiva)
-  ✓ Production-ready (listo para usar)
+  [OK] 5 fases bien definidas
+  [OK] Cada fase independiente y testeable
+  [OK] Compilable en cada fase (para debugging)
+  [OK] Agnóstico (enunciado y solucion)
+  [OK] Determinista (reproducible)
+  [OK] Extensible (nuevas fases faciles)
+  [OK] Documentado (documentacion exhaustiva)
+  [OK] Production-ready (listo para usar)
 """)
 
 print("\n" + "=" * 80)
