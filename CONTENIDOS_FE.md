@@ -4,13 +4,13 @@
 
 ## 1️⃣ Introducción a la Electrónica
 
-### Conceptos Básicos
+### 1.1 Conceptos Básicos
 
 - Magnitudes fundamentales
 - Ley de Ohm
 - Potencia eléctrica
 
-### Componentes Electrónicos
+### 1.2 Componentes Electrónicos
 
 - Resistencias
 - Condensadores
@@ -73,6 +73,27 @@
   - Exceso a un sesgo k
 - La multiplicación de números naturales en base B
 - La división y el resto entre números naturales en base B=2
+
+**Representación de Números con Parte Fraccionaria**:
+
+- Representación fija (fixed-point)
+- Como pasar de una representacion E,L-E, donde E es la parte entera y L-E es la parte fraccionaria F, L es la longitud total del numero
+- Como pasar de una base B a otra B' en representación de longitud fija y punto fijo
+- Paso entre bases 10 y 2 en representación de punto fijo
+- Paso entre bases que son potencias de una base común B
+- Paso entre bases 2, 4, 8 y 16
+- Paso entre bases 3, 9 y 27
+- Rangos de valores representables para una longitud fija L y una parte entera de longitud E. Base B.
+- El épsilon de esta representación.
+- Representación de números en punto flotante
+- Representación en punto flotante según la norma IEEE 754
+- El épsilon de la representación en punto flotante
+- Los rangos de valores representables en punto flotante según la norma IEEE 754
+- Formas normalizadas y denormalizadas
+- Operaciones de redondeo y truncamiento
+- Función 'normalizar' en punto flotante
+- Conversión entre representaciones en punto fijo y punto flotante
+- Operaciones aritméticas en punto flotante: suma, resta, multiplicación y división
 
 #### 2.1.2 Sistemas de Representación Alfanumérica
 
