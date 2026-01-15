@@ -369,6 +369,137 @@ def demostrar_unicidad() -> Dict:
 
 
 # ============================================================================
+# PARTE 5: REPRESENTACIÓN EN LONGITUD FIJA (2.1.1.6)
+# ============================================================================
+
+def capacidad_representacion(base: int, longitud: int) -> int:
+    """
+    Calcula la capacidad de representación (2.1.1.6.1.1).
+    
+    La capacidad es el número total de valores diferentes que se pueden
+    representar en una base dada con una longitud fija.
+    
+    Fórmula: capacidad(B, n) = B^n
+    
+    Args:
+        base: Base del sistema de numeración (B)
+        longitud: Número de dígitos disponibles (n)
+    
+    Returns:
+        int: B^n = número de valores representables
+        
+    Ejemplos:
+        capacidad_representacion(2, 3) = 8   (00 a 111 en binario)
+        capacidad_representacion(2, 8) = 256 (00000000 a 11111111)
+        capacidad_representacion(10, 3) = 1000 (000 a 999)
+        capacidad_representacion(16, 2) = 256 (00 a FF)
+    """
+    return base ** longitud
+
+
+def rango_representacion(base: int, longitud: int) -> Tuple[int, int]:
+    """
+    Calcula el rango de valores representables (2.1.1.6.1.2).
+    
+    Para una base B y longitud l, el rango es [0, B^l - 1] (cerrado).
+    
+    Args:
+        base: Base del sistema de numeración (B)
+        longitud: Número de dígitos disponibles (l)
+    
+    Returns:
+        Tuple[int, int]: (mínimo, máximo) = (0, B^l - 1)
+        
+    Ejemplos:
+        rango_representacion(2, 3) = (0, 7)
+        rango_representacion(2, 8) = (0, 255)
+        rango_representacion(10, 2) = (0, 99)
+        rango_representacion(16, 2) = (0, 255)
+    """
+    capacidad = base ** longitud
+    return (0, capacidad - 1)
+
+
+def longitud_representacion(numero: int, base: int) -> int:
+    """
+    Calcula la longitud mínima de representación (2.1.1.6.1.2).
+    
+    Devuelve el mínimo número de dígitos necesarios para representar
+    un número en una base dada.
+    
+    Fórmula: longitud(x, B) = ⌊log_B(x)⌋ + 1
+    
+    Esto es el logaritmo entero en base B + 1.
+    
+    Args:
+        numero: Número a representar (x)
+        base: Base del sistema de numeración (B)
+    
+    Returns:
+        int: Número mínimo de dígitos necesarios
+        
+    Raises:
+        ValueError: Si numero < 1 o base < 2
+        
+    Ejemplos:
+        longitud_representacion(27, 10) = 2  (27 requiere 2 dígitos)
+        longitud_representacion(255, 2) = 8  (255 = 11111111₂)
+        longitud_representacion(1994, 5) = 5 (1994 = 30434₅)
+        longitud_representacion(9, 10) = 1   (9 requiere 1 dígito)
+    """
+    import math
+    
+    if numero < 1:
+        raise ValueError("El número debe ser positivo (≥ 1)")
+    if base < 2:
+        raise ValueError("La base debe ser ≥ 2")
+    
+    if numero == 0:
+        return 1
+    
+    # ⌊log_B(x)⌋ + 1
+    return math.floor(math.log(numero, base)) + 1
+
+
+def analisis_representacion(numero: int, base: int, longitud: int = None) -> Dict:
+    """
+    Análisis completo de capacidad y rango de representación.
+    
+    Combina: capacidad(B, n), rango(B, n), y longitud(x, B).
+    
+    Args:
+        numero: Número a analizar
+        base: Base del sistema
+        longitud: Longitud fija (opcional, si None se calcula automáticamente)
+    
+    Returns:
+        Dict con análisis completo
+    """
+    if longitud is None:
+        longitud = longitud_representacion(numero, base)
+    
+    capacidad = capacidad_representacion(base, longitud)
+    rango_min, rango_max = rango_representacion(base, longitud)
+    longitud_min = longitud_representacion(numero, base)
+    
+    está_en_rango = rango_min <= numero <= rango_max
+    
+    return {
+        'número': numero,
+        'base': base,
+        'longitud_fija': longitud,
+        'longitud_mínima': longitud_min,
+        'capacidad': capacidad,
+        'rango': f'[{rango_min}, {rango_max}]',
+        'rango_min': rango_min,
+        'rango_max': rango_max,
+        'en_rango': está_en_rango,
+        'fórmula_capacidad': f'{base}^{longitud} = {capacidad}',
+        'fórmula_rango_máximo': f'{base}^{longitud} - 1 = {rango_max}'
+    }
+
+
+# ============================================================================
 # EJEMPLOS Y EDUCACIÓN
 # ============================================================================
 
