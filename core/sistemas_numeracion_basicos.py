@@ -503,6 +503,195 @@ def analisis_representacion(numero: int, base: int, longitud: int = None) -> Dic
 # EJEMPLOS Y EDUCACIÓN
 # ============================================================================
 
+# ============================================================================
+# PARTE 6: CONVERSIONES GENÉRICAS ENTRE BASES
+# ============================================================================
+
+def decimal_a_base_B(numero: int, base: int) -> str:
+    """
+    Convierte un número decimal a cualquier base B (2-36).
+    
+    Algoritmo: Divisiones sucesivas
+    - Dividir numero entre base, guardar el resto
+    - El resto es un dígito en base B
+    - Repetir con el cociente hasta que sea 0
+    
+    Parámetros:
+        numero: Número decimal a convertir (>= 0)
+        base: Base destino (2-36)
+        
+    Retorna:
+        String con la representación en base B
+        Usa dígitos 0-9 y letras A-Z para bases > 10
+        
+    Ejemplos:
+        decimal_a_base_B(1994, 5) → "30434"
+        decimal_a_base_B(255, 2) → "11111111"
+        decimal_a_base_B(255, 16) → "ff"
+        
+    Referencias: 2.1.1.3 (Conversión de Base 10 a Base B)
+    """
+    if numero == 0:
+        return "0"
+    
+    if not (2 <= base <= 36):
+        raise ValueError("Base debe estar entre 2 y 36")
+    
+    digitos = "0123456789abcdefghijklmnopqrstuvwxyz"
+    resultado = []
+    
+    while numero > 0:
+        resultado.append(digitos[numero % base])
+        numero //= base
+    
+    return ''.join(reversed(resultado))
+
+
+def base_B_a_decimal(numero_str: str, base: int) -> int:
+    """
+    Convierte un número en base B a decimal.
+    
+    Algoritmo: Evaluación del polinomio
+    Número_B = d_n * B^n + d_(n-1) * B^(n-1) + ... + d_0 * B^0
+    
+    Parámetros:
+        numero_str: String con la representación en base B
+        base: Base origen (2-36)
+        
+    Retorna:
+        Número en decimal (base 10)
+        
+    Ejemplos:
+        base_B_a_decimal("30434", 5) → 1994
+        base_B_a_decimal("11111111", 2) → 255
+        base_B_a_decimal("ff", 16) → 255
+        
+    Referencias: 2.1.1.3 (Conversión de Base B a Base 10)
+    """
+    if not (2 <= base <= 36):
+        raise ValueError("Base debe estar entre 2 y 36")
+    
+    digitos = "0123456789abcdefghijklmnopqrstuvwxyz"
+    numero_str = numero_str.lower()
+    resultado = 0
+    
+    for i, digito in enumerate(reversed(numero_str)):
+        if digito not in digitos[:base]:
+            raise ValueError(f"Dígito '{digito}' inválido para base {base}")
+        resultado += digitos.index(digito) * (base ** i)
+    
+    return resultado
+
+
+def base_B_a_base_B_prima(numero_str: str, base_origen: int, base_destino: int) -> str:
+    """
+    Conversión genérica entre dos bases B y B' (2-36).
+    
+    Método: Conversión a través de decimal
+    1. Convertir de base B a decimal
+    2. Convertir de decimal a base B'
+    
+    Parámetros:
+        numero_str: Número en base B
+        base_origen: Base B (2-36)
+        base_destino: Base B' (2-36)
+        
+    Retorna:
+        String con la representación en base B'
+        
+    Ejemplos:
+        base_B_a_base_B_prima("30434", 5, 2) → "11111001010"
+        base_B_a_base_B_prima("ff", 16, 10) → "255"
+        base_B_a_base_B_prima("1010", 2, 8) → "12"
+        
+    Referencias: 2.1.1.3 (Conversión entre Sistemas de Numeración)
+    """
+    decimal = base_B_a_decimal(numero_str, base_origen)
+    return decimal_a_base_B(decimal, base_destino)
+
+
+def base_B_a_base_B_prima_potencias(numero_str: str, base_comun: int, 
+                                    exponente_origen: int, 
+                                    exponente_destino: int) -> str:
+    """
+    Conversión eficiente entre bases relacionadas B = b^n y B' = b^(n').
+    
+    Cuando la base origen B = b^n y la base destino B' = b^(n'),
+    se puede convertir de manera más eficiente agrupando dígitos en la base común b.
+    
+    Método:
+    1. Convertir B → b (agrupando/expandiendo n dígitos de base B)
+    2. Convertir b → B' (agrupando n' dígitos de base b)
+    
+    Parámetros:
+        numero_str: Número en base B (donde B = base_comun^exponente_origen)
+        base_comun: Base b (2, 3, 5, etc.)
+        exponente_origen: n tal que B = b^n
+        exponente_destino: n' tal que B' = b^(n')
+        
+    Retorna:
+        String con la representación en base B' (donde B' = b^(n'))
+        
+    Ejemplos:
+        # Convertir binario (2^1) a hexadecimal (2^4)
+        base_B_a_base_B_prima_potencias("11111111", 2, 1, 4) → "ff"
+        
+        # Convertir hexadecimal (2^4) a binario (2^1)
+        base_B_a_base_B_prima_potencias("ff", 2, 4, 1) → "11111111"
+        
+        # Convertir binario (2^1) a octal (2^3)
+        base_B_a_base_B_prima_potencias("1111", 2, 1, 3) → "17"
+        
+        # Convertir base 3 (3^1) a base 27 (3^3)
+        base_B_a_base_B_prima_potencias("010021002", 3, 1, 3) → "122"
+        
+    Referencias: 2.1.1.5.4 (Sistema de conversión entre representación de bases relacionadas)
+    
+    Notas:
+        - Si exponente_origen > exponente_destino: expandir dígitos y reagrupar
+        - Si exponente_origen < exponente_destino: agrupar exponente_destino dígitos
+        - Mucho más eficiente que pasar por decimal para bases grandes
+    """
+    if exponente_origen == exponente_destino:
+        return numero_str
+    
+    # Primero: Convertir a base b (expandir exponente_origen dígitos en exponente_origen*log(base) dígitos)
+    digitos_base_comun = []
+    for digito_char in numero_str:
+        # Convertir cada dígito de base B a su valor en base b
+        digito_valor = int(digito_char, base_comun ** exponente_origen)
+        
+        # Expandir a exponente_origen dígitos en base b
+        for _ in range(exponente_origen):
+            digitos_base_comun.append(digito_valor % base_comun)
+            digito_valor //= base_comun
+        digitos_base_comun.reverse()
+    
+    # Segundo: Convertir de base b a base B' (agrupar exponente_destino dígitos)
+    digitos_base_comun.reverse()  # Para procesar de derecha a izquierda
+    resultado_digitos = []
+    
+    while digitos_base_comun:
+        # Tomar exponente_destino dígitos de base b
+        grupo = []
+        for _ in range(exponente_destino):
+            if digitos_base_comun:
+                grupo.append(digitos_base_comun.pop())
+        
+        # Convertir grupo de base b a un dígito de base B'
+        valor_digito = 0
+        for digito in reversed(grupo):
+            valor_digito = valor_digito * base_comun + digito
+        
+        resultado_digitos.append(valor_digito)
+    
+    # Convertir a string usando dígitos 0-9, a-z
+    digitos_str = "0123456789abcdefghijklmnopqrstuvwxyz"
+    resultado = ''.join(digitos_str[d] for d in reversed(resultado_digitos))
+    
+    return resultado if resultado else "0"
+
+
 if __name__ == "__main__":
     print("\n" + "=" * 70)
     print("SISTEMAS DE NUMERACIÓN: Posicionales vs No Posicionales")

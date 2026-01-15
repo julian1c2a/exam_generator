@@ -52,6 +52,16 @@ El sistema romano utiliza símbolos con valores fijos:
 
 **Desventaja**: Los números grandes son difíciles de escribir y las operaciones aritméticas son muy complicadas.
 
+**Función Python disponible**:
+
+```python
+decimal_a_romano(numero: int) -> str
+romano_a_decimal(romano_str: str) -> int
+explicar_romano(numero: int) -> Dict
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
+
 ###### Ejemplo 2: Base 5 (Sistema Posicional con Potencias)
 
 Sistema posicional donde los pesos de cada posición son potencias de 5:
@@ -69,6 +79,16 @@ Sistema posicional donde los pesos de cada posición son potencias de 5:
 
 - En posición 4: representa 3 × 625 = 1875
 - En posición 1: representa 3 × 5 = 15
+
+**Funciones Python disponibles**:
+
+```python
+decimal_a_base_5(numero: int) -> str
+base_5_a_decimal(base_5_str: str) -> int
+explicar_base_5(numero: int) -> Dict
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 
 ###### Ejemplo 3: Sistema de Notación Temporal (Sistema Posicional con Bases Variables)
 
@@ -91,6 +111,16 @@ El sistema de representación de tiempo es un caso especial: **POSICIONAL pero c
 Este sistema refleja nuestra realidad histórica y es muy eficiente para operaciones prácticas, pero no utiliza una base única.
 
 **Origen histórico**: Los babilonios utilizaban un sistema sexagesimal (base 60) en astronomía y medición del tiempo, que hoy se preserva en nuestra notación de tiempo y ángulos.
+
+**Funciones Python disponibles**:
+
+```python
+decimal_a_tiempo(segundos_totales: int) -> str
+tiempo_a_decimal(tiempo_str: str) -> int
+explicar_tiempo(segundos_totales: int) -> Dict
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 
 ---
 
@@ -125,6 +155,15 @@ donde $0 \le d_i < B$ para cada $i$.
 | 1994   | 1994    | 11111001010 | 30434 | 3712 | ✓ Única en cada base |
 
 **Conclusión**: No existe ambigüedad. Cada número tiene exactamente una representación en cada base.
+
+**Funciones Python disponibles**:
+
+```python
+demostrar_unicidad() -> Dict
+comparar_sistemas(numero: int) -> Dict
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 
 ---
 
@@ -249,6 +288,16 @@ python demo_sistemas_numeracion_basicos.py
 
 **Nota importante**: Todos estos son sistemas POSICIONALES o NO POSICIONALES, pero cada uno tiene su propia estructura única y aplicaciones. El sistema posicional es el predominante en computación porque permite operaciones aritméticas eficientes.
 
+**Funciones Python disponibles** (conversiones genéricas entre bases B y B'):
+
+```python
+decimal_a_base_B(numero: int, base: int) -> str
+base_B_a_decimal(numero_str: str, base: int) -> int
+base_B_a_base_B_prima(numero_str: str, base_origen: int, base_destino: int) -> str
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
+
 ---
 
 ##### 2.1.1.5 Sistemas Binarios, Octales y Hexadecimales
@@ -267,7 +316,23 @@ python demo_sistemas_numeracion_basicos.py
 
 **Sistema de conversión entre representación de bases relacionadas (2.1.1.5.4)**:
 
-- Conversión entre base $B$ y base $B'$ donde $B = b^n$ y $b^m = B'$
+- Conversión entre base $B$ y base $B'$ donde $B = b^n$ y $B' = b^{n'}$
+
+**Función Python optimizada para bases relacionadas**:
+
+```python
+base_B_a_base_B_prima_potencias(numero_str: str, base_comun: int, 
+                                exponente_origen: int, 
+                                exponente_destino: int) -> str
+```
+
+Ejemplos:
+
+- `base_B_a_base_B_prima_potencias("11111111", 2, 1, 4)` → Binario a Hexadecimal (2¹ a 2⁴)
+- `base_B_a_base_B_prima_potencias("ff", 2, 4, 1)` → Hexadecimal a Binario (2⁴ a 2¹)
+- `base_B_a_base_B_prima_potencias("1111", 2, 1, 3)` → Binario a Octal (2¹ a 2³)
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 
 ---
 
@@ -310,6 +375,17 @@ $$\text{longitud}(x, B) = \lfloor \log_B(x) \rfloor + 1$$
 
 Esta es essencialmente el **logaritmo entero** del número en base $B$.
 
+**Funciones Python disponibles** (2.1.1.6.1.1 y 2.1.1.6.1.2):
+
+```python
+capacidad_representacion(base: int, longitud: int) -> int
+rango_representacion(base: int, longitud: int) -> Tuple[int, int]
+longitud_representacion(numero: int, base: int) -> int
+analisis_representacion(numero: int, base: int, longitud: int = None) -> Dict
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
+
 **Ejemplos**:
 
 - Número 27 en base 10: $\log_{10}(27) \approx 1.43 \Rightarrow \lfloor 1.43 \rfloor + 1 = 2$ dígitos ✓
@@ -349,7 +425,7 @@ El **rango de representación** para un registro de longitud $l$ en base $B$ es 
 ###### Puntos adicionales (2.1.1.6.1.3-2.1.1.6.1.5)
 
 - Comparación entre números naturales representados en longitud fija n y base $B \le 16$ para un sistema nativo de computación con bits (base 2)
-- Sistemas de representación decimal en base decimal (BCD)
+- Sistemas de representación decimal en base binaria (BCD)
 - Sistemas de representación binaria en base 2
 
 **Relación base-dígitos-rango (2.1.1.6.2)**:
