@@ -727,3 +727,314 @@ if __name__ == "__main__":
     print(f"Desglose: {explicacion_tiempo['calculo']}")
     
     print("\n" + "=" * 70)
+
+
+# ============================================================================
+# PARTE 7: EFICACIA DE EMPAQUETADO (Packing Efficiency)
+# ============================================================================
+
+def eficacia_empaquetado_simple(base_nativa: int, base_destino: int, n_digitos: int) -> float:
+    """
+    Calcula la eficacia de empaquetado simple al representar números en base B
+    usando un sistema nativo de base A con n dígitos.
+    
+    Eficacia = (A/B)^n
+    
+    Si A < B: eficacia disminuye conforme n crece (representación ineficiente)
+    Si A = B: eficacia = 1 (máxima)
+    Si A > B: requiere múltiples dígitos nativos por dígito destino
+    
+    Args:
+        base_nativa: Base del sistema nativo (A, típicamente 2 para computadoras)
+        base_destino: Base en la que queremos representar (B)
+        n_digitos: Número de dígitos en la base destino (n)
+    
+    Returns:
+        float: Eficacia como número entre 0 y 1
+        
+    Ejemplo:
+        # Sistema binario nativo (2) representando decimal (10)
+        eficacia_empaquetado_simple(2, 10, 3) = (2/10)^3 = 0.008
+        # Muy ineficiente porque 10^3 = 1000 > 2^3 = 8
+    """
+    if base_nativa <= 0 or base_destino <= 0 or n_digitos <= 0:
+        raise ValueError("Bases y número de dígitos deben ser positivos")
+    
+    # Capacidad en sistema nativo: A^n
+    capacidad_nativa = base_nativa ** n_digitos
+    
+    # Capacidad en base destino: B^n
+    capacidad_destino = base_destino ** n_digitos
+    
+    # Eficacia = capacidad_nativa / capacidad_destino = (A/B)^n
+    eficacia = capacidad_nativa / capacidad_destino
+    
+    return eficacia
+
+
+def eficacia_bcd_mejorada(valores_representables: int, bits_utilizados: int) -> float:
+    """
+    Calcula la eficacia de empaquetado mejorada usando técnicas como
+    Dense Packed Decimal (DPD) o BCD mejorado.
+    
+    Eficacia = valores_representables / (2^bits_utilizados)
+    
+    Ejemplo clásico BCD:
+    - BCD simple: 1 dígito decimal (10 valores) en 4 bits (2^4 = 16)
+      Eficacia = 10/16 = 0.625
+    
+    Ejemplo DPD (Dense Packed Decimal):
+    - 3 dígitos decimales (1000 valores) en 10 bits (2^10 = 1024)
+      Eficacia = 1000/1024 ≈ 0.977
+    
+    Args:
+        valores_representables: Cantidad de valores únicos a representar
+        bits_utilizados: Número de bits disponibles
+    
+    Returns:
+        float: Eficacia como número entre 0 y 1
+    """
+    if valores_representables <= 0 or bits_utilizados <= 0:
+        raise ValueError("Valores y bits deben ser positivos")
+    
+    capacidad_bits = 2 ** bits_utilizados
+    
+    if valores_representables > capacidad_bits:
+        raise ValueError(
+            f"No se pueden representar {valores_representables} valores "
+            f"con solo {bits_utilizados} bits (capacidad: {capacidad_bits})"
+        )
+    
+    eficacia = valores_representables / capacidad_bits
+    return eficacia
+
+
+def comparar_eficacias_empaquetado(base_nativa: int, opciones: List[Dict]) -> Dict:
+    """
+    Compara la eficacia de empaquetado de múltiples estrategias de representación.
+    
+    Cada opción puede ser:
+    - {'tipo': 'simple', 'base_destino': B, 'n_digitos': n}
+    - {'tipo': 'bcd', 'valores': N, 'bits': b}
+    
+    Retorna un diccionario con las comparaciones detalladas.
+    
+    Args:
+        base_nativa: Base del sistema nativo (típicamente 2)
+        opciones: Lista de opciones de empaquetado a comparar
+    
+    Returns:
+        Dict: Información de todas las opciones con sus eficacias
+        
+    Ejemplo:
+        comparar_eficacias_empaquetado(2, [
+            {'tipo': 'simple', 'base_destino': 10, 'n_digitos': 1},
+            {'tipo': 'bcd', 'valores': 10, 'bits': 4},
+            {'tipo': 'bcd', 'valores': 1000, 'bits': 10},
+        ])
+    """
+    resultados = {
+        'base_nativa': base_nativa,
+        'opciones': []
+    }
+    
+    for opcion in opciones:
+        if opcion['tipo'] == 'simple':
+            base_dest = opcion['base_destino']
+            n_dig = opcion['n_digitos']
+            
+            eficacia = eficacia_empaquetado_simple(base_nativa, base_dest, n_dig)
+            capacidad_nativa = base_nativa ** n_dig
+            capacidad_destino = base_dest ** n_dig
+            
+            resultado = {
+                'tipo': 'simple',
+                'base_destino': base_dest,
+                'n_digitos': n_dig,
+                'capacidad_nativa': capacidad_nativa,
+                'capacidad_destino': capacidad_destino,
+                'eficacia': eficacia,
+                'porcentaje': eficacia * 100,
+                'description': f"Sistema nativo base {base_nativa} representando "
+                               f"base {base_dest} con {n_dig} dígitos"
+            }
+            
+        elif opcion['tipo'] == 'bcd':
+            valores = opcion['valores']
+            bits = opcion['bits']
+            
+            eficacia = eficacia_bcd_mejorada(valores, bits)
+            capacidad_bits = 2 ** bits
+            
+            resultado = {
+                'tipo': 'bcd',
+                'valores_representables': valores,
+                'bits_utilizados': bits,
+                'capacidad_bits': capacidad_bits,
+                'eficacia': eficacia,
+                'porcentaje': eficacia * 100,
+                'desperdicio': capacidad_bits - valores,
+                'description': f"{valores} valores en {bits} bits "
+                               f"(BCD mejorado)"
+            }
+        else:
+            continue
+        
+        resultados['opciones'].append(resultado)
+    
+    # Ordenar por eficacia (mejor primero)
+    resultados['opciones'].sort(key=lambda x: x['eficacia'], reverse=True)
+    resultados['mejor'] = resultados['opciones'][0] if resultados['opciones'] else None
+    
+    return resultados
+
+
+def explicar_eficacia_empaquetado(base_nativa: int, base_destino: int, 
+                                   n_digitos: int) -> Dict:
+    """
+    Explicación detallada del cálculo de eficacia de empaquetado.
+    
+    Incluye:
+    - Capacidades en ambas bases
+    - Fórmula de eficacia
+    - Análisis de la relación A/B
+    - Interpretación
+    
+    Args:
+        base_nativa: Base del sistema nativo (A)
+        base_destino: Base de destino (B)
+        n_digitos: Número de dígitos (n)
+    
+    Returns:
+        Dict: Explicación completa con cálculos paso a paso
+    """
+    eficacia = eficacia_empaquetado_simple(base_nativa, base_destino, n_digitos)
+    capacidad_nativa = base_nativa ** n_digitos
+    capacidad_destino = base_destino ** n_digitos
+    ratio_base = base_nativa / base_destino
+    
+    # Análisis de la relación A/B
+    if base_nativa < base_destino:
+        interpretacion = (
+            f"A < B: Sistema INEFICIENTE. Con {n_digitos} dígitos base {base_destino}, "
+            f"solo se pueden usar {capacidad_nativa} de {capacidad_destino} "
+            f"combinaciones posibles ({eficacia*100:.2f}% de eficacia)"
+        )
+    elif base_nativa == base_destino:
+        interpretacion = (
+            f"A = B: Sistema ÓPTIMO. Eficacia = 1.0 (100%). "
+            f"Perfecto aprovechamiento del espacio."
+        )
+    else:  # base_nativa > base_destino
+        interpretacion = (
+            f"A > B: Sistema requiere múltiples dígitos nativos. "
+            f"Para mejorar eficacia, se pueden empaquetar "
+            f"múltiples dígitos de base {base_destino} en dígitos de base {base_nativa}."
+        )
+    
+    # Calcular número de dígitos nativos requeridos para almacenar un dígito destino
+    if base_nativa > base_destino:
+        import math
+        digitos_nativos_por_destino = math.ceil(math.log(base_destino, base_nativa))
+        eficacia_fundamental = base_destino / (base_nativa ** digitos_nativos_por_destino)
+    else:
+        digitos_nativos_por_destino = None
+        eficacia_fundamental = None
+    
+    return {
+        'base_nativa': base_nativa,
+        'base_destino': base_destino,
+        'n_digitos': n_digitos,
+        'capacidad_nativa': capacidad_nativa,
+        'capacidad_destino': capacidad_destino,
+        'formula': f"({base_nativa}/{base_destino})^{n_digitos} = {eficacia:.6f}",
+        'eficacia': eficacia,
+        'porcentaje': eficacia * 100,
+        'ratio_base': ratio_base,
+        'interpretacion': interpretacion,
+        'digitos_nativos_por_destino': digitos_nativos_por_destino,
+        'eficacia_fundamental': eficacia_fundamental,
+    }
+
+
+# Estándar IEEE 754 (Punto Flotante)
+IEEE_754_STANDARDS = {
+    'binary32': {
+        'nombre': 'Single Precision (float)',
+        'bits_totales': 32,
+        'bits_signo': 1,
+        'bits_exponente': 8,
+        'bits_mantisa': 23,
+        'sesgo_exponente': 127,
+        'rango_minimo': 1.175e-38,
+        'rango_maximo': 3.402e38,
+        'digitos_decimales_precision': 6,
+    },
+    'binary64': {
+        'nombre': 'Double Precision (double)',
+        'bits_totales': 64,
+        'bits_signo': 1,
+        'bits_exponente': 11,
+        'bits_mantisa': 52,
+        'sesgo_exponente': 1023,
+        'rango_minimo': 2.225e-308,
+        'rango_maximo': 1.798e308,
+        'digitos_decimales_precision': 15,
+    },
+    'binary128': {
+        'nombre': 'Quadruple Precision (long double)',
+        'bits_totales': 128,
+        'bits_signo': 1,
+        'bits_exponente': 15,
+        'bits_mantisa': 112,
+        'sesgo_exponente': 16383,
+        'rango_minimo': 3.36e-4932,
+        'rango_maximo': 1.19e4932,
+        'digitos_decimales_precision': 34,
+    },
+    'decimal128': {
+        'nombre': 'Decimal Floating Point',
+        'bits_totales': 128,
+        'digitos_significativos': 34,
+        'rango_exponente': [-6143, 6144],
+        'descripcion': 'Punto flotante decimal (IEEE 754-2008)',
+        'uso': 'Aplicaciones financieras y comerciales',
+    },
+}
+
+
+def explicar_ieee_754(formato: str) -> Dict:
+    """
+    Proporciona información detallada sobre los estándares IEEE 754.
+    
+    Args:
+        formato: Uno de 'binary32', 'binary64', 'binary128', 'decimal128'
+    
+    Returns:
+        Dict: Información completa del formato
+        
+    Ejemplo:
+        explicar_ieee_754('binary64')  # Double precision
+    """
+    if formato not in IEEE_754_STANDARDS:
+        raise ValueError(f"Formato desconocido: {formato}. "
+                        f"Opciones: {list(IEEE_754_STANDARDS.keys())}")
+    
+    return {
+        'formato': formato,
+        'detalles': IEEE_754_STANDARDS[formato],
+        'estructura': _estructura_ieee(formato),
+    }
+
+
+def _estructura_ieee(formato: str) -> str:
+    """Describe la estructura de bits del formato IEEE 754."""
+    if formato == 'binary32':
+        return "32 bits: [1 signo | 8 exponente | 23 mantisa]"
+    elif formato == 'binary64':
+        return "64 bits: [1 signo | 11 exponente | 52 mantisa]"
+    elif formato == 'binary128':
+        return "128 bits: [1 signo | 15 exponente | 112 mantisa]"
+    elif formato == 'decimal128':
+        return "128 bits: [3 bits signo | 8 bits combinación | 120 bits coeficiente]"
+    return "Formato desconocido"

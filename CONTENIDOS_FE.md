@@ -422,11 +422,167 @@ El **rango de representación** para un registro de longitud $l$ en base $B$ es 
 - Verificación: 1994 está en el rango $[0, 3124]$ ✓
 - Representación: 30434₅ (5 dígitos)
 
-###### Puntos adicionales (2.1.1.6.1.3-2.1.1.6.1.5)
+###### Eficacia de Empaquetado (2.1.1.6.1.3)
 
-- Comparación entre números naturales representados en longitud fija n y base $B \le 16$ para un sistema nativo de computación con bits (base 2)
-- Sistemas de representación decimal en base binaria (BCD)
-- Sistemas de representación binaria en base 2
+**Definición**:
+
+El sistema **nativo** de una computadora es **base 2** (binario). Sin embargo, frecuentemente necesitamos **representar números en otras bases** (decimal, hexadecimal, octal, etc.).
+
+La **eficacia de empaquetado** mide cuán eficientemente usamos el espacio disponible cuando representamos números de base $B$ usando $n$ dígitos en un sistema nativo de base $A$ (típicamente 2).
+
+**Fórmula Fundamental**:
+
+$$\text{Eficacia} = \left(\frac{A}{B}\right)^n$$
+
+Donde:
+
+- $A$ = base del sistema nativo (típicamente 2)
+- $B$ = base en la que queremos representar
+- $n$ = número de dígitos en base $B$
+
+**Análisis Según la Relación A/B**:
+
+| Caso | Relación | Comportamiento | Ejemplo |
+|------|----------|---|---------|
+| **A < B** | $\frac{A}{B} < 1$ | Eficacia BAJA, disminuye con n | Binario (2) → Decimal (10): $(2/10)^1 = 0.2$ |
+| **A = B** | $\frac{A}{B} = 1$ | Eficacia MÁXIMA = 1.0 (100%) | Binario (2) → Binario (2): $(2/2)^n = 1.0$ |
+| **A > B** | $\frac{A}{B} > 1$ | Requiere múltiples dígitos nativos | Decimal (10) → Binario (2): Necesita ~3.32 bits por dígito |
+
+**Ejemplo Numérico: Representación Decimal en Binario**
+
+Supongamos que queremos representar un número decimal con $n$ dígitos usando bits (base 2):
+
+| Dígitos | Rango Decimal | Valores Posibles | Bits Necesarios | Capacidad Bits | Eficacia |
+|---------|---|---|---|---|---|
+| 1 | 0-9 | 10 | 4 | 16 | 10/16 = 0.625 |
+| 2 | 0-99 | 100 | 8 | 256 | 100/256 = 0.391 |
+| 3 | 0-999 | 1000 | 10 | 1024 | 1000/1024 = 0.977 |
+| 4 | 0-9999 | 10000 | 14 | 16384 | 10000/16384 = 0.611 |
+
+**Observación clave**: El caso de 3 dígitos decimales (0-999) tiene una eficacia MUCHO mejor (0.977 vs 0.625 para 1 dígito) al usar 10 bits en lugar de 12 bits.
+
+###### Codificación BCD vs DPD (2.1.1.6.1.4)
+
+**BCD Clásico (Binary Coded Decimal)**:
+
+- Codifica cada dígito decimal por separado en 4 bits
+- Rango: 0-9 (10 valores) en 4 bits (16 combinaciones)
+- **Eficacia**: $\frac{10}{2^4} = \frac{10}{16} = 0.625$ (62.5%)
+- **Ventaja**: Manipulación sencilla de dígitos individuales
+- **Desventaja**: Desperdicia 6 combinaciones por dígito
+
+**DPD (Dense Packed Decimal)** - Estándar IEEE 754-2008**:
+
+- Codifica 3 dígitos decimales en 10 bits (estándar para IEEE decimal floating point)
+- Rango: 0-999 (1000 valores) en 10 bits (1024 combinaciones)
+- **Eficacia**: $\frac{1000}{2^{10}} = \frac{1000}{1024} \approx 0.977$ (97.7%)
+- **Ventaja**: Mejor eficacia que BCD (977 vs 625)
+- **Desventaja**: Más complejo computacionalmente
+
+**Comparación de Eficacias**:
+
+$$\text{Eficacia BCD} = \frac{10}{16} = 0.625 < \text{Eficacia DPD} = \frac{1000}{1024} \approx 0.977$$
+
+Por lo tanto: **DPD es más eficiente que BCD clásico** a costa de mayor complejidad de manipulación.
+
+###### Empaquetado Múltiple (2.1.1.6.1.5)
+
+**Caso General: A > B**
+
+Cuando el sistema nativo tiene una base **mayor** que la base de representación (ejemplo: decimal nativo con base binaria), se pueden empaquetar múltiples dígitos de la base pequeña en un dígito de la base grande.
+
+**Teorema de Empaquetado**:
+
+Si $A \le B^k + B^{k-1} + \ldots + B + 1 = \frac{B^{k+1}-1}{B-1}$, entonces se pueden almacenar $k$ dígitos de base $B$ en un dígito de base $A$.
+
+**Ejemplo 1: 2 dígitos binarios en 1 dígito base 4**
+
+- Máximo valor de 2 dígitos binarios: $11_2 = 3_{10}$
+- Base 4 puede representar: 0-3
+- $A = 4 = B^2$ ✓ (se pueden empaquetar 2 dígitos binarios)
+- **Eficacia fundamental**: $\frac{2 \log_2 B}{4} = \frac{2 \log_2 2}{2} = 1.0$ (100%)
+
+**Ejemplo 2: 2 dígitos decimales en 1 dígito base 100**
+
+- Máximo valor de 2 dígitos decimales: $99_{10}$
+- Base 100 puede representar: 0-99
+- $A = 100 = 10^2$ ✓ (se pueden empaquetar 2 dígitos decimales)
+- **Eficacia fundamental**: $\frac{100}{100} = 1.0$ (100%)
+
+**Ejemplo 3: Información con bases relacionadas**
+
+Si $A = b^m$ y $B = b^n$ (bases relacionadas con una base común $b$):
+
+- Se pueden empaquetar $\lceil m/n \rceil$ dígitos de base $B$ en un dígito de base $A$
+- **Ejemplo**: Base 8 = $2^3$ y Base 2 = $2^1$
+  - Se pueden empaquetar 3 dígitos binarios en 1 dígito octal (agrupación de 3 bits)
+
+**Funciones Python disponibles**:
+
+```python
+eficacia_empaquetado_simple(base_nativa: int, base_destino: int, n_digitos: int) -> float
+eficacia_bcd_mejorada(valores_representables: int, bits_utilizados: int) -> float
+comparar_eficacias_empaquetado(base_nativa: int, opciones: List[Dict]) -> Dict
+explicar_eficacia_empaquetado(base_nativa: int, base_destino: int, n_digitos: int) -> Dict
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
+
+**Ejemplos de uso**:
+
+```python
+# Eficacia de representar decimal en binario (1 dígito)
+eficacia_empaquetado_simple(2, 10, 1)  # → 0.625 (62.5%)
+
+# Eficacia de representar 3 dígitos decimales en 10 bits (DPD)
+eficacia_bcd_mejorada(1000, 10)  # → 0.977 (97.7%)
+
+# Comparar BCD vs DPD
+comparar_eficacias_empaquetado(2, [
+    {'tipo': 'bcd', 'valores': 10, 'bits': 4},      # BCD clásico
+    {'tipo': 'bcd', 'valores': 1000, 'bits': 10},   # DPD
+])
+```
+
+###### IEEE 754: Punto Flotante (2.1.1.6.1.5 - Estándar)
+
+**Relación con Eficacia de Empaquetado**:
+
+El estándar **IEEE 754** (Institute of Electrical and Electronics Engineers) define cómo se representan números con punto flotante en computadoras. Utiliza principios de empaquetado eficiente para maximizar rango y precisión.
+
+**Formatos IEEE 754**:
+
+| Formato | Bits Totales | Signo | Exponente | Mantisa | Precisión |
+|---------|---|---|---|---|---|
+| **Single (binary32)** | 32 | 1 | 8 | 23 | 6 dígitos decimales |
+| **Double (binary64)** | 64 | 1 | 11 | 52 | 15 dígitos decimales |
+| **Quadruple (binary128)** | 128 | 1 | 15 | 112 | 34 dígitos decimales |
+| **Decimal (decimal128)** | 128 | 3 | 8 | 120 | 34 dígitos decimales |
+
+**Estructura IEEE 754-2008 (Double Precision)**:
+
+```
+64 bits: [1 signo | 11 exponente | 52 mantisa]
+```
+
+**Rango en Double Precision (binary64)**:
+
+- Mínimo: $\pm 2.225 \times 10^{-308}$
+- Máximo: $\pm 1.798 \times 10^{308}$
+
+**Aplicaciones**:
+
+- **binary32/binary64**: Cálculos científicos y de ingeniería (rápidos)
+- **decimal128**: Aplicaciones financieras y comerciales (exactitud decimal)
+
+**Función Python**:
+
+```python
+explicar_ieee_754(formato: str) -> Dict
+# Ejemplo: explicar_ieee_754('binary64')
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 
 **Relación base-dígitos-rango (2.1.1.6.2)**:
 
