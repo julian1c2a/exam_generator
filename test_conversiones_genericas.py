@@ -27,7 +27,7 @@ test_cases_1 = [
 
 for numero, base, esperado in test_cases_1:
     resultado = decimal_a_base_B(numero, base)
-    estado = "✓" if resultado == esperado else "✗"
+    estado = "[OK]" if resultado == esperado else "[FAIL]"
     print(f"{estado} decimal_a_base_B({numero}, {base}) = {resultado} (esperado: {esperado})")
 
 # Test 2: Base B a Decimal
@@ -44,7 +44,7 @@ test_cases_2 = [
 
 for numero_str, base, esperado in test_cases_2:
     resultado = base_B_a_decimal(numero_str, base)
-    estado = "✓" if resultado == esperado else "✗"
+    estado = "[OK]" if resultado == esperado else "[FAIL]"
     print(f"{estado} base_B_a_decimal('{numero_str}', {base}) = {resultado} (esperado: {esperado})")
 
 # Test 3: Base B a Base B' (genérico)
@@ -60,7 +60,7 @@ test_cases_3 = [
 
 for numero_str, base_orig, base_dest, esperado in test_cases_3:
     resultado = base_B_a_base_B_prima(numero_str, base_orig, base_dest)
-    estado = "✓" if resultado == esperado else "✗"
+    estado = "[OK]" if resultado == esperado else "[FAIL]"
     print(f"{estado} base_B_a_base_B_prima('{numero_str}', {base_orig}, {base_dest}) = {resultado} (esperado: {esperado})")
 
 # Test 4: Base B a Base B' (potencias)
@@ -76,10 +76,10 @@ test_cases_4 = [
 for numero_str, base_comun, exp_orig, exp_dest, esperado in test_cases_4:
     try:
         resultado = base_B_a_base_B_prima_potencias(numero_str, base_comun, exp_orig, exp_dest)
-        estado = "✓" if resultado == esperado else "✗"
+        estado = "[OK]" if resultado == esperado else "[FAIL]"
         print(f"{estado} base_B_a_base_B_prima_potencias('{numero_str}', {base_comun}, {exp_orig}, {exp_dest}) = {resultado} (esperado: {esperado})")
     except Exception as e:
-        print(f"✗ Error en base_B_a_base_B_prima_potencias('{numero_str}', {base_comun}, {exp_orig}, {exp_dest}): {e}")
+        print(f"[FAIL] Error en base_B_a_base_B_prima_potencias('{numero_str}', {base_comun}, {exp_orig}, {exp_dest}): {e}")
 
 print("\n" + "=" * 80)
 print("Tests completados")
