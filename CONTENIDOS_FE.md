@@ -588,6 +588,154 @@ Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 
 - Relación entre la base de numeración, el número de dígitos y el rango de valores representables
 
+###### Teoría de Códigos: Alfabeto, Lenguaje y Semántica (2.1.1.6.1.5)
+
+Para comprender las diferencias entre los diversos códigos binarios, es necesario establecer tres conceptos fundamentales:
+
+**1. Alfabeto**
+
+Un **alfabeto** es el conjunto de símbolos disponibles para formar palabras (secuencias).
+
+Ejemplos:
+
+- Alfabeto binario: $\{0, 1\}$ (2 símbolos)
+- Alfabeto decimal: $\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\}$ (10 símbolos)
+- Alfabeto hexadecimal: $\{0, 1, ..., 9, A, B, C, D, E, F\}$ (16 símbolos)
+
+Con un alfabeto de tamaño $A$ y palabras de longitud $L$, el número total de **palabras posibles** es $A^L$.
+
+Por ejemplo, con alfabeto binario y longitud 4:
+
+- Total de palabras posibles: $2^4 = 16$ (desde 0000 hasta 1111)
+
+**2. Lenguaje (Código)**
+
+Un **lenguaje** o **código** es un **subconjunto de las palabras posibles** que consideramos "válidas" o "comprensibles" en ese sistema.
+
+No todas las palabras posibles tienen que ser válidas en un código determinado. Por ejemplo:
+
+| Código | Alfabeto | Longitud | Palabras Válidas | Total Posible | Ejemplos Válidos | Ejemplos Inválidos |
+|---|---|---|---|---|---|---|
+| **Binario Natural 4-bit** | {0,1} | 4 | 16 | 16 | 0000, 0101, 1111 | (ninguno, todas son válidas) |
+| **BCD** | {0,1} | 4 | 10 | 16 | 0000-1001 | 1010, 1011, 1100, 1101, 1110, 1111 |
+| **Gray 4-bit** | {0,1} | 4 | 16 | 16 | 0000, 0001, 0011, ... | (ninguno, todas son válidas) |
+| **Johnson 5-bit** | {0,1} | 5 | 10 | 32 | 00000, 00001, 00011, ... | 10101, 01010, 10011, ... |
+| **Biquinario 5-bit** | {0,1} | 5 | 10 | 32 | 00110, 01010, 01100, ... | 00001, 00010, 00100, ... |
+
+**Conclusión**: Un código NO necesita usar todas las palabras posibles. Si lo hace, se llama **código saturado**.
+
+**3. Semántica (Significado)**
+
+La **semántica** de un código es el **significado asignado** a cada palabra válida. El significado más común en códigos numéricos es el **orden numérico**.
+
+Por ejemplo, en Binario Natural 4-bit:
+
+- Palabra 0000 → Significado: el número 0
+- Palabra 0001 → Significado: el número 1
+- Palabra 1111 → Significado: el número 15
+
+En Gray 4-bit, las mismas palabras representan números, pero el **orden de las palabras es diferente**:
+
+- Palabra 0000 → Significado: el número 0
+- Palabra 0001 → Significado: el número 1
+- Palabra 0011 → Significado: el número 2 (no 0010)
+- Palabra 1111 → Significado: el número 10 (no 15)
+
+**Ejemplo Clave: Binario Natural vs Gray 4-bit**
+
+Aunque ambos usan:
+
+- El mismo **alfabeto**: {0, 1}
+- La misma **longitud**: 4 bits
+- El mismo **conjunto de palabras válidas**: todas las 16 combinaciones (código saturado)
+
+**Difieren en la SEMÁNTICA (significado/orden)**:
+
+| Decimal | Binario Natural | Gray 4-bit | Diferencia |
+|---|---|---|---|
+| 0 | 0000 | 0000 | (misma) |
+| 1 | 0001 | 0001 | cambia 1 bit |
+| 2 | 0010 | 0011 | cambia 1 bit |
+| 3 | 0011 | 0010 | cambia 1 bit |
+| 4 | 0100 | 0110 | cambia 1 bit |
+| 5 | 0101 | 0111 | cambia 1 bit |
+| 6 | 0110 | 0101 | cambia 1 bit |
+| 7 | 0111 | 0100 | cambia 1 bit |
+| 8 | 1000 | 1100 | cambia 1 bit |
+| 9 | 1001 | 1101 | cambia 1 bit |
+| 10 | 1010 | 1111 | cambia 1 bit |
+| 11 | 1011 | 1110 | cambia 1 bit |
+| 12 | 1100 | 1010 | cambia 1 bit |
+| 13 | 1101 | 1011 | cambia 1 bit |
+| 14 | 1110 | 1001 | cambia 1 bit |
+| 15 | 1111 | 1000 | cambia 1 bit |
+
+Observar cómo **Binario Natural tiene cambios de múltiples bits** (ej: 0111→1000 cambia 4 bits), mientras que **Gray siempre cambia exactamente 1 bit**.
+
+**Tabla Comparativa Completa: 5 Códigos**
+
+| Aspecto | Binario Natural 4b | Gray 4-bit | BCD 4-bit | Johnson 5-bit | Biquinario 5-bit |
+|---|---|---|---|---|---|
+| **Alfabeto** | {0,1} | {0,1} | {0,1} | {0,1} | {0,1} |
+| **Longitud** | 4 | 4 | 4 | 5 | 5 |
+| **Palabras Posibles** | 16 | 16 | 32 | 32 | 32 |
+| **Palabras Válidas** | 16 | 16 | 10 | 10 | 10 |
+| **Eficacia** | 100% | 100% | 31.25% | 31.25% | 31.25% |
+| **Saturado** | Sí | Sí | No | No | No |
+| **Adyacente** | No | **Sí** | No | **Sí** | No |
+| **Cíclico** | No | **Sí** | No | **Sí** | No |
+| **Especular** | No | **Sí** | No | No | No |
+| **Detecta Errores** | No | No | No (cambios de orden) | No | **Sí** |
+| **Aplicación** | General | Encoders rotativos | Sistemas decimales | Contadores sin glitches | Telefonía antigua |
+
+**Definiciones Formales**
+
+**Código Adyacente (Adjacent Code)**
+
+Un código es **adyacente** o **de cambio de 1 bit** si, dado un orden numérico establecido en su lenguaje, **cada valor sucesivo difiere del anterior exactamente en 1 solo bit**.
+
+Formal: Un código $C = \{c_0, c_1, ..., c_{n-1}\}$ ordenado por significado numérico es adyacente si:
+$$\text{hamming\_distance}(c_i, c_{i+1}) = 1 \quad \forall i \in [0, n-2]$$
+
+Donde $\text{hamming\_distance}(a, b)$ es el número de posiciones donde difieren dos palabras.
+
+**Ejemplos de códigos adyacentes**: Gray, Johnson
+**Contraejemplo**: Binario Natural (0111→1000 tiene distancia 4)
+
+**Código Cíclico (Cyclic Code)**
+
+Un código es **cíclico** si es adyacente **y además** el último valor también difiere del primero exactamente en 1 solo bit, formando un **ciclo cerrado**.
+
+Formal: Un código adyacente es cíclico si:
+$$\text{hamming\_distance}(c_{n-1}, c_0) = 1$$
+
+**Ejemplos de códigos cíclicos**: Gray (0001→...→1000, 1000 vs 0000 = 1 bit), Johnson
+**Contraejemplo**: BCD no es adyacente, luego no puede ser cíclico
+
+**Código Saturado (Saturated Code)**
+
+Un código es **saturado** si utiliza **todas las palabras posibles** con su alfabeto y longitud.
+
+Formal: Un código con alfabeto $A$ y longitud $L$ es saturado si contiene exactamente $|A|^L$ palabras válidas.
+
+**Ejemplos de códigos saturados**: Binario Natural (16/16), Gray (16/16)
+**Contraejemplos**: BCD (10/16), Johnson (10/32), Biquinario (10/32)
+
+**Ventaja de Códigos Saturados**: Máxima eficiencia de almacenamiento (0% de palabras desperdiciadas)
+**Desventaja de Códigos No Saturados**: Redundancia que permite detección de errores o propiedades especiales
+
+**Conclusión**
+
+La elección de un código depende de la **semántica requerida**:
+
+- **Binario Natural**: Máxima simplicidad aritmética, óptimo para cálculos
+- **Gray**: Cambios suaves (adyacencia cíclica), óptimo para encoders y evitar glitches
+- **BCD**: Conversión directa de dígitos decimales, óptimo para displays
+- **Johnson**: Adyacencia cíclica en longitud 5, óptimo para máquinas de estado
+- **Biquinario**: Detección de errores, óptimo para comunicaciones críticas
+
+---
+
 ###### Códigos Especializados de 5 Bits (2.1.1.6.1.6)
 
 Además de BCD y DPD, existen códigos especializados de 5 bits diseñados para aplicaciones específicas. Estos códigos balancean detección de errores, cambios suaves (adyacencia) y propiedades cíclicas.
@@ -740,6 +888,152 @@ Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py)
 | **Gray (4 bits)** | 16 | 4 | **100%** | **Sí** | **Sí** | **Sí** |
 
 **Conclusión**: El código Gray es el más eficiente (100%) y tiene todas las propiedades deseables (adyacencia, ciclicidad, simetría), convirtiéndolo en estándar industrial para aplicaciones críticas.
+
+---
+
+###### Distancia Hamming y Análisis de Lenguajes (2.1.1.6.1.8)
+
+**Concepto: Distancia Hamming**
+
+La **distancia Hamming** entre dos palabras de igual longitud es el **número de posiciones en las que los símbolos difieren**.
+
+Esta métrica es fundamental para:
+
+- Medir "cuán diferentes" son dos palabras en un lenguaje
+- Determinar si dos palabras son **adyacentes** (distancia = 1)
+- Analizar propiedades de códigos (ciclicidad, detección de errores)
+- Cuantificar robustez ante errores de transmisión
+
+**Ejemplos de Distancia Hamming**:
+
+| Palabra A | Palabra B | Diferencias | Distancia |
+|---|---|---|---|
+| `0000` | `0000` | (ninguna) | 0 |
+| `0000` | `0001` | posición 0 | 1 |
+| `0000` | `0011` | posiciones 0,1 | 2 |
+| `0111` | `1000` | posiciones 0,1,2,3 | 4 |
+| `1010` | `0101` | posiciones 0,1,2,3 | 4 |
+| `10101` | `10101` | (ninguna) | 0 |
+
+**Fórmula Formal**:
+
+Para dos palabras $a = a_0a_1\ldots a_{L-1}$ y $b = b_0b_1\ldots b_{L-1}$ de longitud $L$:
+
+$$d_H(a, b) = \sum_{i=0}^{L-1} [a_i \neq b_i]$$
+
+donde $[a_i \neq b_i]$ es 1 si $a_i$ difiere de $b_i$, 0 en caso contrario.
+
+**Sistema Genérico de Lenguajes**
+
+Un **lenguaje de longitud fija** es un conjunto de palabras válidas (palabras-código), donde:
+
+- **Alfabeto**: Conjunto de símbolos disponibles (ej: {0, 1})
+- **Longitud**: Todas las palabras tienen la misma longitud $L$
+- **Predicado**: Función que determina cuáles palabras son válidas
+- **Orden**: Relación de sucesión entre palabras (con wrap-around)
+
+**Ejemplo: Lenguaje Binario Natural de 4 bits**
+
+- **Alfabeto**: {0, 1}
+- **Longitud**: 4
+- **Palabras válidas**: Todas las $2^4 = 16$ combinaciones (saturado)
+- **Orden**: 0000 → 0001 → 0010 → ... → 1111 → 0000
+- **Propiedades**: NO adyacente, NO cíclico, 100% eficacia
+
+**Ejemplo: Lenguaje BCD (Binary Coded Decimal)**
+
+- **Alfabeto**: {0, 1}
+- **Longitud**: 4
+- **Palabras válidas**: 0000-1001 (10 palabras para dígitos 0-9)
+- **Palabras inválidas**: 1010-1111 (6 combinaciones desperdiciadas)
+- **Orden**: 0000 → 0001 → ... → 1001 → 0000
+- **Propiedades**: NO adyacente, NO cíclico, 62.5% eficacia
+
+**Ejemplo: Lenguaje Johnson (Cíclico Adyacente)**
+
+- **Alfabeto**: {0, 1}
+- **Longitud**: 5
+- **Palabras válidas**: 00000, 00001, 00011, 00111, 01111, 11111, 11110, 11100, 11000, 10000 (10 palabras)
+- **Patrón**: Cada palabra se obtiene desplazando un bloque de 1s
+- **Propiedades**: **Adyacente**, **cíclico**, 31.25% eficacia
+- **Distancia sucesiva**: 0→1 (1 bit), 1→2 (1 bit), ..., 9→0 (1 bit)
+
+**Análisis de Adyacencia**
+
+Un lenguaje es:
+
+- **Adyacente (Adjacent Code)** si cada palabra sucesiva difiere de la anterior en exactamente 1 bit:
+  $$d_H(p_i, p_{i+1}) = 1 \quad \forall i \in [0, n-2]$$
+
+- **Cíclico (Cyclic Code)** si es adyacente Y la última palabra también difiere de la primera en 1 bit:
+  $$d_H(p_{n-1}, p_0) = 1$$
+
+**Tabla: Propiedades de Lenguajes de 5 Bits**
+
+| Lenguaje | Alfabeto | Longitud | Válidas | Posibles | Eficacia | Adyacente | Cíclico | Aplicación |
+|---|---|---|---|---|---|---|---|---|
+| **Binario 4-bit** | {0,1} | 4 | 16 | 16 | 100% | ✗ NO | ✗ NO | Aritmética general |
+| **BCD 4-bit** | {0,1} | 4 | 10 | 16 | 62.5% | ✗ NO | ✗ NO | Displays decimales |
+| **Johnson 5-bit** | {0,1} | 5 | 10 | 32 | 31.25% | ✓ SÍ | ✓ SÍ | Contadores sin glitches |
+| **Biquinario 5-bit** | {0,1} | 5 | 10 | 32 | 31.25% | ✗ NO | ✗ NO | Detección de errores |
+| **Gray 4-bit** | {0,1} | 4 | 16 | 16 | 100% | ✓ SÍ | ✓ SÍ | Encoders rotativos |
+
+**Funciones Python para Análisis**
+
+```python
+# Función básica: distancia Hamming entre dos palabras
+distancia_hamming(palabra_a: str, palabra_b: str) -> int
+# Ejemplo: distancia_hamming('1011', '1001') -> 1
+
+# Clase genérica: representa un lenguaje
+class Lenguaje:
+    def es_valida(palabra: str) -> bool          # ¿Palabra pertenece al lenguaje?
+    def siguiente_palabra(palabra: str) -> str   # Siguiente en el orden
+    def distancia_hamming(p_a, p_b) -> int      # Distancia entre dos palabras
+    def son_adyacentes(p_a, p_b) -> bool        # ¿Distancia = 1?
+    def generar_todas_palabras() -> List[str]   # Todas las palabras válidas
+    def analizar_adyacencia() -> Dict            # Análisis completo
+
+# Constructores para lenguajes específicos
+crear_lenguaje_binario_saturado(longitud: int) -> Lenguaje
+crear_lenguaje_bcd() -> Lenguaje
+crear_lenguaje_johnson() -> Lenguaje
+crear_lenguaje_biquinario() -> Lenguaje
+```
+
+**Ejemplo de Uso**:
+
+```python
+# Crear lenguaje Johnson
+johnson = crear_lenguaje_johnson()
+
+# Verificar palabras
+assert johnson.es_valida('00001')     # ✓ Válida
+assert not johnson.es_valida('10101') # ✗ Inválida
+
+# Generar siguiente
+assert johnson.siguiente_palabra('00001') == '00011'
+
+# Calcular distancia
+assert johnson.distancia_hamming('00001', '00011') == 1
+assert johnson.son_adyacentes('00111', '01111')     # True
+
+# Analizar propiedades
+analisis = johnson.analizar_adyacencia()
+print(f"Adyacente: {analisis['es_adyacente']}")      # True
+print(f"Cíclico: {analisis['es_ciclico']}")          # True
+print(f"Total palabras: {analisis['total_palabras']}")  # 10
+```
+
+Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py) para la implementación completa.
+
+**Ventajas del Análisis por Distancia Hamming**
+
+1. **Medida objetiva**: Cuantifica diferencias sin ambigüedad
+2. **Análisis automático**: Determina propiedades (adyacencia, ciclicidad) algorítmicamente
+3. **Detección de errores**: Códigos con distancia mínima > 1 pueden detectar errores
+4. **Optimización**: Identifica qué códigos son óptimos para cada aplicación
+5. **Comparación**: Compara lenguajes de forma sistemática
 
 ---
 

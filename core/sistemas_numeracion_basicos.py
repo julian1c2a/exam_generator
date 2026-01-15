@@ -1382,3 +1382,428 @@ def comparar_codigos_5bits() -> Dict:
         }
     }
 
+
+# ============================================================================
+# PARTE 6: DISTANCIA HAMMING Y LENGUAJES DE LONGITUD FIJA
+# ============================================================================
+
+def distancia_hamming(palabra_a: str, palabra_b: str) -> int:
+    """
+    Calcula la distancia Hamming entre dos palabras de igual longitud.
+    
+    La distancia Hamming es el número de posiciones en las que los símbolos
+    de dos palabras de igual longitud son diferentes.
+    
+    Args:
+        palabra_a: Primera palabra (cadena de caracteres)
+        palabra_b: Segunda palabra (cadena de caracteres)
+        
+    Returns:
+        int: Número de posiciones diferentes
+        
+    Raises:
+        ValueError: Si las palabras tienen longitudes diferentes
+        
+    Ejemplo:
+        distancia_hamming('1011', '1001') -> 1  (difieren en posición 2)
+        distancia_hamming('0000', '1111') -> 4  (difieren en todas)
+        distancia_hamming('1010', '1010') -> 0  (idénticas)
+    """
+    if len(palabra_a) != len(palabra_b):
+        raise ValueError(
+            f"Las palabras deben tener igual longitud. "
+            f"Recibidas: {len(palabra_a)} vs {len(palabra_b)}"
+        )
+    
+    return sum(1 for a, b in zip(palabra_a, palabra_b) if a != b)
+
+
+class Lenguaje:
+    """
+    Clase genérica para representar un lenguaje de longitud fija.
+    
+    Un lenguaje es un conjunto de palabras válidas (palabras-código) construidas
+    a partir de un alfabeto dado, con longitud fija, donde un predicado define
+    cuáles palabras son válidas.
+    
+    Atributos:
+        alfabeto (list): Símbolos disponibles (ej: ['0', '1'])
+        longitud (int): Longitud de cada palabra
+        predicado (callable): Función que verifica si una palabra es válida
+        valor_cero: Símbolo que representa el 'cero' (inicio)
+        siguiente (callable): Función para generar el siguiente valor
+        
+    Ejemplo:
+        # Lenguaje binario de 4 bits
+        lenguaje = Lenguaje(
+            alfabeto=['0', '1'],
+            longitud=4,
+            predicado=lambda p: True,  # Todas las palabras son válidas (binario)
+            valor_cero='0',
+            siguiente=lambda p: ('0'*4) if p == '1'*4 else ... # wrap-around
+        )
+    """
+    
+    def __init__(self, alfabeto: List[str], longitud: int, predicado, 
+                 valor_cero='0', siguiente=None, nombre=''):
+        """
+        Inicializa un lenguaje.
+        
+        Args:
+            alfabeto: Lista de símbolos válidos
+            longitud: Longitud de cada palabra del lenguaje
+            predicado: Función que retorna True si palabra está en lenguaje
+            valor_cero: Símbolo que representa el 'cero' (por defecto '0')
+            siguiente: Función que genera la siguiente palabra (con wrap-around)
+            nombre: Nombre descriptivo del lenguaje (opcional)
+        """
+        self.alfabeto = alfabeto
+        self.longitud = longitud
+        self.predicado = predicado
+        self.valor_cero = valor_cero
+        self.siguiente = siguiente
+        self.nombre = nombre
+        
+        # Pre-calcular palabras válidas si el lenguaje es pequeño
+        self._palabras_cache = None
+        
+    def es_valida(self, palabra: str) -> bool:
+        """
+        Verifica si una palabra pertenece al lenguaje.
+        
+        Args:
+            palabra: Cadena de símbolos
+            
+        Returns:
+            bool: True si la palabra es válida en este lenguaje
+            
+        Raises:
+            ValueError: Si la palabra no tiene la longitud correcta
+        """
+        if len(palabra) != self.longitud:
+            raise ValueError(
+                f"Palabra '{palabra}' tiene longitud {len(palabra)}, "
+                f"se esperaba {self.longitud}"
+            )
+        
+        # Verificar que todos los caracteres están en el alfabeto
+        if not all(c in self.alfabeto for c in palabra):
+            return False
+        
+        # Aplicar el predicado
+        return self.predicado(palabra)
+    
+    def siguiente_palabra(self, palabra: str) -> str:
+        """
+        Calcula la siguiente palabra en el lenguaje.
+        
+        Args:
+            palabra: Palabra actual (debe ser válida)
+            
+        Returns:
+            str: Siguiente palabra válida, con wrap-around al inicio
+            
+        Raises:
+            ValueError: Si la palabra no es válida o siguiente no está definida
+        """
+        if not self.es_valida(palabra):
+            raise ValueError(f"La palabra '{palabra}' no es válida en este lenguaje")
+        
+        if self.siguiente is None:
+            raise ValueError("La función 'siguiente' no está definida para este lenguaje")
+        
+        return self.siguiente(palabra)
+    
+    def distancia_hamming(self, palabra_a: str, palabra_b: str) -> int:
+        """
+        Calcula la distancia Hamming entre dos palabras del lenguaje.
+        
+        Args:
+            palabra_a: Primera palabra (debe ser válida)
+            palabra_b: Segunda palabra (debe ser válida)
+            
+        Returns:
+            int: Distancia Hamming entre las palabras
+            
+        Raises:
+            ValueError: Si alguna palabra no es válida
+        """
+        if not self.es_valida(palabra_a):
+            raise ValueError(f"La palabra '{palabra_a}' no es válida")
+        if not self.es_valida(palabra_b):
+            raise ValueError(f"La palabra '{palabra_b}' no es válida")
+        
+        return distancia_hamming(palabra_a, palabra_b)
+    
+    def son_adyacentes(self, palabra_a: str, palabra_b: str) -> bool:
+        """
+        Verifica si dos palabras son adyacentes (distancia Hamming = 1).
+        
+        Args:
+            palabra_a: Primera palabra
+            palabra_b: Segunda palabra
+            
+        Returns:
+            bool: True si la distancia Hamming es exactamente 1
+        """
+        return self.distancia_hamming(palabra_a, palabra_b) == 1
+    
+    def generar_todas_palabras(self) -> List[str]:
+        """
+        Genera todas las palabras válidas del lenguaje.
+        
+        Para lenguajes pequeños (≤ 1000 palabras), cachea el resultado.
+        
+        Returns:
+            List[str]: Lista de todas las palabras válidas
+            
+        Raises:
+            RuntimeError: Si el lenguaje es demasiado grande
+        """
+        if self._palabras_cache is not None:
+            return self._palabras_cache
+        
+        # Estimar tamaño máximo
+        max_posibles = len(self.alfabeto) ** self.longitud
+        if max_posibles > 10000:
+            raise RuntimeError(
+                f"Lenguaje muy grande ({max_posibles} palabras posibles). "
+                f"Use un predicado más restrictivo o implemente generación iterativa."
+            )
+        
+        # Generar todas las combinaciones (fuerza bruta para lenguajes pequeños)
+        def generar_combinaciones(pos=0, actual=''):
+            if pos == self.longitud:
+                if self.es_valida(actual):
+                    resultado.append(actual)
+                return
+            
+            for simbolo in self.alfabeto:
+                generar_combinaciones(pos + 1, actual + simbolo)
+        
+        resultado = []
+        generar_combinaciones()
+        
+        self._palabras_cache = resultado
+        return resultado
+    
+    def analizar_adyacencia(self) -> Dict:
+        """
+        Analiza la adyacencia global del lenguaje.
+        
+        Returns:
+            Dict con estadísticas sobre adyacencia:
+                - total_palabras: Número de palabras válidas
+                - es_adyacente: Si todos los pares sucesivos son adyacentes
+                - es_ciclico: Si la última palabra es adyacente a la primera
+                - pares_adyacentes: Número de pares adyacentes encontrados
+                - min_distancia: Distancia mínima entre palabras distintas
+                - max_distancia: Distancia máxima
+        """
+        palabras = self.generar_todas_palabras()
+        n = len(palabras)
+        
+        if n < 2:
+            return {
+                'total_palabras': n,
+                'es_adyacente': n <= 1,
+                'es_ciclico': n <= 1,
+                'pares_adyacentes': 0,
+                'min_distancia': None,
+                'max_distancia': None
+            }
+        
+        # Analizar distancias entre pares sucesivos
+        pares_adyacentes = 0
+        distancias = []
+        
+        for i in range(n - 1):
+            d = distancia_hamming(palabras[i], palabras[i + 1])
+            distancias.append(d)
+            if d == 1:
+                pares_adyacentes += 1
+        
+        # Verificar ciclicidad
+        distancia_ciclica = distancia_hamming(palabras[-1], palabras[0])
+        distancias.append(distancia_ciclica)
+        es_ciclico = distancia_ciclica == 1
+        
+        # Distancias mínima y máxima entre palabras distintas
+        distancias_no_cero = [d for d in distancias if d > 0]
+        min_distancia = min(distancias_no_cero) if distancias_no_cero else None
+        max_distancia = max(distancias) if distancias else None
+        
+        return {
+            'total_palabras': n,
+            'es_adyacente': pares_adyacentes == n - 1,
+            'es_ciclico': (pares_adyacentes == n - 1) and es_ciclico,
+            'pares_adyacentes': pares_adyacentes,
+            'distancia_ciclica': distancia_ciclica,
+            'min_distancia': min_distancia,
+            'max_distancia': max_distancia,
+            'distancias_sucesivas': distancias[:-1] + [f"(ciclica={distancia_ciclica})"]
+        }
+
+
+def crear_lenguaje_binario_saturado(longitud: int, nombre='') -> Lenguaje:
+    """
+    Crea un lenguaje binario saturado (todas las 2^L palabras son válidas).
+    
+    Args:
+        longitud: Longitud de las palabras
+        nombre: Nombre descriptivo (ej: "Binario Natural 4-bit")
+        
+    Returns:
+        Lenguaje: Instancia del lenguaje binario
+    """
+    def siguiente_binario(palabra: str) -> str:
+        """Incrementa palabra binaria con wrap-around."""
+        # Convertir a entero, incrementar, convertir back
+        valor = int(palabra, 2)
+        valor = (valor + 1) % (2 ** longitud)
+        return format(valor, f'0{longitud}b')
+    
+    return Lenguaje(
+        alfabeto=['0', '1'],
+        longitud=longitud,
+        predicado=lambda p: True,  # Todas las palabras son válidas
+        valor_cero='0' * longitud,
+        siguiente=siguiente_binario,
+        nombre=nombre or f"Binario Saturado {longitud}-bit"
+    )
+
+
+def crear_lenguaje_bcd() -> Lenguaje:
+    """
+    Crea el lenguaje BCD (Binary Coded Decimal).
+    
+    BCD válido: representa dígitos 0-9
+    - Total posible: 2^4 = 16 palabras
+    - Total válido: 10 palabras (0000-1001)
+    
+    Returns:
+        Lenguaje: Instancia del lenguaje BCD
+    """
+    # Palabras válidas: 0000 a 1001 (0-9 en decimal)
+    palabras_validas = {format(i, '04b') for i in range(10)}
+    
+    def siguiente_bcd(palabra: str) -> str:
+        """Incrementa BCD con wrap-around a 0."""
+        valor = int(palabra, 2)
+        valor = (valor + 1) % 10
+        return format(valor, '04b')
+    
+    def predicado_bcd(palabra: str) -> bool:
+        return palabra in palabras_validas
+    
+    return Lenguaje(
+        alfabeto=['0', '1'],
+        longitud=4,
+        predicado=predicado_bcd,
+        valor_cero='0000',
+        siguiente=siguiente_bcd,
+        nombre="BCD (Binary Coded Decimal)"
+    )
+
+
+def crear_lenguaje_johnson() -> Lenguaje:
+    """
+    Crea el lenguaje Johnson (código cíclico adyacente de 5 bits).
+    
+    Johnson: Código adyacente donde cada valor difiere en 1 bit
+    - Total posible: 2^5 = 32 palabras
+    - Total válido: 10 palabras (para dígitos 0-9)
+    
+    Returns:
+        Lenguaje: Instancia del lenguaje Johnson
+    """
+    palabras_johnson = [
+        '00000',  # 0
+        '00001',  # 1
+        '00011',  # 2
+        '00111',  # 3
+        '01111',  # 4
+        '11111',  # 5
+        '11110',  # 6
+        '11100',  # 7
+        '11000',  # 8
+        '10000',  # 9
+    ]
+    
+    palabras_johnson_set = set(palabras_johnson)
+    
+    def siguiente_johnson(palabra: str) -> str:
+        """Incrementa Johnson con wrap-around."""
+        idx = palabras_johnson.index(palabra)
+        return palabras_johnson[(idx + 1) % 10]
+    
+    def predicado_johnson(palabra: str) -> bool:
+        return palabra in palabras_johnson_set
+    
+    # Crear lenguaje pero sobrescribir generar_todas_palabras para mantener orden
+    lenguaje = Lenguaje(
+        alfabeto=['0', '1'],
+        longitud=5,
+        predicado=predicado_johnson,
+        valor_cero='00000',
+        siguiente=siguiente_johnson,
+        nombre="Código Johnson (Cíclico Adyacente)"
+    )
+    
+    # Cache directo para mantener el orden correcto
+    lenguaje._palabras_cache = palabras_johnson
+    
+    return lenguaje
+
+
+def crear_lenguaje_biquinario() -> Lenguaje:
+    """
+    Crea el lenguaje Biquinario (2 entre 5).
+    
+    Biquinario: Exactamente 2 bits encendidos
+    - Total posible: 2^5 = 32 palabras
+    - Total válido: C(5,2) = 10 palabras
+    
+    Returns:
+        Lenguaje: Instancia del lenguaje Biquinario
+    """
+    palabras_biquinarias = [
+        '00110',  # 0 (posiciones 2,1)
+        '00101',  # 1 (posiciones 2,0)
+        '01001',  # 2 (posiciones 3,0)
+        '01010',  # 3 (posiciones 3,1)
+        '01100',  # 4 (posiciones 3,2)
+        '10001',  # 5 (posiciones 4,0)
+        '10010',  # 6 (posiciones 4,1)
+        '10100',  # 7 (posiciones 4,2)
+        '11000',  # 8 (posiciones 4,3)
+        '00011',  # 9 (posiciones 1,0)  <- FALTABA ESTA
+    ]
+    
+    palabras_biquinarias_set = set(palabras_biquinarias)
+    
+    def siguiente_biquinario(palabra: str) -> str:
+        """Incrementa biquinario con wrap-around."""
+        idx = palabras_biquinarias.index(palabra)
+        return palabras_biquinarias[(idx + 1) % len(palabras_biquinarias)]
+    
+    def predicado_biquinario(palabra: str) -> bool:
+        """Verifica que exactamente 2 bits estén encendidos."""
+        return palabra.count('1') == 2 and palabra in palabras_biquinarias_set
+    
+    # Crear lenguaje pero sobrescribir generar_todas_palabras para mantener orden
+    lenguaje = Lenguaje(
+        alfabeto=['0', '1'],
+        longitud=5,
+        predicado=predicado_biquinario,
+        valor_cero='00110',
+        siguiente=siguiente_biquinario,
+        nombre="Código Biquinario (2 entre 5)"
+    )
+    
+    # Cache directo para mantener el orden correcto
+    lenguaje._palabras_cache = palabras_biquinarias
+    
+    return lenguaje
+
+
