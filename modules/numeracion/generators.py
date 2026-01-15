@@ -63,7 +63,7 @@ class ConversionRowRandomizer(ExerciseRandomizer):
         return '1' + format(abs(val), f'0{bits - 1}b')
 
 
-class ConversionRowGenerator(ExerciseGenerator):
+class ConversionExerciseGenerator(ExerciseGenerator):
     """GENERADOR: Calcula solución para ConversionRow."""
     
     def topic(self) -> str:
@@ -176,7 +176,7 @@ class BinaryConversionGenerator(ExerciseGenerator):
             problem = randomizer.randomize(seed=None)
             
             # Usar generador
-            generator = ConversionRowGenerator()
+            generator = ConversionExerciseGenerator()
             row = generator.generate_from_problem(problem)
             
             rows.append(row)

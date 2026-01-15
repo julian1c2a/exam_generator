@@ -44,7 +44,7 @@ def test_generator_availability():
 def test_generator_execution():
     """Prueba que los generadores generen ejercicios correctamente."""
     print("\n" + "=" * 80)
-    print("PRUEBA DE EJECUCIÓN DE GENERADORES")
+    print("PRUEBA DE EJECUCION DE GENERADORES")
     print("=" * 80)
     
     # Probar algunos generadores clave
@@ -61,13 +61,13 @@ def test_generator_execution():
     for topic_id in test_topics:
         config = ExerciseMapper.get_generator_config(topic_id)
         if not config:
-            print(f"\n⚠ {topic_id}: No tiene configuración")
+            print(f"\n[AVISO] {topic_id}: No tiene configuracion")
             continue
         
         try:
             generator = GeneratorFactory.create_generator(topic_id)
             if not generator:
-                print(f"\n✗ {topic_id}: No se pudo crear generador")
+                print(f"\n[ERROR] {topic_id}: No se pudo crear generador")
                 continue
             
             # Intentar generar ejercicio
@@ -76,23 +76,23 @@ def test_generator_execution():
             elif hasattr(generator, 'generate'):
                 exercise = generator.generate()
             else:
-                print(f"\n⚠ {topic_id}: Generador no tiene método de generación")
+                print(f"\n[AVISO] {topic_id}: Generador no tiene metodo de generacion")
                 continue
             
-            print(f"\n✓ {topic_id:15} EXITOSO")
+            print(f"\n[OK] {topic_id:15} EXITOSO")
             print(f"  Generador: {type(generator).__name__}")
-            print(f"  Descripción: {config.description}")
+            print(f"  Descripcion: {config.description}")
             
             # Mostrar resultado si es un dict
             if isinstance(exercise, dict):
                 if 'title' in exercise:
-                    print(f"  Título: {exercise['title']}")
+                    print(f"  Titulo: {exercise['title']}")
                 if 'problem' in exercise:
                     problem_text = str(exercise['problem'])[:60] + ("..." if len(str(exercise['problem'])) > 60 else "")
                     print(f"  Problema: {problem_text}")
         
         except Exception as e:
-            print(f"\n✗ {topic_id}: ERROR")
+            print(f"\n[ERROR] {topic_id}: FALLO")
             print(f"  Clase: {config.class_name}")
             print(f"  Error: {str(e)}")
 
@@ -113,12 +113,12 @@ def test_builder():
         
         exercise = builder.build()
         
-        print("\n✓ Builder EXITOSO para 2.1.1.1.3")
-        print(f"  Título: {exercise.get('title', 'N/A')}")
+        print("\n[OK] Builder EXITOSO para 2.1.1.1.3")
+        print(f"  Titulo: {exercise.get('title', 'N/A')}")
         print(f"  Problema: {str(exercise.get('problem', 'N/A'))[:60]}...")
     
     except Exception as e:
-        print(f"\n✗ Builder ERROR: {str(e)}")
+        print(f"\n[ERROR] Builder FALLO: {str(e)}")
 
 
 def main():
