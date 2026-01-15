@@ -1,52 +1,5 @@
-### QUÉ SE PROPONE ESTE PROYECTO ###
-
-## 🚀 ESTADO ACTUAL DEL PROYECTO (Enero 2026)
-
-### ✅ Fase Actual: PERSISTENCIA COMPLETADA
-
-| Fase | Componente | Status | Descripción |
-|------|-----------|--------|-------------|
-| **A** | Mappers | ✅ COMPLETADA | Conversión agnóstica de 5 tipos de ejercicio |
-| **B** | Repository | ✅ COMPLETADA | CRUD con File (JSON) y SQLite backends |
-| **C** | Integration | ✅ COMPLETADA | ExamBuilder con auto-persistencia |
-| **D** | CLI Tools | ✅ COMPLETADA | 9 comandos para gestión de problemas |
-
-### 📦 Qué está Listo
-
-- **1,710 líneas** de código de mappers (Fase A)
-- **1,200 líneas** de código de repository (Fase B)
-- **600+ líneas** de interfaz CLI (Fase D)
-- **40,000+ líneas** de documentación completa
-- **100% de tests pasando**
-
-### 🎯 Próximas Fases (Opcionales)
-
-- **Fase E**: Interfaz Web (FastAPI + React)
-- **Fase F**: Reportes y Analytics
-- **Fase G**: Contenidos Teóricos
-
-### 📚 Documentación de Fases
-
-- [FASE_D_GUIA_RAPIDA.md](FASE_D_GUIA_RAPIDA.md) - Referencia rápida de comandos
-- [FASE_D_COMPLETADA.md](FASE_D_COMPLETADA.md) - Guía detallada
-- [ESTADO_FINAL_PROYECTO.md](ESTADO_FINAL_PROYECTO.md) - Arquitectura completa
-- [INSTALACION_Y_USO.md](INSTALACION_Y_USO.md) - Guía de instalación
-
----
-
-## DESCRIPCIÓN DEL PROYECTO
-
-Este proyecto tiene un punto de partida: soy profesor de Fundamentos de Electrónica, asignatura obligatoria en todas las Ingenierías Industriales en la Universidad de Málaga, pero de hecho también lo es en toda Europa, y en muchas otras titulaciones. Anterioremente he impartido otras asignaturas de Electrónica, tanto de carácter básico como ésta, como otras más avanzadas. Las de carácter básico ha sido Electrónica Básica (como esta misma pero anual), como Electrónica Digital. Las más avanzadas son Sistemas Digitales Avanzados y Microelectrónica.
-
-Más que hacer un libro, que no es este proyecto, lo que quiero, para comenzar es un sistema de apuntes y ejercicios que puedan usar mis alumnos (y cualquiera que quiera aprender los fundamentos de la electrónica) de forma libre y gratuita, y más aún con un sistema de autoevaluación que les permita comprobar sus conocimientos y habilidades. Básicamente, quiero que termine siendo un programa que corra en una web de forma interactiva, y que permita a los alumnos aprender y practicar los contenidos de la asignatura.
-
-Para poder poner ruedas a esto, voy a comenzar alrevés de lo habitual: me enfocaré primero en los ejercicios y problemas, y luego en los contenidos teóricos. Incluso como en un programa de ordenador no se pueden hacer prácticas de electrónica (físicos), espero poder aprovechar herramientas libres de simulación de circuitos electrónicos para que los alumnos puedan practicar y experimentar con circuitos electrónicos sin necesidad de disponer de un laboratorio físico.
-
-Vamos a empezar a describir el temario de la asignatura, tal y como se imparte en la Universidad de Málaga, y que es muy similar al que se imparte en otras universidades españolas y europeas. Posteriormente, iremos añadiendo ejercicios y problemas relacionados con cada tema. Realmente se puede extender muchísismo por los bordes, y si hay ayuda de colaboradores, se extenderá mucho más. Pero el objetivo es tener un núcleo básico, que pueda ser ampliado posteriormente.
-
-El temario básico es el siguiente:
-
-```Temario de Fundamentos de Electrónica
+*** Temario de Fundamentos de Electrónica ***
+```
 1. Introducción a la Electrónica:
    1. Conceptos básicos
    2. Componentes electrónicos
@@ -352,15 +305,3 @@ El temario básico es el siguiente:
                1. Circuito oscilador con amplificador operacional
                2. Generador de funciones con amplificador operacional
 ```
-
-Cada uno de los puntos anteriores tiene un conjunto de subpuntos que han de ser expuestos, pero en vez de desarrollarlos de forma teórica, se nombrarán y pasaremos a su implementación: un sistema que produzca problemas y sus soluciones. En principio estos problemas y sus soluciones estarán en forma de texto json, pero posteriormente se implementará un sistema web que permita a los alumnos practicar con ellos de forma interactiva. Para cada uno de ellos nos hará falta un generador del problema y un generador de la soución. Probleams y soluciones formarán una pequeña base de conocimientos que se irá ampliando con el tiempo, y hay que elegir bien la forma de almacenmarlos para que sea fácil ampliarlos y modificarlos, no solo por un programa como python (es nuestra elección de lenguaje de programación, aunque problablemente demos rudimentos de C y VHDL).
-
-Cada tema tendrá una serie de ejercicios y problemas asociados, que irán aumentando en número y dificultad con el tiempo. El objetivo es que los alumnos puedan practicar y aprender de forma autónoma, y que el sistema pueda evaluar sus respuestas y proporcionar retroalimentación inmediata.
-
-Para manejar este proyecto, utilizaremos herramientas de control de versiones como Git, y alojaremos el código y los recursos en plataformas como GitHub o GitLab. Esto facilitará la colaboración con otros educadores y desarrolladores interesados en contribuir al proyecto.
-
-Ahora entramos en la parte de desarrollo Python del proyecto. Necesitamos una herramienta que nos permita generar ejercicios y problemas de forma automática, junto con sus soluciones. Esto implica crear funciones y clases en Python que puedan generar estos problemas basándose en parámetros específicos, y luego calcular las soluciones correspondientes. Utilizaremos un enfoque muy moldular, de forma que la producción  de problemas y soluciones será un proceso completamente independiente del sistema web que se utilizará para la interacción con los alumnos, o del sistema latex con el que se podrán escribir automáticamente documentos.
-
-Cuando haya que generar un problema y sus solución (o souluciones), y este haya de representarse con un renderizado, entraremos en un problema importante: nuestro python ha de ser capaz de generar codigo latex que represente lo que el problema requiera. El problema fundamental es que el problema se hace más difícil si el problema requiere gráficos o diagramas. Comforme se vaya desarroyando el proyecto, de forma paralela necesitaremos desarrollar los renderers latex y html que se necesiten. Para esto podemos usar librerías como Matplotlib para gráficos, y TikZ para diagramas en LaTeX. Aunque quizás encontremos otras librerías más específicas para ciertos tipos de diagramas electrónicos, o más flexibles que TikZ. En cualquier caso, el objetivo es que el sistema pueda generar automáticamente los gráficos y diagramas necesarios para cada problema y su solución.
-
-La producción de los gráficos y dagramas será una parte del proyecto especialmente difícil, por lo que se habrá de abordar con mucho cuidado. Necesitaremos un montón de renderers específicos, uno desacoplados de otros. Para los renderers concretos usaremos el método de renderers gneralistas que maracarán el tamaño y el marco y qué pueden admitir, y luego un render espcífico hará las tareas más importantes y sencillas. Otro renderer escribirán el texto que tenga que haber en el gráfico y otro render dibujará elementos de más detalle, desacoplando cada parte del proceso, eligiendo apra esto un sistema de representación legible, sencillo y completo, por ejemplo en json.
