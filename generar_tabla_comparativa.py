@@ -10,12 +10,12 @@ def generar_tabla_comparativa():
     print("TABLA COMPARATIVA: TODAS LAS REPRESENTACIONES EN BINARIO 4-BIT")
     print("=" * 100)
     
-    print("\n" + "─" * 100)
+    print("\n" + "-" * 100)
     print("| Decimal | Mag&Sign | CB-1    | CB (Two's) | ExcK(K=8) | Nota                          |")
-    print("─" * 100)
+    print("-" * 100)
     
     comparativa = [
-        (-8, "❌", "❌", "10000", "0000", "ExcK mínimo"),
+        (-8, "NO", "NO", "10000", "0000", "ExcK minimo"),
         (-7, "10111", "11000", "10001", "0001", ""),
         (-6, "10110", "11001", "10010", "0010", ""),
         (-5, "10101", "11010", "10011", "0011", ""),
@@ -24,14 +24,14 @@ def generar_tabla_comparativa():
         (-2, "10010", "11101", "10110", "0110", ""),
         (-1, "10001", "11110", "11111", "0111", ""),
         (0, "00000", "00000", "00000", "1000", "ExcK representa 0 como 1000 (valor K)"),
-        (0, "10000", "11111", "❌", "1000", "M&S y CB-1 tienen dos ceros"),
+        (0, "10000", "11111", "NO", "1000", "M&S y CB-1 tienen dos ceros"),
         (1, "00001", "00001", "00001", "1001", ""),
         (2, "00010", "00010", "00010", "1010", ""),
         (3, "00011", "00011", "00011", "1011", ""),
         (4, "00100", "00100", "00100", "1100", ""),
         (5, "00101", "00101", "00101", "1101", ""),
         (6, "00110", "00110", "00110", "1110", ""),
-        (7, "00111", "00111", "00111", "1111", "ExcK máximo"),
+        (7, "00111", "00111", "00111", "1111", "ExcK maximo"),
     ]
     
     for entrada in comparativa:
@@ -42,7 +42,8 @@ def generar_tabla_comparativa():
             decimal, ms, cb1, cb, exck, nota = entrada
             print(f"| {decimal:7d} | {ms:8s} | {cb1:7s} | {cb:10s} | {exck:9s} | {nota:30s} |")
     
-    print("─" * 100)
+    print("-" * 100)
+
     
     print("\n" + "=" * 100)
     print("ESTADÍSTICAS POR REPRESENTACIÓN (Binario 4-bit)")
@@ -55,8 +56,8 @@ def generar_tabla_comparativa():
         ("Exceso a K (K=8)", -8, 7, 16, 100.0, "Un cero (01000), rango flexible"),
     ]
     
-    print(f"\n{'Representación':<25} {'Mínimo':>8} {'Máximo':>8} {'Capacidad':>10} {'Eficacia':>10} {'Nota':<40}")
-    print("─" * 100)
+    print(f"\n{'Representación':<25} {'Minimo':>8} {'Maximo':>8} {'Capacidad':>10} {'Eficacia':>10} {'Nota':<40}")
+    print("-" * 100)
     for nombre, min_v, max_v, cap, efic, nota in stats:
         print(f"{nombre:<25} {min_v:>8d} {max_v:>8d} {cap:>10d} {efic:>9.2f}% {nota:<40}")
     
@@ -67,16 +68,16 @@ def generar_tabla_comparativa():
     operaciones = [
         ("Suma", "M&S", "Suma simple + ajuste de signo", "Moderado"),
         ("", "CB-1", "Suma simple + end-around carry", "Moderado"),
-        ("", "CB", "Suma simple", "Muy simple ⭐"),
+        ("", "CB", "Suma simple", "Muy simple [STD]"),
         ("", "ExcK", "Suma simple - K", "Simple"),
         ("Multiplicación", "M&S", "Multiplicación de magnitud + signo", "Complejo"),
         ("", "CB-1", "Multiplicación compleja", "Muy complejo"),
-        ("", "CB", "Multiplicación simple (módulo)", "Muy simple ⭐"),
+        ("", "CB", "Multiplicación simple (modulo)", "Muy simple [STD]"),
         ("", "ExcK", "Multiplicación simple (+ conversiones)", "Simple"),
         ("Comparación", "M&S", "Necesita analizar el signo", "Complejo"),
         ("", "CB-1", "Compleja (dos ceros)", "Complejo"),
         ("", "CB", "Directo si se ignora MSB", "Simple"),
-        ("", "ExcK", "Directo (valor natural = comparación)", "Muy simple ⭐"),
+        ("", "ExcK", "Directo (valor natural = comparación)", "Muy simple [STD]"),
         ("Detección de rango", "M&S", "Especial para negativos", "Moderado"),
         ("", "CB-1", "Especial para dos ceros", "Complejo"),
         ("", "CB", "Verificar MSB y overflow", "Moderado"),
@@ -84,7 +85,7 @@ def generar_tabla_comparativa():
     ]
     
     print(f"\n{'Operación':<20} {'Representación':<15} {'Descripción':<40} {'Dificultad':<15}")
-    print("─" * 95)
+    print("-" * 95)
     for op, rep, desc, dif in operaciones:
         print(f"{op:<20} {rep:<15} {desc:<40} {dif:<15}")
 
@@ -92,3 +93,4 @@ def generar_tabla_comparativa():
 if __name__ == "__main__":
     generar_tabla_comparativa()
     print("\n")
+

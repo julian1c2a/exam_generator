@@ -128,7 +128,7 @@ VENTAJAS (+):
 DESVENTAJAS (-):
   1. DOS CEROS: +0 y -0 son diferentes codigos (00000000 vs 10000000)
   2. Suma/Resta complicada: Algoritmos diferentes para diferentes casos
-  3. Comparacion invertida para negativos: -100 < -50 pero |−100| > |−50|
+  3. Comparacion invertida para negativos: x < y pero |x| > |y|
   4. Ineficacia: Una combinacion desperdiciada (-0)
 
 CONCLUSION:
