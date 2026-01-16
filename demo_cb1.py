@@ -116,26 +116,26 @@ def demo_4_sumas_modulares():
     print(f"\nOperacion: A + B")
     resultado = suma_CBm1(cb1_A, cb1_B, 10)
     print(f"  {cb1_A} + {cb1_B} = {resultado['resultado']}")
-    print(f"  Resultado decimal: {resultado['valor_decimal']} (esperado: {A+B})")
+    print(f"  Resultado decimal: {resultado['valor_decimal']} (correcto: {A+B})")
     
-    print(f"\nOperacion: A + (~B)  [equivalente a A - B]")
+    print(f"\nOperacion: A + (~B)  [formula: A + ~C = A - C - 1 (mod B^l)]")
     resultado = suma_CBm1(cb1_A, cb1_notB, 10)
     print(f"  {cb1_A} + {cb1_notB} = {resultado['resultado']}")
-    print(f"  Resultado decimal: {resultado['valor_decimal']} (esperado: {A-B})")
+    print(f"  Resultado decimal: {resultado['valor_decimal']} (correcto: {A-B-1})")
     if resultado['carry']:
-        print(f"  (Con end-around carry)")
+        print(f"  (Sin carry final)")
     
-    print(f"\nOperacion: (~A) + B  [equivalente a -A + B]")
+    print(f"\nOperacion: (~A) + B  [formula: ~A + C = -A + C (mod B^l)]")
     resultado = suma_CBm1(cb1_notA, cb1_B, 10)
     print(f"  {cb1_notA} + {cb1_B} = {resultado['resultado']}")
-    print(f"  Resultado decimal: {resultado['valor_decimal']} (esperado: {-A+B})")
+    print(f"  Resultado decimal: {resultado['valor_decimal']} (correcto: {-A+B})")
     if resultado['carry']:
         print(f"  (Con end-around carry)")
     
-    print(f"\nOperacion: (~A) + (~B)  [equivalente a -A - B]")
+    print(f"\nOperacion: (~A) + (~B)  [formula: ~A + ~B = -A - B - 2 (mod B^l), con carry: -A - B - 1]")
     resultado = suma_CBm1(cb1_notA, cb1_notB, 10)
     print(f"  {cb1_notA} + {cb1_notB} = {resultado['resultado']}")
-    print(f"  Resultado decimal: {resultado['valor_decimal']} (esperado: {-A-B})")
+    print(f"  Resultado decimal: {resultado['valor_decimal']} (correcto: {-A-B-1})")
     if resultado['carry']:
         print(f"  (Con end-around carry)")
 
