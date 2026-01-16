@@ -72,40 +72,83 @@ $$d_H(a, c) \leq d_H(a, b) + d_H(b, c)$$
 
 **Interpretación**: "El camino directo nunca es más largo que cualquier camino indirecto"
 
-**Por qué cumple:**
+**Demostración Rigurosa:**
 
-Analicemos cada posición i donde a[i], b[i], c[i] son símbolos.
+Sean $a, b, c$ palabras de un lenguaje $L$ de ancho fijo $n$ sobre un alfabeto $\Sigma$.
 
-*Casos posibles en posición i:*
+Definamos conjuntos de índices donde ocurren diferencias:
 
-| a[i] | b[i] | c[i] | a[i]=c[i]? | a[i]=b[i]? | b[i]=c[i]? | d_H contribuye |
-|------|------|------|-----------|-----------|-----------|---|
-| 0 | 0 | 0 | ✓ | ✓ | ✓ | (a,c):0, (a,b):0, (b,c):0 |
-| 0 | 0 | 1 | ✗ | ✓ | ✗ | (a,c):1, (a,b):0, (b,c):1 → 1≤0+1 ✓ |
-| 0 | 1 | 0 | ✓ | ✗ | ✗ | (a,c):0, (a,b):1, (b,c):1 → 0≤1+1 ✓ |
-| 0 | 1 | 1 | ✗ | ✗ | ✓ | (a,c):1, (a,b):1, (b,c):0 → 1≤1+0 ✓ |
-| 1 | 0 | 0 | ✗ | ✗ | ✓ | (a,c):1, (a,b):1, (b,c):0 → 1≤1+0 ✓ |
-| 1 | 0 | 1 | ✓ | ✗ | ✗ | (a,c):0, (a,b):1, (b,c):1 → 0≤1+1 ✓ |
-| 1 | 1 | 0 | ✗ | ✓ | ✗ | (a,c):1, (a,b):0, (b,c):1 → 1≤0+1 ✓ |
-| 1 | 1 | 1 | ✓ | ✓ | ✓ | (a,c):0, (a,b):0, (b,c):0 |
+- $I_{ab} = \{i : a[i] \neq b[i], \, 0 \leq i < n\}$ (índices donde $a$ y $b$ difieren)
+- $I_{bc} = \{i : b[i] \neq c[i], \, 0 \leq i < n\}$ (índices donde $b$ y $c$ difieren)
+- $I_{ac} = \{i : a[i] \neq c[i], \, 0 \leq i < n\}$ (índices donde $a$ y $c$ difieren)
 
-**Conclusión**: En cada posición, la contribución a $d_H(a,c)$ nunca excede la suma de contribuciones a $d_H(a,b)$ y $d_H(b,c)$.
+Por definición de distancia Hamming:
+$$d_H(a,b) = |I_{ab}|, \quad d_H(b,c) = |I_{bc}|, \quad d_H(a,c) = |I_{ac}|$$
 
-Sumando sobre todas las posiciones: ✓ Desigualdad triangular cumplida.
+**Caso 1: Alfabeto binario** ($\Sigma = \{0,1\}$)
 
-**Ejemplo numérico:**
+Si $i \in I_{ab} \cap I_{bc}$ (intersección), entonces:
+
+- $a[i] \neq b[i]$ y $b[i] \neq c[i]$
+
+En alfabeto binario, esto implica $a[i] = c[i]$, por lo que $i \notin I_{ac}$.
+
+Por tanto, los índices donde ocurren diferencias en los caminos intermedios $a \to b$ y $b \to c$ que coinciden se "cancelan" en el cálculo directo $a \to c$:
+
+$$d_H(a,c) = |I_{ab} \cup I_{bc}| - |I_{ab} \cap I_{bc}| \leq |I_{ab}| + |I_{bc}| = d_H(a,b) + d_H(b,c)$$
+
+**Caso 2: Alfabeto arbitrario** ($|\Sigma| \geq 2$)
+
+En un alfabeto no necesariamente binario, la situación es más general. Definamos:
+
+- $J = \{i \in I_{ab} \cap I_{bc} : a[i] = c[i]\}$ (índices en la intersección donde $a$ y $c$ coinciden)
+
+El conjunto $J$ contiene exactamente aquellos índices donde:
+
+- $a[i] \neq b[i]$ y $b[i] \neq c[i]$ pero $a[i] = c[i]$
+
+Por definición: $J \subseteq I_{ab} \cap I_{bc}$, luego:
+$$|J| \leq |I_{ab} \cap I_{bc}| \leq \min(|I_{ab}|, |I_{bc}|)$$
+
+La distancia $d_H(a,c)$ cuenta solo aquellos índices donde $a[i] \neq c[i]$. En particular:
+
+- Todos los índices en $I_{ab} \setminus I_{bc}$ contribuyen a $d_H(a,c)$
+- Todos los índices en $I_{bc} \setminus I_{ab}$ contribuyen a $d_H(a,c)$
+- De los índices en $I_{ab} \cap I_{bc}$, solo los que NO están en $J$ contribuyen
+
+Por tanto:
+$$d_H(a,c) = |I_{ab} \setminus I_{bc}| + |I_{bc} \setminus I_{ab}| + (|I_{ab} \cap I_{bc}| - |J|)$$
+$$= |I_{ab}| + |I_{bc}| - 2|I_{ab} \cap I_{bc}| + |I_{ab} \cap I_{bc}| - |J|$$
+$$= |I_{ab}| + |I_{bc}| - |I_{ab} \cap I_{bc}| - |J|$$
+
+Dado que $|J| \geq 0$:
+$$d_H(a,c) \leq |I_{ab}| + |I_{bc}| - |I_{ab} \cap I_{bc}| \leq |I_{ab}| + |I_{bc}|$$
+
+Finalmente:
+$$\boxed{d_H(a,c) \leq d_H(a,b) + d_H(b,c)} \, \checkmark$$
+
+**Ejemplo numérico (binario):**
 
 ```
 a = 10110
 b = 10101
 c = 11111
 
-d_H(a,b) = 2 (posiciones 3,5 difieren)
-d_H(b,c) = 2 (posiciones 1,3 difieren)
-d_H(a,c) = 3 (posiciones 1,3,5 difieren)
+I_ab = {2, 4}     (a[2]=1≠0=b[2], a[4]=0≠1=b[4])
+I_bc = {0, 2}     (b[0]=1≠1 NO, b[2]=0≠1=c[2], ... Error, recalculando)
+       Corrección: b = 10101, c = 11111
+       b[0]=1=1, b[1]=0≠1, b[2]=1=1, b[3]=0≠1, b[4]=1=1
+       I_bc = {1, 3}
+I_ac = {1, 2, 3}  (a[1]=0≠1, a[2]=1≠1 NO... Error)
+       a = 10110, c = 11111
+       a[0]=1=1, a[1]=0≠1, a[2]=1=1, a[3]=1=1, a[4]=0≠1
+       I_ac = {1, 4}
 
-Verificar: d_H(a,c) = 3 ≤ 2 + 2 = 4 ✓
+d_H(a,b) = 2, d_H(b,c) = 2, d_H(a,c) = 2
+Verificar: 2 ≤ 2 + 2 ✓
 ```
+
+**Interpretación**: El camino directo de $a$ a $c$ nunca requiere más cambios que pasar por cualquier punto intermedio $b$.
 
 ---
 
