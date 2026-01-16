@@ -9,11 +9,398 @@ Este modulo explora diferentes sistemas de numeracion y sus caracteristicas:
 4. Conversiones entre ellos
 """
 
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Union, Callable, Any
+from enum import Enum
 
 
 # ============================================================================
-# PARTE 1: NÚMEROS ROMANOS (Sistema No Posicional)
+# PARTE 0: CLASES BASE - ALFABETO Y LENGUAJE
+# ============================================================================
+
+class Alphabet:
+    """
+    Representa un alfabeto: conjunto ordenado y finito de símbolos.
+    
+    Un alfabeto es la base para construir palabras. Puede estar formado por:
+    - Caracteres (strings): {'0', '1'}, {'a', 'b', 'c'}, etc.
+    - Enteros: {0, 1, 2, 3, ...}
+    - Booleanos: {False, True}
+    - Enums personalizados
+    
+    Propiedades:
+    - Finito y ordenado
+    - Cada símbolo es único
+    - El tamaño define la "base" para sistemas posicionales
+    
+    Convención de índices:
+    - MSB (Most Significant Bit): índice n-1 (posición más a la izquierda)
+    - LSB (Least Significant Bit): índice 0 (posición más a la derecha)
+    
+    Ejemplo:
+        alphabet_binary = Alphabet(['0', '1'])
+        alphabet_ternary = Alphabet([0, 1, 2])
+    """
+    
+    def __init__(self, symbols: Union[List[str], List[int], List[bool]]):
+        """
+        Inicializa un alfabeto con símbolos dados.
+        
+        Args:
+            symbols: Lista de símbolos (deben ser únicos y ordenados)
+            
+        Raises:
+            ValueError: Si hay símbolos duplicados
+        """
+        if len(symbols) != len(set(symbols)):
+            raise ValueError("El alfabeto contiene símbolos duplicados")
+        
+        self.symbols = list(symbols)  # Mantener orden
+        self._symbol_to_index = {sym: idx for idx, sym in enumerate(self.symbols)}
+    
+    @property
+    def size(self) -> int:
+        """Retorna el tamaño del alfabeto (cardinalidad)."""
+        return len(self.symbols)
+    
+    @property
+    def base(self) -> int:
+        """Alias para size, útil en contextos posicionales."""
+        return self.size
+    
+    def __len__(self) -> int:
+        return self.size
+    
+    def __getitem__(self, index: int) -> Any:
+        """Accede a un símbolo por su índice."""
+        return self.symbols[index]
+    
+    def __contains__(self, symbol: Any) -> bool:
+        """Verifica si un símbolo está en el alfabeto."""
+        return symbol in self._symbol_to_index
+    
+    def index_of(self, symbol: Any) -> int:
+        """
+        Retorna el índice de un símbolo en el alfabeto.
+        
+        Args:
+            symbol: Símbolo a buscar
+            
+        Returns:
+            int: Índice del símbolo
+            
+        Raises:
+            ValueError: Si el símbolo no está en el alfabeto
+        """
+        if symbol not in self._symbol_to_index:
+            raise ValueError(f"El símbolo '{symbol}' no está en el alfabeto")
+        return self._symbol_to_index[symbol]
+    
+    def __iter__(self):
+        """Itera sobre los símbolos del alfabeto."""
+        return iter(self.symbols)
+    
+    def __repr__(self) -> str:
+        return f"Alphabet{self.symbols}"
+
+
+class FixedLengthLanguage:
+    """
+    Representa un lenguaje formal de longitud fija.
+    
+    Un lenguaje es un conjunto de palabras válidas construidas sobre un alfabeto,
+    todas de la misma longitud, determinado por:
+    1. Un alfabeto (Alphabet): símbolos disponibles
+    2. Longitud: número de posiciones en cada palabra
+    3. Predicado: función que verifica validez
+    4. Siguiente: función que genera la siguiente palabra
+    
+    Convención de índices:
+    - MSB (Most Significant Bit): índice n-1 (el más significativo)
+    - LSB (Least Significant Bit): índice 0 (el menos significativo)
+    
+    En una palabra de longitud n:
+    - palabra[n-1] es el MSB (posición más significativa)
+    - palabra[0] es el LSB (posición menos significativa)
+    
+    Ejemplo:
+        # Lenguaje binario de 4 bits
+        alphabet = Alphabet(['0', '1'])
+        language = FixedLengthLanguage(
+            alphabet=alphabet,
+            length=4,
+            predicate=lambda p: True,  # Todas las palabras válidas
+            zero_element='0000',
+            next_function=lambda p: next_binary(p)
+        )
+    """
+    
+    def __init__(self, 
+                 alphabet: Alphabet,
+                 length: int,
+                 predicate: Callable[[str], bool],
+                 zero_element: Any = None,
+                 next_function: Callable[[str], str] = None,
+                 name: str = ''):
+        """
+        Inicializa un lenguaje.
+        
+        Args:
+            alphabet: Objeto Alphabet que define los símbolos disponibles
+            length: Longitud de cada palabra (n)
+            predicate: Función que retorna True si palabra está en lenguaje
+            zero_element: Símbolo/palabra de "inicio" (generalmente la más pequeña)
+            next_function: Función que genera la siguiente palabra en el lenguaje
+            name: Nombre descriptivo del lenguaje
+            
+        Raises:
+            ValueError: Si length < 1
+        """
+        if length < 1:
+            raise ValueError("La longitud debe ser al menos 1")
+        
+        self.alphabet = alphabet
+        self.length = length
+        self.predicate = predicate
+        self.zero_element = zero_element
+        self.next_function = next_function
+        self.name = name
+        
+        # Cache de palabras (para lenguajes pequeños)
+        self._words_cache = None
+    
+    def is_valid(self, word: str) -> bool:
+        """
+        Verifica si una palabra pertenece al lenguaje.
+        
+        Args:
+            word: Palabra (string de símbolos)
+            
+        Returns:
+            bool: True si la palabra es válida
+            
+        Raises:
+            ValueError: Si la longitud no coincide
+        """
+        if len(word) != self.length:
+            raise ValueError(
+                f"Palabra '{word}' tiene longitud {len(word)}, "
+                f"se esperaba {self.length}"
+            )
+        
+        # Verificar que todos los caracteres están en el alfabeto
+        if not all(c in self.alphabet for c in word):
+            return False
+        
+        # Aplicar el predicado
+        return self.predicate(word)
+    
+    def next_word(self, word: str) -> str:
+        """
+        Calcula la siguiente palabra en el lenguaje.
+        
+        Args:
+            word: Palabra actual (debe ser válida)
+            
+        Returns:
+            str: Siguiente palabra válida (con wrap-around al inicio)
+            
+        Raises:
+            ValueError: Si la palabra no es válida o next_function no está definida
+        """
+        if not self.is_valid(word):
+            raise ValueError(f"La palabra '{word}' no es válida en este lenguaje")
+        
+        if self.next_function is None:
+            raise ValueError("La función 'next_function' no está definida")
+        
+        return self.next_function(word)
+    
+    def hamming_distance(self, word_a: str, word_b: str) -> int:
+        """
+        Calcula la distancia Hamming entre dos palabras.
+        
+        Args:
+            word_a: Primera palabra (debe ser válida)
+            word_b: Segunda palabra (debe ser válida)
+            
+        Returns:
+            int: Distancia Hamming (número de posiciones diferentes)
+            
+        Raises:
+            ValueError: Si alguna palabra no es válida
+        """
+        if not self.is_valid(word_a):
+            raise ValueError(f"Palabra '{word_a}' no es válida")
+        if not self.is_valid(word_b):
+            raise ValueError(f"Palabra '{word_b}' no es válida")
+        
+        return distancia_hamming(word_a, word_b)
+    
+    def are_adjacent(self, word_a: str, word_b: str) -> bool:
+        """
+        Verifica si dos palabras son adyacentes (distancia Hamming = 1).
+        
+        Args:
+            word_a: Primera palabra
+            word_b: Segunda palabra
+            
+        Returns:
+            bool: True si hamming_distance = 1
+        """
+        return self.hamming_distance(word_a, word_b) == 1
+    
+    def generate_all_words(self) -> List[str]:
+        """
+        Genera todas las palabras válidas del lenguaje.
+        
+        Para lenguajes pequeños, cachea el resultado.
+        Para lenguajes grandes, advierte sobre complejidad.
+        
+        Returns:
+            List[str]: Lista de todas las palabras válidas
+        """
+        if self._words_cache is not None:
+            return self._words_cache
+        
+        # Generar todas las palabras posibles
+        if self.alphabet.size ** self.length > 10000:
+            print(f"⚠️  Lenguaje grande: {self.alphabet.size}^{self.length} palabras posibles")
+        
+        # Recursiva: generar todas las palabras de longitud n
+        def generate_recursive(length_remaining):
+            if length_remaining == 0:
+                return ['']
+            
+            shorter = generate_recursive(length_remaining - 1)
+            result = []
+            for symbol in self.alphabet:
+                for word in shorter:
+                    candidate = str(symbol) + word
+                    if self.is_valid(candidate):
+                        result.append(candidate)
+            return result
+        
+        words = generate_recursive(self.length)
+        
+        # Cache para lenguajes pequeños
+        if len(words) <= 10000:
+            self._words_cache = words
+        
+        return words
+    
+    def analyze_adjacency(self) -> Dict[str, Any]:
+        """
+        Analiza propiedades de adyacencia y ciclicidad del lenguaje.
+        
+        Returns:
+            Dict con:
+            - total_words: número de palabras válidas
+            - is_adjacent: ¿todas las palabras sucesivas son adyacentes?
+            - is_cyclic: ¿la última palabra es adyacente a la primera?
+            - adjacency_graph: {palabra: palabras_adyacentes}
+        """
+        words = self.generate_all_words()
+        
+        if not words:
+            return {'total_words': 0, 'error': 'Lenguaje vacío'}
+        
+        adjacency_graph = {}
+        is_adjacent_all = True
+        
+        for i, word in enumerate(words):
+            adjacents = []
+            for j, other in enumerate(words):
+                if i != j and self.are_adjacent(word, other):
+                    adjacents.append(other)
+            adjacency_graph[word] = adjacents
+            
+            # Check if successive words are adjacent
+            next_word = words[(i + 1) % len(words)]
+            if not self.are_adjacent(word, next_word):
+                is_adjacent_all = False
+        
+        # Check ciclicity
+        first = words[0]
+        last = words[-1]
+        is_cyclic = self.are_adjacent(last, first)
+        
+        return {
+            'total_words': len(words),
+            'is_adjacent': is_adjacent_all,
+            'is_cyclic': is_cyclic,
+            'adjacency_graph': adjacency_graph,
+            'words': words
+        }
+    
+    def __repr__(self) -> str:
+        return f"FixedLengthLanguage({self.name}, |Σ|={self.alphabet.size}, n={self.length})"
+    
+    # ========================================================================
+    # BACKWARD COMPATIBILITY METHODS (Spanish names from old Lenguaje class)
+    # ========================================================================
+    
+    def es_valida(self, palabra: str) -> bool:
+        """Alias para is_valid (compatibilidad hacia atrás)"""
+        return self.is_valid(palabra)
+    
+    def siguiente_palabra(self, palabra: str) -> str:
+        """Alias para next_word (compatibilidad hacia atrás)"""
+        return self.next_word(palabra)
+    
+    def distancia_hamming(self, palabra_a: str, palabra_b: str) -> int:
+        """Alias para hamming_distance (compatibilidad hacia atrás)"""
+        return self.hamming_distance(palabra_a, palabra_b)
+    
+    def son_adyacentes(self, palabra_a: str, palabra_b: str) -> bool:
+        """Alias para are_adjacent (compatibilidad hacia atrás)"""
+        return self.are_adjacent(palabra_a, palabra_b)
+    
+    def generar_todas_palabras(self) -> List[str]:
+        """Alias para generate_all_words (compatibilidad hacia atrás)"""
+        return self.generate_all_words()
+    
+    def analizar_adyacencia(self) -> Dict:
+        """Alias para analyze_adjacency (compatibilidad hacia atrás)"""
+        return self.analyze_adjacency()
+    
+    # Aliases de propiedades
+    @property
+    def alfabeto(self) -> List:
+        """Acceso compatible con código antiguo: lista de símbolos del alfabeto"""
+        return self.alphabet.symbols
+    
+    @property
+    def longitud(self) -> int:
+        """Acceso compatible con código antiguo: longitud de palabras"""
+        return self.length
+    
+    @property
+    def predicado(self):
+        """Acceso compatible con código antiguo: función de predicado"""
+        return self.predicate
+    
+    @property
+    def valor_cero(self):
+        """Acceso compatible con código antiguo: elemento cero"""
+        return self.zero_element
+    
+    @property
+    def siguiente(self):
+        """Acceso compatible con código antiguo: función siguiente"""
+        return self.next_function
+    
+    @property
+    def nombre(self) -> str:
+        """Acceso compatible con código antiguo: nombre del lenguaje"""
+        return self.name
+
+
+# Alias para backward compatibility
+Lenguaje = FixedLengthLanguage
+
+
+# ============================================================================
+# PARTE 1: SISTEMA POSICIONAL NO NUMÉRICO (Números Romanos)
 # ============================================================================
 
 NUMEROS_ROMANOS_VALORES = {
@@ -1418,234 +1805,12 @@ def distancia_hamming(palabra_a: str, palabra_b: str) -> int:
     return sum(1 for a, b in zip(palabra_a, palabra_b) if a != b)
 
 
-class Lenguaje:
-    """
-    Clase genérica para representar un lenguaje de longitud fija.
-    
-    Un lenguaje es un conjunto de palabras válidas (palabras-código) construidas
-    a partir de un alfabeto dado, con longitud fija, donde un predicado define
-    cuáles palabras son válidas.
-    
-    Atributos:
-        alfabeto (list): Símbolos disponibles (ej: ['0', '1'])
-        longitud (int): Longitud de cada palabra
-        predicado (callable): Función que verifica si una palabra es válida
-        valor_cero: Símbolo que representa el 'cero' (inicio)
-        siguiente (callable): Función para generar el siguiente valor
-        
-    Ejemplo:
-        # Lenguaje binario de 4 bits
-        lenguaje = Lenguaje(
-            alfabeto=['0', '1'],
-            longitud=4,
-            predicado=lambda p: True,  # Todas las palabras son válidas (binario)
-            valor_cero='0',
-            siguiente=lambda p: ('0'*4) if p == '1'*4 else ... # wrap-around
-        )
-    """
-    
-    def __init__(self, alfabeto: List[str], longitud: int, predicado, 
-                 valor_cero='0', siguiente=None, nombre=''):
-        """
-        Inicializa un lenguaje.
-        
-        Args:
-            alfabeto: Lista de símbolos válidos
-            longitud: Longitud de cada palabra del lenguaje
-            predicado: Función que retorna True si palabra está en lenguaje
-            valor_cero: Símbolo que representa el 'cero' (por defecto '0')
-            siguiente: Función que genera la siguiente palabra (con wrap-around)
-            nombre: Nombre descriptivo del lenguaje (opcional)
-        """
-        self.alfabeto = alfabeto
-        self.longitud = longitud
-        self.predicado = predicado
-        self.valor_cero = valor_cero
-        self.siguiente = siguiente
-        self.nombre = nombre
-        
-        # Pre-calcular palabras válidas si el lenguaje es pequeño
-        self._palabras_cache = None
-        
-    def es_valida(self, palabra: str) -> bool:
-        """
-        Verifica si una palabra pertenece al lenguaje.
-        
-        Args:
-            palabra: Cadena de símbolos
-            
-        Returns:
-            bool: True si la palabra es válida en este lenguaje
-            
-        Raises:
-            ValueError: Si la palabra no tiene la longitud correcta
-        """
-        if len(palabra) != self.longitud:
-            raise ValueError(
-                f"Palabra '{palabra}' tiene longitud {len(palabra)}, "
-                f"se esperaba {self.longitud}"
-            )
-        
-        # Verificar que todos los caracteres están en el alfabeto
-        if not all(c in self.alfabeto for c in palabra):
-            return False
-        
-        # Aplicar el predicado
-        return self.predicado(palabra)
-    
-    def siguiente_palabra(self, palabra: str) -> str:
-        """
-        Calcula la siguiente palabra en el lenguaje.
-        
-        Args:
-            palabra: Palabra actual (debe ser válida)
-            
-        Returns:
-            str: Siguiente palabra válida, con wrap-around al inicio
-            
-        Raises:
-            ValueError: Si la palabra no es válida o siguiente no está definida
-        """
-        if not self.es_valida(palabra):
-            raise ValueError(f"La palabra '{palabra}' no es válida en este lenguaje")
-        
-        if self.siguiente is None:
-            raise ValueError("La función 'siguiente' no está definida para este lenguaje")
-        
-        return self.siguiente(palabra)
-    
-    def distancia_hamming(self, palabra_a: str, palabra_b: str) -> int:
-        """
-        Calcula la distancia Hamming entre dos palabras del lenguaje.
-        
-        Args:
-            palabra_a: Primera palabra (debe ser válida)
-            palabra_b: Segunda palabra (debe ser válida)
-            
-        Returns:
-            int: Distancia Hamming entre las palabras
-            
-        Raises:
-            ValueError: Si alguna palabra no es válida
-        """
-        if not self.es_valida(palabra_a):
-            raise ValueError(f"La palabra '{palabra_a}' no es válida")
-        if not self.es_valida(palabra_b):
-            raise ValueError(f"La palabra '{palabra_b}' no es válida")
-        
-        return distancia_hamming(palabra_a, palabra_b)
-    
-    def son_adyacentes(self, palabra_a: str, palabra_b: str) -> bool:
-        """
-        Verifica si dos palabras son adyacentes (distancia Hamming = 1).
-        
-        Args:
-            palabra_a: Primera palabra
-            palabra_b: Segunda palabra
-            
-        Returns:
-            bool: True si la distancia Hamming es exactamente 1
-        """
-        return self.distancia_hamming(palabra_a, palabra_b) == 1
-    
-    def generar_todas_palabras(self) -> List[str]:
-        """
-        Genera todas las palabras válidas del lenguaje.
-        
-        Para lenguajes pequeños (≤ 1000 palabras), cachea el resultado.
-        
-        Returns:
-            List[str]: Lista de todas las palabras válidas
-            
-        Raises:
-            RuntimeError: Si el lenguaje es demasiado grande
-        """
-        if self._palabras_cache is not None:
-            return self._palabras_cache
-        
-        # Estimar tamaño máximo
-        max_posibles = len(self.alfabeto) ** self.longitud
-        if max_posibles > 10000:
-            raise RuntimeError(
-                f"Lenguaje muy grande ({max_posibles} palabras posibles). "
-                f"Use un predicado más restrictivo o implemente generación iterativa."
-            )
-        
-        # Generar todas las combinaciones (fuerza bruta para lenguajes pequeños)
-        def generar_combinaciones(pos=0, actual=''):
-            if pos == self.longitud:
-                if self.es_valida(actual):
-                    resultado.append(actual)
-                return
-            
-            for simbolo in self.alfabeto:
-                generar_combinaciones(pos + 1, actual + simbolo)
-        
-        resultado = []
-        generar_combinaciones()
-        
-        self._palabras_cache = resultado
-        return resultado
-    
-    def analizar_adyacencia(self) -> Dict:
-        """
-        Analiza la adyacencia global del lenguaje.
-        
-        Returns:
-            Dict con estadísticas sobre adyacencia:
-                - total_palabras: Número de palabras válidas
-                - es_adyacente: Si todos los pares sucesivos son adyacentes
-                - es_ciclico: Si la última palabra es adyacente a la primera
-                - pares_adyacentes: Número de pares adyacentes encontrados
-                - min_distancia: Distancia mínima entre palabras distintas
-                - max_distancia: Distancia máxima
-        """
-        palabras = self.generar_todas_palabras()
-        n = len(palabras)
-        
-        if n < 2:
-            return {
-                'total_palabras': n,
-                'es_adyacente': n <= 1,
-                'es_ciclico': n <= 1,
-                'pares_adyacentes': 0,
-                'min_distancia': None,
-                'max_distancia': None
-            }
-        
-        # Analizar distancias entre pares sucesivos
-        pares_adyacentes = 0
-        distancias = []
-        
-        for i in range(n - 1):
-            d = distancia_hamming(palabras[i], palabras[i + 1])
-            distancias.append(d)
-            if d == 1:
-                pares_adyacentes += 1
-        
-        # Verificar ciclicidad
-        distancia_ciclica = distancia_hamming(palabras[-1], palabras[0])
-        distancias.append(distancia_ciclica)
-        es_ciclico = distancia_ciclica == 1
-        
-        # Distancias mínima y máxima entre palabras distintas
-        distancias_no_cero = [d for d in distancias if d > 0]
-        min_distancia = min(distancias_no_cero) if distancias_no_cero else None
-        max_distancia = max(distancias) if distancias else None
-        
-        return {
-            'total_palabras': n,
-            'es_adyacente': pares_adyacentes == n - 1,
-            'es_ciclico': (pares_adyacentes == n - 1) and es_ciclico,
-            'pares_adyacentes': pares_adyacentes,
-            'distancia_ciclica': distancia_ciclica,
-            'min_distancia': min_distancia,
-            'max_distancia': max_distancia,
-            'distancias_sucesivas': distancias[:-1] + [f"(ciclica={distancia_ciclica})"]
-        }
 
+# ============================================================================
+# CONSTRUCTORES DE LENGUAJES (usando FixedLengthLanguage)
+# ============================================================================
 
-def crear_lenguaje_binario_saturado(longitud: int, nombre='') -> Lenguaje:
+def crear_lenguaje_binario_saturado(longitud: int, nombre='') -> FixedLengthLanguage:
     """
     Crea un lenguaje binario saturado (todas las 2^L palabras son válidas).
     
@@ -1654,7 +1819,7 @@ def crear_lenguaje_binario_saturado(longitud: int, nombre='') -> Lenguaje:
         nombre: Nombre descriptivo (ej: "Binario Natural 4-bit")
         
     Returns:
-        Lenguaje: Instancia del lenguaje binario
+        FixedLengthLanguage: Instancia del lenguaje binario
     """
     def siguiente_binario(palabra: str) -> str:
         """Incrementa palabra binaria con wrap-around."""
@@ -1663,17 +1828,17 @@ def crear_lenguaje_binario_saturado(longitud: int, nombre='') -> Lenguaje:
         valor = (valor + 1) % (2 ** longitud)
         return format(valor, f'0{longitud}b')
     
-    return Lenguaje(
-        alfabeto=['0', '1'],
-        longitud=longitud,
-        predicado=lambda p: True,  # Todas las palabras son válidas
-        valor_cero='0' * longitud,
-        siguiente=siguiente_binario,
-        nombre=nombre or f"Binario Saturado {longitud}-bit"
+    return FixedLengthLanguage(
+        alphabet=Alphabet(['0', '1']),
+        length=longitud,
+        predicate=lambda p: True,  # Todas las palabras son válidas
+        zero_element='0' * longitud,
+        next_function=siguiente_binario,
+        name=nombre or f"Binario Saturado {longitud}-bit"
     )
 
 
-def crear_lenguaje_bcd() -> Lenguaje:
+def crear_lenguaje_bcd() -> FixedLengthLanguage:
     """
     Crea el lenguaje BCD (Binary Coded Decimal).
     
@@ -1682,7 +1847,7 @@ def crear_lenguaje_bcd() -> Lenguaje:
     - Total válido: 10 palabras (0000-1001)
     
     Returns:
-        Lenguaje: Instancia del lenguaje BCD
+        FixedLengthLanguage: Instancia del lenguaje BCD
     """
     # Palabras válidas: 0000 a 1001 (0-9 en decimal)
     palabras_validas = {format(i, '04b') for i in range(10)}
@@ -1696,17 +1861,17 @@ def crear_lenguaje_bcd() -> Lenguaje:
     def predicado_bcd(palabra: str) -> bool:
         return palabra in palabras_validas
     
-    return Lenguaje(
-        alfabeto=['0', '1'],
-        longitud=4,
-        predicado=predicado_bcd,
-        valor_cero='0000',
-        siguiente=siguiente_bcd,
-        nombre="BCD (Binary Coded Decimal)"
+    return FixedLengthLanguage(
+        alphabet=Alphabet(['0', '1']),
+        length=4,
+        predicate=predicado_bcd,
+        zero_element='0000',
+        next_function=siguiente_bcd,
+        name="BCD (Binary Coded Decimal)"
     )
 
 
-def crear_lenguaje_johnson() -> Lenguaje:
+def crear_lenguaje_johnson() -> FixedLengthLanguage:
     """
     Crea el lenguaje Johnson (código cíclico adyacente de 5 bits).
     
@@ -1715,7 +1880,7 @@ def crear_lenguaje_johnson() -> Lenguaje:
     - Total válido: 10 palabras (para dígitos 0-9)
     
     Returns:
-        Lenguaje: Instancia del lenguaje Johnson
+        FixedLengthLanguage: Instancia del lenguaje Johnson
     """
     palabras_johnson = [
         '00000',  # 0
@@ -1741,22 +1906,22 @@ def crear_lenguaje_johnson() -> Lenguaje:
         return palabra in palabras_johnson_set
     
     # Crear lenguaje pero sobrescribir generar_todas_palabras para mantener orden
-    lenguaje = Lenguaje(
-        alfabeto=['0', '1'],
-        longitud=5,
-        predicado=predicado_johnson,
-        valor_cero='00000',
-        siguiente=siguiente_johnson,
-        nombre="Código Johnson (Cíclico Adyacente)"
+    lenguaje = FixedLengthLanguage(
+        alphabet=Alphabet(['0', '1']),
+        length=5,
+        predicate=predicado_johnson,
+        zero_element='00000',
+        next_function=siguiente_johnson,
+        name="Código Johnson (Cíclico Adyacente)"
     )
     
     # Cache directo para mantener el orden correcto
-    lenguaje._palabras_cache = palabras_johnson
+    lenguaje._words_cache = palabras_johnson
     
     return lenguaje
 
 
-def crear_lenguaje_biquinario() -> Lenguaje:
+def crear_lenguaje_biquinario() -> FixedLengthLanguage:
     """
     Crea el lenguaje Biquinario (2 entre 5).
     
@@ -1765,7 +1930,7 @@ def crear_lenguaje_biquinario() -> Lenguaje:
     - Total válido: C(5,2) = 10 palabras
     
     Returns:
-        Lenguaje: Instancia del lenguaje Biquinario
+        FixedLengthLanguage: Instancia del lenguaje Biquinario
     """
     palabras_biquinarias = [
         '00110',  # 0 (posiciones 2,1)
@@ -1792,17 +1957,17 @@ def crear_lenguaje_biquinario() -> Lenguaje:
         return palabra.count('1') == 2 and palabra in palabras_biquinarias_set
     
     # Crear lenguaje pero sobrescribir generar_todas_palabras para mantener orden
-    lenguaje = Lenguaje(
-        alfabeto=['0', '1'],
-        longitud=5,
-        predicado=predicado_biquinario,
-        valor_cero='00110',
-        siguiente=siguiente_biquinario,
-        nombre="Código Biquinario (2 entre 5)"
+    lenguaje = FixedLengthLanguage(
+        alphabet=Alphabet(['0', '1']),
+        length=5,
+        predicate=predicado_biquinario,
+        zero_element='00110',
+        next_function=siguiente_biquinario,
+        name="Código Biquinario (2 entre 5)"
     )
     
     # Cache directo para mantener el orden correcto
-    lenguaje._palabras_cache = palabras_biquinarias
+    lenguaje._words_cache = palabras_biquinarias
     
     return lenguaje
 
