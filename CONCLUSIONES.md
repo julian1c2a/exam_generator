@@ -104,10 +104,10 @@ Se ha completado exitosamente la implementación de **cuatro sistemas de represe
 
 | Sistema | Enteros | Punto Flotante |
 |---------|---------|---|
-| M&S | ✗ Nunca | ✗ Nunca |
+| **M&S** | ✗ Nunca | ✅ **SÍ** (mantisa/significand en IEEE 754) |
 | CB-1 | ✗ Raramente | ✗ Nunca |
 | **CB** | ✅ **SIEMPRE** | ✗ Nunca |
-| **ExcK** | ✗ Nunca | ✅ **SIEMPRE** (exponentes) |
+| **ExcK** | ✗ Nunca | ✅ **SÍ** (exponentes en IEEE 754) |
 
 ---
 
@@ -158,8 +158,9 @@ Pero manteniendo **100% de eficacia** en todos los casos.
 No hay un "mejor" sistema universal:
 
 - **Para enteros:** CB es el estándar absoluto (100% eficacia, operaciones simples)
-- **Para exponentes:** ExcK es el estándar (comparación directa, rango flexible)
-- **Educativo:** M&S y CB-1 tienen valor pedagógico para entender los conceptos
+- **Para mantisa (IEEE 754):** M&S es el estándar (bit de signo separado, valor en 1.xxx)
+- **Para exponentes (IEEE 754):** ExcK es el estándar (comparación directa, rango flexible)
+- **Educativo:** CB-1 tiene valor pedagógico importante para entender evolución hacia CB
 
 ---
 
@@ -282,19 +283,26 @@ Con esta base sólida, se podrían implementar:
 
 ### Mediano Plazo
 
-3. **Códigos especiales**
-   - BCD (Binary-Coded Decimal)
+1. **Códigos BCD** ✅ **EN PROGRESO**
+   - [BCD Natural (8-4-2-1)](SECCION_2_1_2_BCD_NATURAL.md) ✅
+   - [BCD Exceso-3](SECCION_2_1_2_1_BCD_EXC3.md) ✅
+   - [BCD Aiken (2-4-2-1)](SECCION_2_1_2_2_BCD_AIKEN.md) ✅
+   - [Resumen Comparativo](SECCION_2_1_2_RESUMEN_BCD.md) ✅
+   - Representación de decimales con signo
+   - Comparativa con números enteros signados
+
+2. **Códigos especiales adicionales**
    - Gray Code
    - Códigos de error (Hamming, Parity)
 
-2. **Ejercicios interactivos**
+3. **Ejercicios interactivos**
    - Generador automático de problemas
    - Validador de respuestas
    - Sistema de puntuación
 
 ### Largo Plazo
 
-5. **Integración con simuladores**
+1. **Integración con simuladores**
    - Simulador de ALU
    - Visualización de operaciones
    - Depuración de errores

@@ -101,6 +101,151 @@
 
 ---
 
+## 📚 Sección 2.1.2 - Códigos BCD (Decimal)
+
+**Representación de Dígitos Decimales Usando 4 Bits Binarios**
+
+### Introducción: BCD
+
+Después de resolver la representación de **números enteros signados en binario** (M&S, CB-1, CB, ExcK), exploramos cómo representar **números decimales con signo**.
+
+Los **códigos BCD** (Binary Coded Decimal) codifican cada dígito decimal (0-9) en 4 bits binarios, permitiendo:
+
+- ✅ Interfacing con sistemas decimales (entrada/salida)
+- ✅ Aritmética nativa en base 10
+- ✅ Facilitar sistemas de números signados
+
+### Documentación de 3 Códigos BCD
+
+#### 1. [SECCION_2_1_2_BCD_NATURAL.md](SECCION_2_1_2_BCD_NATURAL.md) - BCD Natural (8421)
+
+- **Líneas:** 280+
+- **Codificación:** Cada dígito = BCD Natural directo
+  - $\text{Repr}(d) = d$ (en 4 bits, pesos 8-4-2-1)
+- **Ejemplo:** 5 = 0101, 27 = 0010 0111
+- **Propiedades:**
+  - ✅ Comparación directa (binaria)
+  - ❌ Autocomplementario: NO
+  - ❌ Suma compleja (requiere corrección +6 si >9)
+  - ✅ Un único cero
+  - ✅ Intuitivo (cada 4 bits = 1 dígito decimal)
+- **Eficacia:** 62.5% (10/16)
+- **Nivel:** Principiante → Intermedio
+- **Uso:** Entrada/salida decimal, calculadoras, displays
+- **Época:** Ampliamente usado en sistemas con I/O decimal
+
+#### 2. [SECCION_2_1_2_1_BCD_EXC3.md](SECCION_2_1_2_1_BCD_EXC3.md) - BCD Exceso-3
+
+- **Líneas:** 240+
+- **Codificación:** Suma 3, luego BCD Natural
+  - $\text{Exc3}(d) = \text{BCD}(d + 3)$
+- **Ejemplo:** 5 = 1000 (porque 5+3=8), 7 = 1010
+- **Propiedades Clave:**
+  - ✅ **Autocomplementario:** Complemento a 9 = invertir bits
+  - ❌ Sin pesos (dificulta cálculos rápidos)
+  - ❌ Suma compleja (requiere corrección ±3)
+  - ✓ Números signados naturales
+  - ✅ Un único cero
+- **Eficacia:** 62.5% (10/16)
+- **Nivel:** Intermedio
+- **Uso:** Máquinas electromecánicas (1940s-1970s), aritmética signada
+- **Ventaja:** Resta por suma mediante complemento a 9
+
+#### 3. [SECCION_2_1_2_2_BCD_AIKEN.md](SECCION_2_1_2_2_BCD_AIKEN.md) - BCD Aiken (2-4-2-1)
+
+- **Líneas:** 280+
+- **Codificación:** Pesos 2-4-2-1 (no 8-4-2-1)
+  - $\text{Valor} = 2b_3 + 4b_2 + 2b_1 + b_0 = d$
+- **Ejemplo:** 5 = 1011, 9 = 1111
+- **Propiedades Clave:**
+  - ✅ **Autocomplementario:** Complemento a 9 = invertir bits
+  - ✅ Tiene pesos (mejor que Exceso-3)
+  - ❌ Pesos irregulares (2-4-2-1)
+  - ✅ Números signados naturales
+  - ✅ Detección de errores (6 códigos "prohibidos": 0101-1010)
+  - ✅ Un único cero
+- **Eficacia:** 62.5% (10/16)
+- **Nivel:** Intermedio → Avanzado
+- **Uso:** Computadora Mark I (1944), balance entre BCD Natural y Exc3
+- **Inventor:** Howard Hathaway Aiken (1944)
+- **Ventaja:** Combina pesos + autocomplementariedad
+
+#### 4. [SECCION_2_1_2_RESUMEN_BCD.md](SECCION_2_1_2_RESUMEN_BCD.md) - Comparativa Completa
+
+- **Líneas:** 380+
+- **Contenido:**
+  - Tabla maestra comparativa
+  - Propiedades de los 3 códigos
+  - Matriz de decisión (cuál usar)
+  - Ejemplos operacionales (suma 47+35)
+  - Timeline histórico
+  - Análisis de eficacia
+  - Ventajas comparativas por aspecto
+  - Relación con sistemas anteriores (M&S, CB, ExcK)
+  - IEEE 754 Decimal (DPD)
+- **Nivel:** Resumen / Gerencial
+- **Audiencia:** Decisión makers, educadores, arquitectos
+
+---
+
+### Tabla Maestra: Los 3 Códigos BCD
+
+```
+Dígito  │ BCD Natural │ Exceso-3 │ Aiken (2-4-2-1)
+        │  (8421)     │          │
+────────┼─────────────┼──────────┼────────────────
+0       │ 0000        │ 0011     │ 0000
+1       │ 0001        │ 0100     │ 0001
+2       │ 0010        │ 0101     │ 0010
+3       │ 0011        │ 0110     │ 0011
+4       │ 0100        │ 0111     │ 0100
+5       │ 0101        │ 1000     │ 1011
+6       │ 0110        │ 1001     │ 1100
+7       │ 0111        │ 1010     │ 1101
+8       │ 1000        │ 1011     │ 1110
+9       │ 1001        │ 1100     │ 1111
+────────┴─────────────┴──────────┴────────────────
+Pesos   │ 8-4-2-1 ✅  │ NO ❌    │ 2-4-2-1 ✅
+Autocomp│ NO ❌       │ SÍ ✅    │ SÍ ✅
+Comparac│ SÍ ✅       │ NO ❌    │ NO ❌
+```
+
+### Propiedades Comparadas
+
+| Propiedad | BCD Natural | Exceso-3 | Aiken |
+|-----------|-------------|----------|--------|
+| **Bits/dígito** | 4 | 4 | 4 |
+| **Eficacia** | 62.5% | 62.5% | 62.5% |
+| **Pesos** | 8-4-2-1 | NO | 2-4-2-1 |
+| **Autocomplementario** | NO | SÍ | SÍ |
+| **Suma simple** | NO | NO | NO |
+| **Comparación** | SÍ | NO | NO |
+| **Números signados** | Difícil | Fácil | Fácil |
+| **Uso** | I/O decimal | Aritmética | Mark I |
+| **Época** | Estándar | 1940s-70s | 1944+ |
+
+### Matriz de Decisión
+
+**¿BCD Natural?**
+
+- ✅ Para entrada/salida decimal
+- ✅ Para comparación de valores
+- ✅ Para conversión fácil decimal ↔ BCD
+
+**¿Exceso-3?**
+
+- ✅ Para aritmética decimal signada
+- ✅ Cuando autocomplementariedad es crítica
+- ✅ Para máquinas electromecánicas antiguas
+
+**¿Aiken?**
+
+- ✅ Para balance: pesos + autocomplementariedad
+- ✅ Para detección de errores (códigos prohibidos)
+- ✅ Estudio histórico (Mark I)
+
+---
+
 ## 💻 Implementación de Código
 
 ### 1. [core/enteros_signados.py](core/enteros_signados.py) - M&S y CB-1
