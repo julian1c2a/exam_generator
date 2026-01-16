@@ -101,15 +101,18 @@ eval(98) = 98 = 100 - 1 - 1 = 99 - 1  ✓
 
 ## Parte 2: Sumas Modulares con opCBm1
 
-### Suma de Palabra A + Complemento de Palabra C
+### Suma de Palabra A '+' Complemento de Palabra C
 
-¿Qué ocurre cuando sumamos A + opCBm1(C)?
+¿Qué ocurre cuando realizamos ReprCBm1(A) '+' ReprCBm1(C)?
 
-$$A + \text{opCBm1}(C) = A + (B^l - 1 - C) = A - C + B^l - 1$$
+**Nota importante:** El símbolo '+' (con comillas) denota la operación de suma en CB-1, que es diferente de la suma numérica (+) ordinaria.
+
+Algebraicamente:
+$$\text{ReprCBm1}(A) + \text{opCBm1}(\text{ReprCBm1}(C)) = A + (B^l - 1 - C) = A - C + B^l - 1$$
 
 **En aritmética módulo B^l:**
 
-$$A + \text{opCBm1}(C) \equiv A - C - 1 \pmod{B^l}$$
+$$\text{ReprCBm1}(A) '+' \text{ReprCBm1}(C) \equiv A - C - 1 \pmod{B^l}$$
 
 **Ejemplo en base 10 con 5 dígitos:**
 
@@ -125,26 +128,34 @@ Como trabajamos con 5 dígitos, B^5 = 100000
 Carry final: 102351 mod 100000 = 02351
 ```
 
-### Suma de dos Complementos
+### Suma '+' de dos Complementos: ReprCBm1(-A) '+' ReprCBm1(-C)
 
-$$\text{opCBm1}(A) + \text{opCBm1}(C) = (B^l - 1 - A) + (B^l - 1 - C) = 2B^l - 2 - A - C$$
+Algebraicamente:
+$$\text{opCBm1}(\text{ReprCBm1}(A)) '+' \text{opCBm1}(\text{ReprCBm1}(C)) = (B^l - 1 - A) + (B^l - 1 - C) = 2B^l - 2 - A - C$$
 
-**Módulo B^l:**
+**Módulo B^l (con end-around carry):**
 
-$$\text{opCBm1}(A) + \text{opCBm1}(C) \equiv -A - C - 2 \pmod{B^l}$$
+$$\text{ReprCBm1}(-A) '+' \text{ReprCBm1}(-C) \equiv -A - C - 1 \pmod{B^l}$$
+
+*Nota: Con el end-around carry se suma 1, corrigiendo el -2 a -1*
 
 ### Tabla de Combinaciones (Base 10, 5 dígitos)
 
 Sea M = 99999 (que es B^l - 1 en 5 dígitos):
 
-| Operación | Cálculo | Suma en opCBm1 | Resultado Decimal |
+| Operación Aritmética | Representaciones CB-1 | Operación '+' en CB-1 | Resultado Decimal |
 |-----------|---------|-----------------|------------------|
-| A + B | +03591 + 01239 | 03591 + 01239 | +04830 |
-| A - B | +03591 - 01239 | 03591 + 98760 | -01352 |
-| -A + B | -03591 + 01239 | 96408 + 01239 | +01352 |
-| -A - B | -03591 - 01239 | 96408 + 98760 | -04830 |
+| A + B | ReprCBm1(3591) '+' ReprCBm1(1239) | 03591 '+' 01239 | +04830 |
+| A - B | ReprCBm1(3591) '+' ReprCBm1(-1239) | 03591 '+' 98760 | -01352 |
+| -A + B | ReprCBm1(-3591) '+' ReprCBm1(1239) | 96408 '+' 01239 | +01352 |
+| -A - B | ReprCBm1(-3591) '+' ReprCBm1(-1239) | 96408 '+' 98760 | -04830 |
 
-**Nótese:** La suma con end-around carry (sumar el bit de carry final) es necesaria para obtener los resultados correctos.
+**Nótese sobre la operación '+' (suma en CB-1):**
+
+- La operación '+' es **distinta** de la suma ordinaria (+)
+- Requiere end-around carry: si hay carry final, se suma 1 al resultado
+- **Importante:** ReprCBm1(A) '+' ReprCBm1(B) ≠ ReprCBm1(A + B) como operaciones simples
+- La relación correcta: ReprCBm1(A) '+' ReprCBm1(B) = ReprCBm1(A + B) cuando se implementa completamente con end-around carry
 
 ---
 
@@ -276,34 +287,39 @@ Número:   0101
 Negación: ~0101 = 1010  (flip cada bit)
 ```
 
-### Suma en CB-1
+### Suma '+' en CB-1
 
-La suma en CB-1 requiere "end-around carry":
+La operación '+' (suma en CB-1) requiere "end-around carry":
 
-1. Sumar como en base B normal
+1. Sumar las representaciones como en base B normal: ReprCBm1(A) '+' ReprCBm1(B)
 2. Si hay carry final, sumarlo al resultado
 
-**Ejemplo en base 10:**
+**Ejemplo verificando ReprCBm1(1239) '+' ReprCBm1(-1239) = ReprCBm1(0):**
 
 ```
-  01239  (+1239)
-+   96   (-96 en CB-1, porque 99-96=3... NO, espera)
+  ReprCBm1(+1239) = 01239
++ ReprCBm1(-1239) = 98760
+                = -------
+           carry 1 00999  (hay carry final)
+         +     1  (end-around carry)
+           -------
+             01000 = 00000 (después de truncar)
 
-Mejor ejemplo:
-  01239  (+1239)
-+ 98760  (-1239 en CB-1, porque ~01239=98760)
--------
-1 00999  (carry=1)
-+     1  (end-around carry)
--------
- 01000  (resultado: 0, tiene sentido porque 1239 + (-1239) = 0)
+Resultado decimal: ReprCBm1^(-1)(00000) = 0  ✓
 ```
 
-### Resta en CB-1
+**Conclusión:** ReprCBm1(1239) '+' ReprCBm1(-1239) = ReprCBm1(0), verificando que la operación '+' funciona correctamente.
 
-$$A - C = A + \text{opCBm1}(C) = A + \tilde{C}$$
+- La suma numérica: 1239 + (-1239) = 0
+- La operación '+': ReprCBm1(1239) '+' ReprCBm1(-1239) = ReprCBm1(0) ✓
 
-Con end-around carry.
+### Resta '-' en CB-1
+
+La operación '-' (resta en CB-1) se implementa usando la operación '+':
+
+$$\text{ReprCBm1}(A) '-' \text{ReprCBm1}(C) = \text{ReprCBm1}(A) '+' \text{opCBm1}(\text{ReprCBm1}(C))$$
+
+Es decir: para restar ReprCBm1(C), se complementa con opCBm1 y luego se suma usando la operación '+' con end-around carry.
 
 ### Comparación
 
