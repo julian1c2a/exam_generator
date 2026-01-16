@@ -249,8 +249,9 @@ python generar_tabla_comparativa.py
 ### Descubrimiento 3: Uso Industrial
 
 - **Enteros:** CB es el estándar (todos los procesadores)
-- **Punto flotante:** ExcK es el estándar (IEEE 754)
-- **M&S y CB-1:** Importancia principalmente educativa
+- **Punto flotante (mantisa):** M&S es el estándar (IEEE 754)
+- **Punto flotante (exponentes):** ExcK es el estándar (IEEE 754)
+- **CB-1:** Importancia principalmente educativa (evolución histórica hacia CB)
 
 ---
 
