@@ -614,3 +614,387 @@ def mostrar_tabla_ms(n_bits: int) -> str:
     lineas.append("└──────────┴────────────┴──────┴───────────┘")
     
     return "\n".join(lineas)
+
+
+# ============================================================================
+# PARTE 2: COMPLEMENTO A LA BASE MENOS 1 (CB-1 o C1)
+# ============================================================================
+
+def opCBm1_digito(digito: str, base: int) -> str:
+    """
+    Operación de complemento a la base menos 1 de un dígito.
+    
+    Para un dígito d en base B:
+    opCBm1(d) = B - 1 - d
+    
+    Esto convierte cada dígito a su complemento en esa base.
+    
+    Args:
+        digito: Un carácter que representa un dígito en la base dada
+        base: La base numérica (2, 10, 16, etc.)
+    
+    Returns:
+        str: El dígito complementado
+        
+    Examples:
+        opCBm1_digito('3', 10) -> '6'  (porque 9-3=6)
+        opCBm1_digito('1', 2)  -> '0'  (porque 1-1=0)
+        opCBm1_digito('0', 2)  -> '1'  (porque 1-0=1)
+        opCBm1_digito('5', 10) -> '4'  (porque 9-5=4)
+    """
+    # Convertir carácter a valor
+    if digito.isdigit():
+        valor = int(digito)
+    else:
+        # Para bases > 10 (hexadecimal, etc.)
+        valor = int(digito, base)
+    
+    # Aplicar fórmula: B - 1 - d
+    resultado = (base - 1) - valor
+    
+    # Convertir de vuelta a carácter
+    if base <= 10:
+        return str(resultado)
+    else:
+        return format(resultado, 'x')  # Para hex
+
+
+def opCBm1_palabra(palabra: str, base: int) -> str:
+    """
+    Operación de complemento a la base menos 1 de una palabra completa.
+    
+    Dada una palabra d[l-1:0] en base B:
+    opCBm1(d) = ~d = (B-1-d[i]) para cada posición i
+    
+    El complemento se aplica dígito a dígito, sin llevar nada de una posición a otra.
+    
+    Args:
+        palabra: String de dígitos en la base dada
+        base: La base numérica (2, 10, 16, etc.)
+    
+    Returns:
+        str: La palabra con cada dígito complementado
+        
+    Examples:
+        opCBm1_palabra('01239', 10) -> '98760'  (9-0=9, 9-1=8, 9-2=7, 9-3=6, 9-9=0)
+        opCBm1_palabra('1010', 2)   -> '0101'   (flip de cada bit)
+        
+    Propiedades:
+        - opCBm1(opCBm1(d)) = d  (aplicar dos veces vuelve al original)
+        - No hay carries ni borrows
+        - Cada dígito se procesa independientemente
+    """
+    return ''.join(opCBm1_digito(d, base) for d in palabra)
+
+
+def repr_CBm1(numero: int, base: int, longitud: int) -> str:
+    """
+    Representación en Complemento a la Base Menos 1 (CB-1).
+    
+    Dada una palabra de longitud l en base B:
+    - Si numero >= 0: representa numero directamente en l dígitos
+    - Si numero < 0: representa como B^l - 1 - numero (en l dígitos)
+    
+    Args:
+        numero: Entero a representar (puede ser positivo o negativo)
+        base: La base numérica (2, 10, 16, etc.)
+        longitud: Número de dígitos para la representación
+    
+    Returns:
+        str: La representación en CB-1 con la longitud especificada
+        
+    Examples:
+        repr_CBm1(5, 10, 2)   -> '05'     (+5 en 2 dígitos)
+        repr_CBm1(-5, 10, 2)  -> '94'     (-5 como 99-5=94)
+        repr_CBm1(3, 2, 4)    -> '0011'   (+3 en 4 bits)
+        repr_CBm1(-3, 2, 4)   -> '1100'   (-3 como 15-3=12=1100)
+    """
+    if numero >= 0:
+        # Número positivo: convertir directamente
+        return format(numero, f'0{longitud}d' if base == 10 else f'0{longitud}b' if base == 2 else f'0{longitud}x')
+    else:
+        # Número negativo: B^l - 1 - numero
+        max_val = (base ** longitud) - 1
+        valor_cb1 = max_val + numero  # +numero porque numero es negativo
+        
+        if base == 10:
+            return str(valor_cb1).zfill(longitud)
+        elif base == 2:
+            return format(valor_cb1, f'0{longitud}b')
+        else:
+            return format(valor_cb1, f'0{longitud}x')
+
+
+def CBm1_a_decimal(palabra: str, base: int) -> int:
+    """
+    Conversión de Complemento a la Base Menos 1 a decimal.
+    
+    Interpreta una palabra en CB-1 y devuelve su valor como entero decimal.
+    
+    Args:
+        palabra: String de dígitos en CB-1
+        base: La base numérica de la palabra
+    
+    Returns:
+        int: El valor decimal del número
+        
+    Examples:
+        CBm1_a_decimal('01239', 10) -> 1239
+        CBm1_a_decimal('98760', 10) -> -1239  (porque ~01239)
+        CBm1_a_decimal('0011', 2)   -> 3
+        CBm1_a_decimal('1100', 2)   -> -3
+    """
+    longitud = len(palabra)
+    # Convertir palabra a valor decimal
+    valor = int(palabra, base)
+    
+    # Punto de separación entre positivos y negativos
+    punto_separacion = (base ** (longitud - 1)) - 1
+    
+    if valor <= punto_separacion:
+        # Es positivo o cero
+        return valor
+    else:
+        # Es negativo: aplicar CB-1
+        max_val = (base ** longitud) - 1
+        return valor - max_val - 1
+
+
+def ms_a_CBm1(ms_palabra: str, base: int) -> str:
+    """
+    Conversión de Magnitud y Signo a Complemento a la Base Menos 1.
+    
+    Args:
+        ms_palabra: Palabra en M&S
+        base: La base numérica
+    
+    Returns:
+        str: La misma palabra en CB-1
+    """
+    longitud = len(ms_palabra)
+    valor_decimal = ms_a_decimal(ms_palabra, base)
+    return repr_CBm1(valor_decimal, base, longitud)
+
+
+def CBm1_a_ms(cb1_palabra: str, base: int) -> str:
+    """
+    Conversión de Complemento a la Base Menos 1 a Magnitud y Signo.
+    
+    Args:
+        cb1_palabra: Palabra en CB-1
+        base: La base numérica
+    
+    Returns:
+        str: La misma palabra en M&S
+    """
+    longitud = len(cb1_palabra)
+    valor_decimal = CBm1_a_decimal(cb1_palabra, base)
+    return decimal_a_ms(valor_decimal, base, longitud)
+
+
+def suma_CBm1(palabra_a: str, palabra_b: str, base: int) -> dict:
+    """
+    Suma de dos palabras en Complemento a la Base Menos 1.
+    
+    La suma en CB-1 tiene una característica especial: si hay carry final,
+    se suma 1 al resultado (end-around carry).
+    
+    Args:
+        palabra_a: Primera palabra en CB-1
+        palabra_b: Segunda palabra en CB-1
+        base: La base numérica
+    
+    Returns:
+        dict: {
+            'resultado': Resultado de la suma,
+            'carry': True si hubo carry,
+            'carry_suma_uno': True si se sumó 1 por carry final,
+            'valor_decimal': Valor decimal del resultado
+        }
+    """
+    longitud = len(palabra_a)
+    
+    # Convertir a decimal
+    val_a = int(palabra_a, base)
+    val_b = int(palabra_b, base)
+    
+    # Sumar
+    suma_total = val_a + val_b
+    
+    # Capacidad máxima
+    max_val = base ** longitud
+    
+    # Verificar carry
+    carry = suma_total >= max_val
+    
+    # Aplicar end-around carry si es necesario
+    if carry:
+        suma_total = (suma_total % max_val) + 1
+    
+    # Formatear resultado
+    if base == 10:
+        resultado = str(suma_total).zfill(longitud)
+    elif base == 2:
+        resultado = format(suma_total, f'0{longitud}b')
+    else:
+        resultado = format(suma_total, f'0{longitud}x')
+    
+    return {
+        'resultado': resultado,
+        'carry': carry,
+        'carry_suma_uno': carry,
+        'valor_decimal': CBm1_a_decimal(resultado, base)
+    }
+
+
+def analizar_representacion_CBm1(base: int, longitud: int) -> dict:
+    """
+    Análisis completo de la representación en CB-1.
+    
+    Args:
+        base: La base numérica
+        longitud: Número de dígitos
+    
+    Returns:
+        dict: Información sobre el rango, capacidad y eficacia
+    """
+    max_positivo = (base ** (longitud - 1)) - 1
+    min_negativo = -(base ** (longitud - 1)) + 1
+    
+    # Capacidad
+    capacidad = 2 * (base ** (longitud - 1)) - 1
+    total_posible = base ** longitud
+    
+    # Eficacia
+    eficacia = capacidad / total_posible
+    
+    return {
+        'base': base,
+        'longitud': longitud,
+        'rango_total': [min_negativo, max_positivo],
+        'min_negativo': min_negativo,
+        'max_positivo': max_positivo,
+        'capacidad': capacidad,
+        'total_posible': total_posible,
+        'eficacia': eficacia,
+        'porcentaje_eficacia': f"{eficacia * 100:.2f}%",
+        'dos_ceros': True,  # CB-1 siempre tiene dos representaciones para 0
+        'formula_eficacia': f"(2/{base}) - (1/{base}^{longitud})",
+        'nota': 'CB-1 tiene dos representaciones para 0, no es muy usado actualmente'
+    }
+
+
+def generar_tabla_CBm1(base: int, longitud: int) -> str:
+    """
+    Genera una tabla de todas las representaciones en CB-1 para una base y longitud.
+    
+    Args:
+        base: La base numérica (recomendado: 2 o 10)
+        longitud: Número de dígitos
+    
+    Returns:
+        str: Tabla formateada mostrando todas las representaciones
+    """
+    if base == 10 and longitud > 4:
+        return f"Tabla muy grande para B={base}, L={longitud}. Use base 2 o menor longitud."
+    
+    if base == 2 and longitud > 8:
+        return f"Tabla muy grande para B={base}, L={longitud}. Use longitud <= 8."
+    
+    total_combinaciones = base ** longitud
+    
+    lineas = []
+    lineas.append(f"Tabla de representacion en CB-{base-1} (base {base}, {longitud} digitos)")
+    lineas.append("=" * 80)
+    
+    lineas.append(f"{'Decimal':>8} | {'CB-{0}':>15} | Significado".format(base-1, ''))
+    lineas.append("-" * 80)
+    
+    for i in range(total_combinaciones):
+        # Convertir a representación
+        if base == 10:
+            cb1_str = str(i).zfill(longitud)
+        elif base == 2:
+            cb1_str = format(i, f'0{longitud}b')
+        else:
+            cb1_str = format(i, f'0{longitud}x')
+        
+        # Obtener valor decimal
+        valor = CBm1_a_decimal(cb1_str, base)
+        
+        linea = f"{valor:8d} | {cb1_str:>15} | "
+        
+        # Agregar notas especiales
+        max_pos = (base ** (longitud - 1)) - 1
+        if valor == 0 and cb1_str == '0' * longitud:
+            linea += "Cero positivo (+0)"
+        elif valor == 0 and cb1_str == str(base-1) * longitud:
+            linea += "Cero negativo (-0)"
+        elif valor == max_pos:
+            linea += "Maximo positivo"
+        elif valor == -(max_pos):
+            linea += "Minimo negativo"
+        
+        lineas.append(linea)
+    
+    lineas.append("=" * 80)
+    
+    return "\n".join(lineas)
+
+
+def explicar_operacion_CBm1(numero_a: int, numero_b: int, operacion: str, base: int = 10, longitud: int = None) -> str:
+    """
+    Explicación paso a paso de operaciones en CB-1.
+    
+    Args:
+        numero_a: Primer número
+        numero_b: Segundo número
+        operacion: 'suma', 'resta', 'complemento'
+        base: La base numérica (default: 10)
+        longitud: Número de dígitos (si None, se calcula automáticamente)
+    
+    Returns:
+        str: Explicación detallada
+    """
+    if longitud is None:
+        longitud = len(str(max(abs(numero_a), abs(numero_b)))) + 1
+    
+    pasos = []
+    pasos.append(f"Operacion: {operacion.upper()}")
+    pasos.append(f"Base: {base}, Longitud: {longitud} digitos")
+    pasos.append("=" * 60)
+    
+    if operacion == 'complemento':
+        pasos.append(f"Numero original: {numero_a}")
+        cb1_original = repr_CBm1(numero_a, base, longitud)
+        pasos.append(f"Representacion en CB-{base-1}: {cb1_original}")
+        
+        cb1_complementado = opCBm1_palabra(cb1_original, base)
+        pasos.append(f"Complemento digit a digito: {cb1_complementado}")
+        
+        valor_resultado = CBm1_a_decimal(cb1_complementado, base)
+        pasos.append(f"Valor decimal del resultado: {valor_resultado}")
+        
+        if valor_resultado == -numero_a:
+            pasos.append("✓ Propiedad verificada: opCBm1(opCBm1(A)) = A")
+    
+    elif operacion == 'suma':
+        cb1_a = repr_CBm1(numero_a, base, longitud)
+        cb1_b = repr_CBm1(numero_b, base, longitud)
+        
+        pasos.append(f"Numero A: {numero_a} -> CB-{base-1}: {cb1_a}")
+        pasos.append(f"Numero B: {numero_b} -> CB-{base-1}: {cb1_b}")
+        
+        resultado_suma = suma_CBm1(cb1_a, cb1_b, base)
+        pasos.append(f"Suma en CB-{base-1}: {cb1_a} + {cb1_b} = {resultado_suma['resultado']}")
+        
+        if resultado_suma['carry']:
+            pasos.append("  (Con end-around carry: suma 1 al resultado)")
+        
+        pasos.append(f"Valor decimal del resultado: {resultado_suma['valor_decimal']}")
+        pasos.append(f"Esperado: {numero_a} + {numero_b} = {numero_a + numero_b}")
+        
+        if resultado_suma['valor_decimal'] == numero_a + numero_b:
+            pasos.append("✓ Resultado correcto!")
+    
+    return "\n".join(pasos)
