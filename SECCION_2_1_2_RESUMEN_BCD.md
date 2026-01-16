@@ -49,7 +49,7 @@ Después de estudiar **4 sistemas para representar números enteros signados** (
 | **Tiene pesos** | ✅ SÍ (8,4,2,1) | ❌ NO | ✅ SÍ (2,4,2,1) |
 | **Autocomplementario** | ❌ NO | ✅ SÍ | ✅ SÍ |
 | **Suma simple** | ❌ NO | ❌ NO | ❌ NO |
-| **Comparación directa** | ✅ SÍ | ❌ NO | ❌ NO |
+| **Comparación directa** | **✅ SÍ** | **✅ SÍ** | **✅ SÍ** |
 
 ---
 
@@ -221,8 +221,9 @@ BCD Natural (8421)
 Exceso-3
 ├─ ✅ Autocomplementariedad
 ├─ ✅ Números signados fáciles
+├─ ✅ Comparación directa
 ├─ ❌ Sin pesos
-└─ ❌ Sin comparación directa
+└─ ❌ Códigos prohibidos
 
         ↓ (Buscar pesos + autocomplementariedad)
 
@@ -231,8 +232,9 @@ Aiken (2-4-2-1)
 ├─ ✅ Tiene pesos
 ├─ ✅ Números signados fáciles
 ├─ ✅ Detección de errores
+├─ ✅ Comparación directa
 ├─ ❌ Pesos irregulares
-└─ ❌ Sin comparación directa
+└─ ❌ Códigos prohibidos
 
         ↓ (Modern era)
 
@@ -354,10 +356,10 @@ Basándose en BCD, IEEE 754 define **Decimal Floating Point**:
   - Detectar sobre/desbordamiento
 
 ❌ PEOR EN:
-  - Comparación directa
   - Conversión desde decimal
   - Intuitividad
   - Pesos para operaciones rápidas
+  - Códigos prohibidos (6 inválidos)
 ```
 
 ### Aiken
@@ -371,10 +373,10 @@ Basándose en BCD, IEEE 754 define **Decimal Floating Point**:
   - Detección de errores (6 inválidos)
 
 ❌ PEOR EN:
-  - Comparación directa
   - Pesos no estándar (2-4-2-1)
   - Conversión desde decimal
   - Menos conocido
+  - Códigos prohibidos (6 inválidos)
 ```
 
 ---

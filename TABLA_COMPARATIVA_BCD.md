@@ -63,7 +63,7 @@ Nota: ---- indica códigos no válidos o no utilizados
 | **Eficacia** | 62.5% | 62.5% | 62.5% |
 | **Pesos** | 8-4-2-1 ✅ | NO ❌ | 2-4-2-1 ✅ |
 | **Autocomplementario** | NO ❌ | SÍ ✅ | SÍ ✅ |
-| **Comparación directa** | SÍ ✅ | NO ❌ | NO ❌ |
+| **Comparación directa** | **SÍ ✅** (binaria) | **SÍ ✅** (binaria) | **SÍ ✅** (binaria) |
 | **Suma simple** | NO ❌ | NO ❌ | NO ❌ |
 | **Números signados** | Difícil | Fácil | Fácil |
 | **Complemento a 9** | Complejo | Invertir bits ✅ | Invertir bits ✅ |
@@ -105,14 +105,13 @@ Nota: ---- indica códigos no válidos o no utilizados
 - Autocomplementario (invertir bits = complemento a 9) 🔑
 - Números signados naturales
 - Resta por suma
-- Detecta ciertos errores
+- Comparación directa (como binario natural de 4 bits) ✅
 - Un único cero
 
 **❌ Debilidades:**
 
 - Sin pesos (dificulta cálculos rápidos)
 - Suma requiere corrección
-- Comparación no directa
 - Menos intuitivo
 - Menos estándar que BCD Natural
 

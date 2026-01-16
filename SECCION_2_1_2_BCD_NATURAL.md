@@ -48,6 +48,34 @@ Representación BCD Natural: 0101 0111 0011 (sin espacios: 010101110011)
 
 ---
 
+## ✅ Validación de Códigos BCD Natural
+
+### ¿Cómo Saber si un Código es BCD Natural Válido?
+
+Dado un código de 4 bits: $d_3 d_2 d_1 d_0$ (donde cada $d_i$ es 0 o 1)
+
+**Un código es BCD Natural ERRÓNEO si:**
+
+$$\text{d}_3 = 1 \text{ Y } (d_2 = 1 \text{ O } d_1 = 1)$$
+
+En otras palabras: Si el bit más significativo es 1, pero alguno de los bits 2 o 1 también es 1.
+
+**Ejemplos de validación:**
+
+```
+1010 → d3=1, d2=0, d1=1  → d3=1 Y d1=1 → ❌ INVÁLIDO
+1001 → d3=1, d2=0, d1=0  → Condición no se cumple → ✅ VÁLIDO (9)
+1100 → d3=1, d2=1        → d3=1 Y d2=1 → ❌ INVÁLIDO
+0101 → d3=0              → Condición no se cumple → ✅ VÁLIDO (5)
+```
+
+**Regla visual:**
+
+- Códigos 0000-1001 (0-9): ✅ VÁLIDOS
+- Códigos 1010-1111 (10-15): ❌ INVÁLIDOS
+
+---
+
 ## 🎯 Operaciones Fundamentales
 
 ### 1. Conversión de Número Decimal a BCD Natural

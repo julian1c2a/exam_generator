@@ -48,7 +48,35 @@ Dígito 9: 9 + 3 = 12 → 1100 (Exc3 para 9)
 | 4 | 0100 | **0111** | 9 | 1001 | 1100 |
 | **Valores no usados** | 1010-1111 | 0000-0010, 1101-1111 | | |
 
-**Observación clave:** Los 6 valores "no usados" son **exactamente complementarios** en Exceso-3.
+**Observación clave:** Los 6 valores "no usados" (códigos prohibidos) son **exactamente complementarios** en Exceso-3:
+
+- Códigos prohibidos: 0000-0010 y 1101-1111
+- Estos son los complementos a 9 de sí mismos
+
+---
+
+## ✅ Validación de Códigos Exceso-3
+
+### ¿Cómo Saber si un Código es Exceso-3 Válido?
+
+Dado un código de 4 bits: $d_3 d_2 d_1 d_0$
+
+**Un código es Exc3 ERRÓNEO si:**
+
+$$d_3 = d_2 \text{ Y } (d_1 \neq d_0 \text{ O } d_2 = d_1)$$
+
+En otras palabras: Si los bits 3 y 2 son iguales, es erróneo si además (bits 1 y 0 son diferentes) O (bits 2 y 1 son iguales).
+
+**Ejemplos de validación:**
+
+```
+0011 (0) → d3=0, d2=0  → d3=d2=0, d1=1, d0=1 → d1=d0 y d2=d1? (0=1?) NO → ✅ VÁLIDO
+0100 (1) → d3=0, d2=1  → d3≠d2 → NO se aplica restricción → ✅ VÁLIDO
+1000 (5) → d3=1, d2=0  → d3≠d2 → NO se aplica restricción → ✅ VÁLIDO
+1100 (9) → d3=1, d2=1  → d3=d2=1, d1=0, d0=0 → d1=d0 y d2=d1? (0=1?) NO → ✅ VÁLIDO
+0000    → d3=0, d2=0  → d3=d2=0, d1=0, d0=0 → d1=d0 SI y d2=d1 SI → ❌ INVÁLIDO
+1101    → d3=1, d2=1  → d3=d2=1, d1=0, d0=1 → d1≠d0 SÍ → ❌ INVÁLIDO
+```
 
 ---
 
@@ -163,7 +191,9 @@ Para restar $B$ de $A$:
 | **Autocomplementario** | **SÍ ✅** |
 | **Suma directa** | NO (requiere corrección) |
 | **Resta** | Mediante complemento a 9 |
-| **Comparación directa** | NO |
+| **Comparación directa** | **SÍ ✅** (igual a binario natural) |
+| **Códigos válidos** | 10 (0011-0111, 1000-1100) |
+| **Códigos prohibidos** | 6 (0000-0010, 1101-1111) |
 
 ---
 

@@ -62,6 +62,56 @@ Valor = b3×2 + b2×4 + b1×2 + b0×1
 
 ---
 
+## ✅ Validación de Códigos Aiken
+
+### ¿Cómo Saber si un Código es Aiken Válido?
+
+Dado un código de 4 bits: $d_3 d_2 d_1 d_0$
+
+**Un código es Aiken ERRÓNEO basándose en:**
+
+- **Si $d_3 = d_2$:** El código es **válido** (sin importar bits 1 y 0)
+- **Si $d_3 \neq d_2$:** El código es válido **SOLO SI** $d_3 = d_1 = d_0$
+
+En otras palabras:
+$$\text{Válido} \iff [d_3 = d_2] \text{ O } [d_3 = d_1 = d_0]$$
+
+**Ejemplos de validación:**
+
+```
+0000 → d3=0, d2=0  → d3=d2 → ✅ VÁLIDO (0)
+0001 → d3=0, d2=0  → d3=d2 → ✅ VÁLIDO (1)
+0100 → d3=0, d2=1  → d3≠d2, ¿d3=d1=d0? (0=0=0?) NO → ❌ INVÁLIDO
+1011 → d3=1, d2=0  → d3≠d2, ¿d3=d1=d0? (1=1=1?) SÍ → ✅ VÁLIDO (5)
+1100 → d3=1, d2=1  → d3=d2 → ✅ VÁLIDO (6)
+1111 → d3=1, d2=1  → d3=d2 → ✅ VÁLIDO (9)
+0101 → d3=0, d2=1  → d3≠d2, ¿d3=d1=d0? (0=0=1?) NO → ❌ INVÁLIDO
+1110 → d3=1, d2=1  → d3=d2 → ✅ VÁLIDO (8)
+```
+
+**Tabla de validación completa:**
+
+| Código | d3 | d2 | d1 | d0 | d3=d2? | d3=d1=d0? | ¿Válido? |
+|--------|----|----|----|----|--------|-----------|----------|
+| 0000 | 0 | 0 | 0 | 0 | SÍ | - | ✅ |
+| 0001 | 0 | 0 | 0 | 1 | SÍ | - | ✅ |
+| 0010 | 0 | 0 | 1 | 0 | SÍ | - | ✅ |
+| 0011 | 0 | 0 | 1 | 1 | SÍ | - | ✅ |
+| 0100 | 0 | 1 | 0 | 0 | NO | NO | ❌ |
+| 0101 | 0 | 1 | 0 | 1 | NO | NO | ❌ |
+| 0110 | 0 | 1 | 1 | 0 | NO | NO | ❌ |
+| 0111 | 0 | 1 | 1 | 1 | NO | NO | ❌ |
+| 1000 | 1 | 0 | 0 | 0 | NO | NO | ❌ |
+| 1001 | 1 | 0 | 0 | 1 | NO | NO | ❌ |
+| 1010 | 1 | 0 | 1 | 0 | NO | NO | ❌ |
+| 1011 | 1 | 0 | 1 | 1 | NO | SÍ | ✅ |
+| 1100 | 1 | 1 | 0 | 0 | SÍ | - | ✅ |
+| 1101 | 1 | 1 | 0 | 1 | SÍ | - | ✅ |
+| 1110 | 1 | 1 | 1 | 0 | SÍ | - | ✅ |
+| 1111 | 1 | 1 | 1 | 1 | SÍ | - | ✅ |
+
+---
+
 ## 🎯 Propiedad Fundamental: Autocomplementariedad
 
 ### Verificación de Autocomplementariedad
