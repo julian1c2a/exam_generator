@@ -169,26 +169,21 @@ decoded = bq5.decode_number(codes)  # "12345"
 
 ---
 
-## 📖 Documentación Disponible (Heredada)
+## 📖 Documentación Disponible
 
-### 🔢 Sección 2.1.1: Números Sin Signo
+### 📊 Reportes del Proyecto
 
-| Sistema | Documentación | Demo |
-|---------|---------------|------|
-| **Base B** | [2.1.1.1](docs/SECCION_2_1_1_1_BASE_B.md) | `demo_base_b.py` |
-| **Conversiones** | [2.1.1.2](docs/SECCION_2_1_1_2_CONVERSIONES.md) | `demo_conversiones.py` |
-| **Eficiencia** | [2.1.1.3](docs/SECCION_2_1_1_3_EFICIENCIA.md) | Análisis |
-| **Fraccionarios** | [2.1.1.5](docs/SECCION_2_1_1_5_FRACCIONARIOS.md) | `demo_fracciones.py` |
-| **Operaciones** | [2.1.1.6](docs/SECCION_2_1_1_6_OPERACIONES.md) | `demo_operaciones.py` |
+- **[ESTADO_ACTUAL.md](ESTADO_ACTUAL.md)** - Situación completa v2.0 (80% completado)
+- **[ROADMAP_v2.md](ROADMAP_v2.md)** - Fases 6-9 (próximos 3-6 meses)
 
-### 🔐 Sección 2.1.1.7: Números con Signo
+### 🔍 Guías Técnicas Punto Fijo & IEEE 754
 
-| Sistema | Documentación |
-|---------|---------------|
-| **Magnitud y Signo** | [MS](docs/SECCION_2_1_1_7_MS.md) |
-| **Complemento a (B-1)** | [CB-1](docs/SECCION_2_1_1_7_CB_MENOS_1.md) |
-| **Complemento a Base** | [CB](docs/SECCION_2_1_1_7_CB.md) |
-| **Exceso a K** | [Exc-K](docs/SECCION_2_1_1_7_EXCESO_K.md)
+- **[IEEE754_Y_BIQUINARIOS.md](IEEE754_Y_BIQUINARIOS.md)** - Fundamentos teóricos (350 líneas)
+- **[CLASES_GENERICAS.md](CLASES_GENERICAS.md)** - Especificación IEEE754Gen y BiquinaryGen (387 líneas)
+- **[RESUMEN_CLASES_GENERICAS.md](RESUMEN_CLASES_GENERICAS.md)** - Resumen ejecutivo con ejemplos (230 líneas)
+- **[PUNTO_FIJO_CON_SIGNO.md](PUNTO_FIJO_CON_SIGNO.md)** - Punto fijo con signo (M&S, complemento) (250 líneas)
+
+### 📚 Documentación Heredada (Numeración, BCD, etc)
 
 ---
 
@@ -292,13 +287,93 @@ python demo_validacion_johnson_biquinario.py
 
 ---
 
-## 📋 Roadmap
+## � Roadmap Detallado
 
-- [ ] Implementar calculadora de conversión de bases (UI web)
-- [ ] Crear simulador interactivo IEEE 754
-- [ ] Agregar pruebas unitarias automatizadas
-- [ ] Integración con GitHub Codespaces
-- [ ] Documentación en inglés
+### ✅ **Completado en Fase 5 (IEEE 754 + Biquinarios)**
+
+- ✅ IEEE754Gen - Clase genérica para cualquier base/E_bits/F_bits
+- ✅ Números normalizados, denormalizados, infinito, NaN
+- ✅ BiquinaryGen + 3 variantes (7, 5, 6 bits)
+- ✅ Documentación exhaustiva (3 documentos)
+- ✅ Demostraciones interactivas (2 demos)
+- ✅ 45+ ejemplos de uso
+
+### 📅 **Fase 6: Integración Punto Fijo (2-3 semanas)**
+
+- [ ] **FixedPointUnified**: Clase única con parámetro `signed`
+  - Elimina duplicación de código (actualmente 3 clases)
+  - Mejora: `FixedPointUnified(E=4, F=4, base=2, signed='complement')`
+
+- [ ] **Tabla Comparativa Renderizada**
+  - FixedPoint vs IEEE754Gen (rango, precisión, error relativo)
+  - Biquinarios vs otros códigos
+  - Exportable a LaTeX, HTML, JSON
+
+- [ ] **Validador Universal**
+  - `RepresentationValidator` para todos los códigos
+  - Reporte de validez + recomendaciones
+
+### 📅 **Fase 7: Interfaz Web (3-4 semanas)**
+
+- [ ] **Simulador IEEE754 Interactivo**
+  - Visualización bit a bit en navegador
+  - Controles: cambiar base, E_bits, F_bits
+  - Mostrar: rango, epsilon machine, números especiales
+
+- [ ] **Calculadora de Conversión de Bases**
+  - Input: número + base origen
+  - Output: representación en múltiples bases + punto fijo
+  - Paso a paso de algoritmos (Horner, común, relacionadas)
+
+- [ ] **Visualizador de Distribución**
+  - Gráfica: densidad de números representables
+  - Comparativa: FixedPoint vs IEEE754
+  - Zoom interactivo
+
+### 📅 **Fase 8: Testing y Documentación (2 semanas)**
+
+- [ ] **Suite de Pruebas Completa**
+  - Cobertura 90%+ para `core/`
+  - Casos borde: infinito, NaN, desbordamiento, subnormales
+
+- [ ] **Documentación en Inglés**
+  - Traducir: CLASES_GENERICAS.md, IEEE754_Y_BIQUINARIOS.md
+  - Audiencia internacional
+
+- [ ] **Performance Benchmarks**
+  - Conversión de bases (throughput, latencia)
+  - Operaciones aritméticas en punto fijo
+  - Codificación/decodificación IEEE754
+
+### 📅 **Fase 9: Escalabilidad (1 mes)**
+
+- [ ] **NumPy Array Support**
+  - `FixedPointArray` con operaciones vectorizadas
+  - `IEEE754Array` con control de excepciones
+
+- [ ] **CI/CD Pipeline**
+  - GitHub Actions: Python 3.8-3.12
+  - Auto-publish a PyPI
+
+- [ ] **IDE Plugins**
+  - VS Code: visualizador punto fijo en debugger
+  - IntelliSense: docstrings mejorados
+
+---
+
+## 📊 Estado Actual (Snapshot)
+
+```
+Proyecto:      GeneratorFEExercises v2.0
+Completado:    ✅ 80% (Punto Fijo + Flotante + Biquinarios)
+En Progreso:   🔄 10% (README actualizado, demos refinadas)
+Pendiente:     ⏳ 10% (Roadmap fases 6-9)
+
+Líneas de Código:     3,000+ (core + utils)
+Líneas de Docs:       3,000+ (markdown + docstrings)
+Ejemplos Prácticos:   45+ (demos + uso)
+Commits Recientes:    5 (IEEE754Gen + Biquinarios)
+```
 
 ---
 
