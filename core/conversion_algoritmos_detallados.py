@@ -382,28 +382,39 @@ def print_conversion_steps(
     
     # Ensamblar
     print(f"\nPASO 4: ENSAMBLAR EN Q({E_prime},{F_prime})_{{{to_base}}}")
+    print(f"  Tenemos:")
+    print(f"    - {len(int_digits)} dígitos de parte entera: {digits_to_string(int_digits, to_base)}")
+    print(f"    - {len(frac_digits)} dígitos de parte fraccionaria: {digits_to_string(frac_digits, to_base)}")
+    print(f"    - Capacidad: E'={E_prime} posiciones enteras + F'={F_prime} posiciones fraccionarias")
     
     # Reconstruir M'
+    # Los dígitos enteros ocupan las posiciones altas: desde len(int_digits)-1 hasta F_prime
+    # Los dígitos fraccionarios ocupan las posiciones bajas: desde F_prime-1 hasta 0
     M_prime = 0
     
-    # Parte entera
+    # Parte entera: los dígitos van en orden de mayor a menor significancia
+    # Posición más alta para el primer dígito (más significativo)
     for i, digit in enumerate(int_digits):
-        position = E_prime + F_prime - 1 - i
+        # Primer dígito → posición = F_prime + len(int_digits) - 1
+        # Último dígito → posición = F_prime
+        position = F_prime + len(int_digits) - 1 - i
         contribution = digit * (to_base ** position)
         M_prime += contribution
-        print(f"  Dígito {digit} en posición {position}: {digit} × {to_base}^{position} = {contribution}")
+        print(f"  Dígito entero[{i}]={digit} en posición {position}: {digit} × {to_base}^{position} = {contribution}")
     
-    # Parte fraccionaria
+    # Parte fraccionaria: los dígitos van en orden de mayor a menor significancia
+    # Primer dígito → posición = F_prime - 1
+    # Último dígito → posición = F_prime - len(frac_digits)
     for i, digit in enumerate(frac_digits):
         position = F_prime - 1 - i
         contribution = digit * (to_base ** position)
         M_prime += contribution
-        print(f"  Dígito {digit} en posición -{F_prime-position}: {digit} × {to_base}^{position} = {contribution}")
+        print(f"  Dígito frac[{i}]={digit} en posición {position}: {digit} × {to_base}^{position} = {contribution}")
     
     print(f"\n  M' = {M_prime}")
     
     # Valor resultante
-    value_result = Decimal(M_prime) * (to_base ** (-F_prime))
+    value_result = Decimal(M_prime) * (Decimal(to_base) ** (-F_prime))
     print(f"\nSALIDA:")
     print(f"  Formato destino: Q({E_prime},{F_prime}) base {to_base}")
     print(f"  Valor crudo M': {M_prime}")
