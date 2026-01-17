@@ -21,10 +21,86 @@ Ventaja: Detección de errores simple (comprobar paridad de cada grupo)
 Desventaja: Menos eficiente que BCD (usa 7 bits para 10 valores, BCD usa 4)
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 
-class Biquinary7Bit:
+class BiquinaryGen:
+    """
+    Código biquinario genérico.
+    
+    Separación en dos componentes: quinaria (selecciona grupo) + binaria (selecciona dentro del grupo).
+    
+    Parámetros:
+    - total_bits: bits totales del código
+    - quinaria_bits: bits para componente quinaria
+    - binaria_bits: bits para componente binaria
+    """
+    
+    def __init__(self, total_bits: int, quinaria_bits: int, binaria_bits: int, 
+                 encode_table: Dict[int, Tuple[int, int]]):
+        """
+        Crear código biquinario genérico.
+        
+        Args:
+            total_bits: bits totales (quinaria + binaria + relleno)
+            quinaria_bits: bits para componente quinaria
+            binaria_bits: bits para componente binaria
+            encode_table: diccionario {dígito: (quinaria, binaria)}
+        """
+        self.total_bits = total_bits
+        self.quinaria_bits = quinaria_bits
+        self.binaria_bits = binaria_bits
+        self.encode_table = encode_table
+        self.decode_table = {v: k for k, v in encode_table.items()}
+        
+        # Máscaras
+        self.quinaria_mask = (1 << quinaria_bits) - 1
+        self.binaria_mask = (1 << binaria_bits) - 1
+    
+    def encode(self, digit: int) -> int:
+        """
+        Codificar dígito a biquinario.
+        
+        Returns:
+            Código empaquetado en total_bits
+        """
+        if not 0 <= digit <= 9:
+            raise ValueError(f"Dígito debe estar en [0,9], recibido {digit}")
+        
+        if digit not in self.encode_table:
+            raise ValueError(f"Dígito {digit} no está en tabla de codificación")
+        
+        quinaria, binaria = self.encode_table[digit]
+        
+        # Empaquetar: [relleno][binaria][quinaria]
+        code = (quinaria & self.quinaria_mask) | ((binaria & self.binaria_mask) << self.quinaria_bits)
+        
+        return code
+    
+    def decode(self, code: int) -> int:
+        """Decodificar desde biquinario a dígito."""
+        quinaria = code & self.quinaria_mask
+        binaria = (code >> self.quinaria_bits) & self.binaria_mask
+        
+        key = (quinaria, binaria)
+        if key not in self.decode_table:
+            raise ValueError(f"Código biquinario inválido: {code:0{self.total_bits}b}")
+        
+        return self.decode_table[key]
+    
+    def encode_number(self, number: str) -> List[int]:
+        """Codificar número (string de dígitos) a biquinario."""
+        return [self.encode(int(d)) for d in number]
+    
+    def decode_number(self, codes: List[int]) -> str:
+        """Decodificar lista de códigos biquinarios a número."""
+        return ''.join(str(self.decode(c)) for c in codes)
+    
+    def __repr__(self) -> str:
+        return f"BiquinaryGen(total_bits={self.total_bits}, quinaria={self.quinaria_bits}, binaria={self.binaria_bits})"
+
+
+class Biquinary7Bit(BiquinaryGen):
     """Código biquinario de 7 bits (IBM 650 style)."""
     
     def __init__(self):
@@ -35,7 +111,7 @@ class Biquinary7Bit:
         """
         # Tabla de codificación biquinaria 7 bits
         # Formato: dígito → (quinaria, binaria)
-        self.encode_table = {
+        encode_table = {
             0: (0b00, 0b01),  # Quinaria 00 (0-4), Binaria 01 → 0
             1: (0b00, 0b10),  # Quinaria 00 (0-4), Binaria 10 → 1
             2: (0b01, 0b01),  # Quinaria 01 (0-4), Binaria 01 → 2
@@ -48,53 +124,13 @@ class Biquinary7Bit:
             9: (0b100, 0b10), # Quinaria 100 (5-9), Binaria 10 → 9
         }
         
-        # Tabla inversa
-        self.decode_table = {v: k for k, v in self.encode_table.items()}
-    
-    def encode(self, digit: int) -> int:
-        """
-        Codificar dígito a biquinario 7 bits.
-        
-        Returns:
-            7 bits: [relleno(2)][binaria(2)][quinaria(3)]
-        """
-        if not 0 <= digit <= 9:
-            raise ValueError(f"Dígito debe estar en [0,9], recibido {digit}")
-        
-        quinaria, binaria = self.encode_table[digit]
-        
-        # Empaquetar en 7 bits
-        # Bits 0-2: quinaria
-        # Bits 3-4: binaria
-        # Bits 5-6: relleno (0)
-        code = (quinaria & 0b111) | ((binaria & 0b11) << 3)
-        
-        return code
-    
-    def decode(self, code: int) -> int:
-        """Decodificar desde biquinario 7 bits a dígito."""
-        quinaria = code & 0b111
-        binaria = (code >> 3) & 0b11
-        
-        key = (quinaria, binaria)
-        if key not in self.decode_table:
-            raise ValueError(f"Código biquinario inválido: {code:07b}")
-        
-        return self.decode_table[key]
-    
-    def encode_number(self, number: str) -> List[int]:
-        """Codificar número (string de dígitos) a biquinario 7 bits."""
-        return [self.encode(int(d)) for d in number]
-    
-    def decode_number(self, codes: List[int]) -> str:
-        """Decodificar lista de códigos biquinarios a número."""
-        return ''.join(str(self.decode(c)) for c in codes)
+        super().__init__(total_bits=7, quinaria_bits=3, binaria_bits=2, encode_table=encode_table)
     
     def __repr__(self) -> str:
         return "Biquinary7Bit(IBM 650 style)"
 
 
-class Biquinary5Bit:
+class Biquinary5Bit(BiquinaryGen):
     """Código biquinario de 5 bits (Univac 60/120 style)."""
     
     def __init__(self):
@@ -106,12 +142,7 @@ class Biquinary5Bit:
         # Quinaria: 2 bits (00, 01, 10, 11) - solo 3-4 usados para 0-4 y 5-9
         # Binaria: 3 bits para seleccionar dentro del grupo
         
-        # En realidad, 5 bits no es suficiente para biquinario puro
-        # pero Univac lo hacía así:
-        # Bits 0-2: binaria (selecciona 0-4 dentro del grupo)
-        # Bits 3-4: quinaria (selecciona grupo 0-4 o 5-9)
-        
-        self.encode_table = {
+        encode_table = {
             0: (0b00, 0b001),  # Grupo 0-4, posición 0
             1: (0b00, 0b010),  # Grupo 0-4, posición 1
             2: (0b00, 0b100),  # Grupo 0-4, posición 2
@@ -124,7 +155,8 @@ class Biquinary5Bit:
             9: (0b11, 0b010),  # Grupo 5-9, posición 4
         }
         
-        self.decode_table = {v: k for k, v in self.encode_table.items()}
+        super().__init__(total_bits=5, quinaria_bits=2, binaria_bits=3, encode_table=encode_table)
+    
     
     def encode(self, digit: int) -> int:
         """
@@ -164,6 +196,53 @@ class Biquinary5Bit:
     
     def __repr__(self) -> str:
         return "Biquinary5Bit(Univac 60/120 style)"
+
+
+class Biquinary6Bit(BiquinaryGen):
+    """Código biquinario de 6 bits (IBM 1401 style)."""
+    
+    def __init__(self):
+        """
+        Estructura: [relleno (1 bit)][quinaria (2 bits)][binaria (3 bits)]
+        Variante de 6 bits para máquinas de 6 bits.
+        """
+        encode_table = {
+            0: (0b00, 0b001),
+            1: (0b00, 0b010),
+            2: (0b00, 0b100),
+            3: (0b01, 0b001),
+            4: (0b01, 0b010),
+            5: (0b10, 0b001),
+            6: (0b10, 0b010),
+            7: (0b10, 0b100),
+            8: (0b11, 0b001),
+            9: (0b11, 0b010),
+        }
+        
+        super().__init__(total_bits=6, quinaria_bits=2, binaria_bits=3, encode_table=encode_table)
+    
+    def encode(self, digit: int) -> int:
+        """Codificar dígito a biquinario 6 bits."""
+        if not 0 <= digit <= 9:
+            raise ValueError(f"Dígito debe estar en [0,9], recibido {digit}")
+        
+        quinaria, binaria = self.encode_table[digit]
+        code = (binaria & 0b111) | ((quinaria & 0b11) << 3)
+        return code
+    
+    def decode(self, code: int) -> int:
+        """Decodificar desde biquinario 6 bits a dígito."""
+        binaria = code & 0b111
+        quinaria = (code >> 3) & 0b11
+        
+        key = (quinaria, binaria)
+        if key not in self.decode_table:
+            raise ValueError(f"Código biquinario inválido: {code:06b}")
+        
+        return self.decode_table[key]
+    
+    def __repr__(self) -> str:
+        return "Biquinary6Bit(IBM 1401 style)"
 
 
 def demonstrate_biquinary7():

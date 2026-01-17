@@ -17,24 +17,48 @@ from typing import Tuple, Union
 import math
 
 
-class IEEE754:
-    """Punto flotante IEEE 754 con especiales (denormalizados, NaN, infinito)."""
+class IEEE754Gen:
+    """
+    Punto flotante IEEE 754 genérico con especiales.
+    
+    Soporta cualquier:
+    - Base (2, 10, 16, etc.)
+    - Longitud de exponente E_bits
+    - Longitud de mantisa F_bits
+    
+    Casos especiales:
+    - Números normalizados: ±1.M × B^E (mantisa implícita)
+    - Números denormalizados: ±0.M × B^E_min (subnormales)
+    - Infinito: ±∞ (E=todos1s, M=0)
+    - NaN: qNaN (MSB=1) y sNaN (MSB=0, M≠0)
+    """
     
     def __init__(self, E_bits: int, F_bits: int, base: int = 2):
         """
-        Crear representación IEEE 754.
+        Crear representación IEEE 754 genérica.
         
         Args:
             E_bits: bits para exponente
             F_bits: bits para mantisa (fraccionaria)
-            base: base (típicamente 2)
+            base: base numérica (2, 10, 16, etc.) - por defecto 2
+        
+        Ejemplo:
+            ieee32 = IEEE754Gen(E_bits=8, F_bits=23, base=2)  # IEEE 754 single
+            ieee64 = IEEE754Gen(E_bits=11, F_bits=52, base=2)  # IEEE 754 double
+            ieee_decimal = IEEE754Gen(E_bits=8, F_bits=16, base=10)  # Decimal flotante
         """
         self.E_bits = E_bits
         self.F_bits = F_bits
         self.base = base
         
+        # Validaciones
+        if E_bits < 1 or F_bits < 1:
+            raise ValueError("E_bits y F_bits deben ser >= 1")
+        if base < 2:
+            raise ValueError("base debe ser >= 2")
+        
         # Bias para exponente (formato exceso K)
-        # Bias = 2^(E_bits-1) - 1
+        # Bias = B^(E_bits-1) - 1
         self.bias = (base ** (E_bits - 1)) - 1
         
         # Valores extremos de exponente
@@ -46,11 +70,11 @@ class IEEE754:
         self.E_min = 1 - self.bias  # Exponente mínimo para denormalizados
         self.E_max = self.bias - 1  # Exponente máximo para normalizados
         
-        # Precisión
+        # Precisión (máxima mantisa fraccionaria)
         self.epsilon = Decimal(base) ** (-F_bits)
         
     def __repr__(self) -> str:
-        return f"IEEE754(E_bits={self.E_bits}, F_bits={self.F_bits}, base={self.base})"
+        return f"IEEE754Gen(E_bits={self.E_bits}, F_bits={self.F_bits}, base={self.base})"
     
     @property
     def info(self) -> dict:
@@ -350,3 +374,7 @@ def demonstrate_denormalized_vs_normalized():
 if __name__ == "__main__":
     demonstrate_ieee754()
     demonstrate_denormalized_vs_normalized()
+
+
+# Alias para compatibilidad hacia atrás
+IEEE754 = IEEE754Gen
