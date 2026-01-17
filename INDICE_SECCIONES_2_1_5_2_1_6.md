@@ -14,7 +14,7 @@
 
 1. **Concepto Fundamental**
    - Definición de Punto Fijo
-   - Formato E,F (enteros, fraccionarios)
+   - Formato E,F (número de dígitos enteros, número de dígitos fraccionarios)
    - Ejemplo Q(3,4) en binario
 
 2. **Representación en Base B Genérica**
