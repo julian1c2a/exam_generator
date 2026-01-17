@@ -2,158 +2,193 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![LaTeX](https://img.shields.io/badge/LaTeX-PDF-red?logo=latex&logoColor=white)](https://www.latex-project.org/)
-[![Status](https://img.shields.io/badge/Status-Actively%20Developed-green)](https://github.com)
+[![Status](https://img.shields.io/badge/Status-Actively%20Developed-brightgreen)](https://github.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Code](https://img.shields.io/badge/Código-Punto%20Fijo%20%2F%20Flotante-blue)](#)
+[![Commits](https://img.shields.io/badge/Últimos%20Commits-IEEE754%2BBiquinarios-brightgreen)](#-roadmap)
 
-Una **plataforma modular y extensible** para generar ejercicios de electrónica digital con documentación técnica completa. Cubre sistemas de numeración, códigos binarios, lógica combinacional y secuencial.
+Una **plataforma modular y extensible** para generar ejercicios de electrónica digital con documentación técnica completa. Cubre **sistemas de numeración, punto fijo, punto flotante, IEEE 754, códigos binarios, lógica combinacional y secuencial**.
 
 ---
 
 ## 🎯 Características Principales
 
-- ✅ **Documentación Exhaustiva**: 2550+ líneas de teoría técnica
-- ✅ **45+ Ejemplos Prácticos**: Ejercicios resueltos paso a paso
-- ✅ **Validación Matemática**: Todas las propiedades probadas
+- ✅ **Punto Fijo Completo** (Q(E,F)): Sin signo, Magnitud-Signo, Complemento a Base
+- ✅ **Punto Flotante IEEE 754**: Normalizado, denormalizado, infinito, NaN (qNaN/sNaN)
+- ✅ **IEEE754Gen**: Genérico para cualquier base, E_bits, F_bits
+- ✅ **Códigos Biquinarios**: 7 bits (IBM 650), 5 bits (Univac), 6 bits (IBM 1401)
+- ✅ **Documentación Exhaustiva**: 3000+ líneas teóricas + 2000+ líneas código
 - ✅ **Generación Automática**: PDF profesionales y documentos editables
 - ✅ **Modular y Extensible**: Diseño basado en plugins
+- ✅ **45+ Ejemplos Prácticos**: Ejercicios resueltos paso a paso
 
 ---
 
-## 📖 Documentación Disponible
+## � Módulos Implementados
+
+### 🔢 **Sección 2.1: Sistemas de Numeración**
+
+#### 2.1.1-2.1.4: Números Sin Signo y Códigos
+
+| Sistema | Archivo | Descripción | Demo |
+|---------|---------|-------------|------|
+| **Base B** | `sistemas_numeracion_basicos.py` | Conversión generalizada | ✅ |
+| **Conversiones** | `conversion_*.py` | Algoritmos: Común, Relacionadas, Horner | ✅ |
+| **BCD** | `sistemas_numeracion_basicos.py` | BCD 8421, Exceso-3, Aiken | ✅ |
+| **Johnson** | `sistemas_numeracion_basicos.py` | Código Johnson validado | ✅ |
+| **Biquinarios** | `biquinarios.py` | 7, 5, 6 bits + genérico | ✅ |
+
+#### 2.1.1.7: Números Enteros con Signo
+
+| Sistema | Archivo | Rango | Demo |
+|---------|---------|-------|------|
+| **Magnitud y Signo** | `enteros_signados.py` | ±(B^E - ε) | ✅ |
+| **Complemento (B-1)** | `cb_representacion.py` | ±(B^E - ε) | ✅ |
+| **Complemento a Base** | `cb_representacion.py` | ±B^E | ✅ |
+| **Exceso a K** | `exceso_k_representacion.py` | [0, B^n) desplazado | ✅ |
+
+---
+
+### ➗ **Sección 2.1.5: Punto Fijo Q(E,F)**
+
+| Aspecto | Archivo | Características |
+|---------|---------|------------------|
+| **Sin Signo** | `punto_fijo.py` | FixedPoint genérico, cualquier base |
+| **Con Signo (M&S)** | `punto_fijo_con_signo.py` | FixedPointSignedMS |
+| **Con Signo (Complemento)** | `punto_fijo_con_signo.py` | **FixedPointSignedComplement** ⭐ |
+| **Conversión de Bases** | `conversion_bases_punto_fijo.py` | Regla: B'^F' ≥ B^F |
+
+**Características:**
+
+- ✅ Base configurable (2, 8, 10, 16, ...)
+- ✅ E (enteros) y F (fraccionarios) configurables
+- ✅ Operaciones aritméticas (suma, resta, mult, div)
+- ✅ Conversión entre representaciones
+
+---
+
+### 🔬 **Sección 2.1.6: Punto Flotante**
+
+| Clase | Archivo | Descripción |
+|-------|---------|-------------|
+| **FixedPointFloating** | `punto_flotante.py` | Normalización mantisa [1,B) |
+| **IEEE754Gen** | `ieee754.py` | ⭐ IEEE 754 genérico |
+| **IEEE754 Alias** | `ieee754.py` | Compatibilidad hacia atrás |
+
+**IEEE754Gen - Características:**
+
+- ✅ Base configurable (2, 10, 16, ...)
+- ✅ E_bits y F_bits personalizables
+- ✅ Números normalizados: ±1.M × B^E
+- ✅ Números denormalizados: ±0.M × B^E_min (subnormales)
+- ✅ Infinito: ±∞ (E=todos1s, M=0)
+- ✅ NaN: qNaN (quiet) y sNaN (signaling)
+
+---
+
+### 🔄 **Códigos Especiales**
+
+| Código | Clase | Archivo | Bits | Status |
+|--------|-------|---------|------|--------|
+| **Biquinario Genérico** | BiquinaryGen | `biquinarios.py` | Configurable | ✅ |
+| **Biquinario 7 bits** | Biquinary7Bit | `biquinarios.py` | 7 (IBM 650) | ✅ |
+| **Biquinario 5 bits** | Biquinary5Bit | `biquinarios.py` | 5 (Univac) | ✅ |
+| **Biquinario 6 bits** | Biquinary6Bit | `biquinarios.py` | 6 (IBM 1401) | ✅ |
+
+---
+
+### 📚 **Documentación Principal**
+
+| Archivo | Contenido | Líneas |
+|---------|----------|--------|
+| `IEEE754_Y_BIQUINARIOS.md` | Fundamentos IEEE 754 + biquinarios | 350+ |
+| `CLASES_GENERICAS.md` | Especificación IEEE754Gen + BiquinaryGen | 387 |
+| `RESUMEN_CLASES_GENERICAS.md` | Resumen ejecutivo con ejemplos | 230+ |
+| `PUNTO_FIJO_CON_SIGNO.md` | Punto fijo con signo (M&S, complemento) | 250+ |
+
+---
+
+## 🔍 Ejemplos de Uso Rápido
+
+### Punto Fijo Sin Signo
+
+```python
+from core.punto_fijo import FixedPoint
+
+# Q(4,4) base 2
+fp = FixedPoint(E=4, F=4, B=2, value=5.25)
+print(fp.value)      # 5.25
+print(fp.max_value)  # 15.9375
+```
+
+### Punto Fijo Con Signo (Complemento)
+
+```python
+from core.punto_fijo_con_signo import FixedPointSignedComplement
+
+fp = FixedPointSignedComplement(E=4, F=4, base=2)
+M_pos = fp.encode(5.25)      # 84
+M_neg = fp.encode(-5.25)     # 428
+print(fp.decode(84))         # 5.25
+```
+
+### IEEE754Gen (Genérico)
+
+```python
+from core.ieee754 import IEEE754Gen
+
+# IEEE 754 Single (32 bits)
+ieee = IEEE754Gen(E_bits=8, F_bits=23, base=2)
+sign, exp, mant = ieee.encode_normalized(3.14159)
+decoded = ieee.decode(sign, exp, mant)  # 3.14159
+
+# Infinito
+s, e, m = ieee.encode_infinity(positive=True)
+print(ieee.decode(s, e, m))  # "inf"
+
+# NaN
+s, e, m = ieee.encode_nan(quiet=True)
+print(ieee.decode(s, e, m))  # "qNaN"
+```
+
+### Códigos Biquinarios
+
+```python
+from core.biquinarios import Biquinary7Bit, Biquinary5Bit
+
+# 7 bits (IBM 650)
+bq7 = Biquinary7Bit()
+codes = bq7.encode_number("314159")
+decoded = bq7.decode_number(codes)  # "314159"
+
+# 5 bits (Univac)
+bq5 = Biquinary5Bit()
+codes = bq5.encode_number("12345")
+decoded = bq5.decode_number(codes)  # "12345"
+```
+
+---
+
+## 📖 Documentación Disponible (Heredada)
 
 ### 🔢 Sección 2.1.1: Números Sin Signo
 
-Representación de números positivos en distintas bases.
+| Sistema | Documentación | Demo |
+|---------|---------------|------|
+| **Base B** | [2.1.1.1](docs/SECCION_2_1_1_1_BASE_B.md) | `demo_base_b.py` |
+| **Conversiones** | [2.1.1.2](docs/SECCION_2_1_1_2_CONVERSIONES.md) | `demo_conversiones.py` |
+| **Eficiencia** | [2.1.1.3](docs/SECCION_2_1_1_3_EFICIENCIA.md) | Análisis |
+| **Fraccionarios** | [2.1.1.5](docs/SECCION_2_1_1_5_FRACCIONARIOS.md) | `demo_fracciones.py` |
+| **Operaciones** | [2.1.1.6](docs/SECCION_2_1_1_6_OPERACIONES.md) | `demo_operaciones.py` |
 
-| Sistema | Documentación | Demo | Descripción |
-|---------|---------------|------|-------------|
-| **Base B** | [2.1.1.1](docs/SECCION_2_1_1_1_BASE_B.md) | `demo_base_b.py` | Representación generalizada |
-| **Conversiones** | [2.1.1.2](docs/SECCION_2_1_1_2_CONVERSIONES.md) | `demo_conversiones.py` | Entre bases (B₁ ↔ B₂) |
-| **Eficiencia** | [2.1.1.3](docs/SECCION_2_1_1_3_EFICIENCIA.md) | Análisis | Bits necesarios por dígito |
-| **Rango y Capacidad** | [2.1.1.4](docs/SECCION_2_1_1_4_RANGO.md) | `demo_rango.py` | Valores máximos representables |
-| **Fraccionarios** | [2.1.1.5](docs/SECCION_2_1_1_5_FRACCIONARIOS.md) | `demo_fracciones.py` | Números con parte decimal |
-| **Operaciones** | [2.1.1.6](docs/SECCION_2_1_1_6_OPERACIONES.md) | `demo_operaciones.py` | Suma, resta, multiplicación |
+### 🔐 Sección 2.1.1.7: Números con Signo
 
-**Comando rápido:**
-
-```bash
-python demo_base_b.py
-python demo_conversiones.py
-```
-
----
-
-### 🔐 Sección 2.1.1.7: Números Enteros con Signo
-
-Cuatro sistemas estándar para representar números positivos y negativos.
-
-| Sistema | Documentación | Demo | Rango | Uso |
-|---------|---------------|------|-------|-----|
-| **Magnitud y Signo** | [MS](docs/SECCION_2_1_1_7_MS.md) | `demo_ms_simple.py` | ±(2ⁿ⁻¹-1) | Histórico |
-| **Complemento a (B-1)** | [CB-1](docs/SECCION_2_1_1_7_CB_MENOS_1.md) | `demo_cb1.py` | ±(2ⁿ⁻¹-1) | Histórico |
-| **Complemento a Base** | [CB (Two's))](docs/SECCION_2_1_1_7_CB.md) | `demo_cb.py` | ±2ⁿ⁻¹ | ⭐ Estándar actual |
-| **Exceso a K** | [Exc-K](docs/SECCION_2_1_1_7_EXCESO_K.md) | `demo_exceso_k.py` | [0, 2ⁿ) | IEEE 754 exponentes |
-
-**Tabla comparativa:**
-
-```bash
-python generar_tabla_comparativa.py
-```
-
----
-
-### 📦 Sección 2.1.2: Códigos BCD (Binary Coded Decimal)
-
-| Código | Documentación | Validación | Bits | Directo | Status |
-|--------|---------------|-----------|------|---------|--------|
-| **BCD Natural (8421)** | [Doc](docs/SECCION_2_1_2_BCD_NATURAL.md) | ✅ | 4 | ✅ Sí | ✅ Completo |
-| **BCD Exceso-3** | [Doc](docs/SECCION_2_1_2_EXCESO_3.md) | ✅ | 4 | ✅ Sí* | ✅ Completo |
-| **BCD Aiken (2421)** | [Doc](docs/SECCION_2_1_2_AIKEN.md) | ✅ | 4 | ✅ Sí* | ✅ Completo |
-
-**Nota:** *Comparación directa válida con ajustes (ver documentación)
-
-**Ejecución:**
-
-```bash
-python demo_bcd_validacion.py
-```
-
----
-
-### 🔄 Sección 2.1.3-2.1.4: Códigos Especializados
-
-| Código | Documentación | Bits | Regla | Demo |
-|--------|---------------|------|-------|------|
-| **Johnson** | [Doc](docs/SECCION_2_1_3_JOHNSON.md) | 5 | Max 1 transición | `demo_johnson.py` |
-| **Biquinario** | [Doc](docs/SECCION_2_1_4_BIQUINARIO.md) | 7 | Exactamente 2 bits | `demo_biquinario.py` |
-
-**Validación integrada:**
-
-```bash
-python demo_validacion_johnson_biquinario.py
-```
-
-**Funciones de validación:**
-
-```python
-from core.sistemas_numeracion_basicos import is_johnson_valid, is_biquinario_valid
-
-is_johnson_valid(0b00111)      # → True
-is_biquinario_valid(0b1010010) # → True
-```
-
-Ver: [FUNCIONES_VALIDACION_JOHNSON_BIQUINARIO.md](docs/FUNCIONES_VALIDACION_JOHNSON_BIQUINARIO.md)
-
----
-
-### ➗ Sección 2.1.5: Punto Fijo (Fixed-Point)
-
-Representación Q(E, F): **E bits enteros, F bits fraccionarios**
-
-| Aspecto | Documentación | Descripción |
-|--------|---------------|-------------|
-| **Formato Q** | [Doc](docs/SECCION_2_1_5_PUNTO_FIJO.md) | Q(8,8), Q(16,16), etc. |
-| **Conversión de Bases** | [Doc](docs/SECCION_2_1_5_PUNTO_FIJO.md#conversión) | Regla: B'ᶠ' ≥ Bᶠ |
-| **Análisis de Errores** | [Doc](docs/SECCION_2_1_5_PUNTO_FIJO.md#errores) | Error absoluto, relativo |
-| **Operaciones** | [Doc](docs/SECCION_2_1_5_PUNTO_FIJO.md#operaciones) | Suma, resta, multiplicación |
-
-**Ejemplo: Conversión Base Doble**
-
-```
-Q(4,4) base 2 → Q(2,4) base 10
-Regla: 10⁴ = 10000 ≥ 2⁴ = 16 ✓
-```
-
----
-
-### 🔬 Sección 2.1.6: Punto Flotante (Floating-Point)
-
-Formato generalizado: **V = M × B^E**
-
-| Aspecto | Documentación | Descripción |
-|--------|---------------|-------------|
-| **Formato** | [Doc](docs/SECCION_2_1_6_PUNTO_FLOTANTE.md) | Variable M y E |
-| **IEEE 754** | [Doc](docs/SECCION_2_1_6_PUNTO_FLOTANTE.md#ieee-754) | Simple (32), Double (64), Extended (80) |
-| **Números Especiales** | [Doc](docs/SECCION_2_1_6_PUNTO_FLOTANTE.md#especiales) | ±0, ±∞, NaN, denormalizados |
-| **Normalización** | [Doc](docs/SECCION_2_1_6_PUNTO_FLOTANTE.md#normalización) | **Crítico post-operación** |
-
-**Comparativa Punto Fijo vs Flotante:**
-
-```bash
-Ver: COMPARATIVA_PUNTO_FIJO_VS_FLOTANTE.md
-- Tabla de decisión (7 criterios)
-- Análisis de errores
-- Casos de uso (procesamiento de imágenes, integración numérica)
-```
-
-**Índice y Guía de Aprendizaje:**
-
-```bash
-Ver: INDICE_SECCIONES_2_1_5_2_1_6.md
-- Orden de lectura recomendado
-- Temas especiales resaltados
-- 10+ preguntas de autoevaluación
-```
+| Sistema | Documentación |
+|---------|---------------|
+| **Magnitud y Signo** | [MS](docs/SECCION_2_1_1_7_MS.md) |
+| **Complemento a (B-1)** | [CB-1](docs/SECCION_2_1_1_7_CB_MENOS_1.md) |
+| **Complemento a Base** | [CB](docs/SECCION_2_1_1_7_CB.md) |
+| **Exceso a K** | [Exc-K](docs/SECCION_2_1_1_7_EXCESO_K.md)
 
 ---
 
