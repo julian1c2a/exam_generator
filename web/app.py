@@ -24,12 +24,54 @@ from flask_cors import CORS
 # Agregar core/ al path para importar módulos
 SCRIPT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(SCRIPT_DIR))
+WEB_DIR = Path(__file__).parent
+sys.path.insert(0, str(WEB_DIR))
 
 try:
     from core.ieee754 import IEEE754Gen
     from core.punto_fijo_unified import FixedPointUnified
 except ImportError as e:
     print(f"Error importando módulos core: {e}")
+    sys.exit(1)
+
+# Importar servicios de Lenguajes Formales
+try:
+    # Importar desde el módulo web.models (archivo web/models.py)
+    from importlib.util import spec_from_file_location, module_from_spec
+    
+    # Cargar models.py desde el directorio web
+    models_path = WEB_DIR / 'models.py'
+    spec = spec_from_file_location("formal_models", models_path)
+    formal_models = module_from_spec(spec)
+    spec.loader.exec_module(formal_models)
+    
+    Alphabet = formal_models.Alphabet
+    Language = formal_models.Language
+    LanguageOrder = formal_models.LanguageOrder
+    
+    # Cargar servicios
+    services_alpha_path = WEB_DIR / 'services_alphabet.py'
+    spec = spec_from_file_location("formal_services_alphabet", services_alpha_path)
+    formal_services_alphabet = module_from_spec(spec)
+    spec.loader.exec_module(formal_services_alphabet)
+    AlphabetService = formal_services_alphabet.AlphabetService
+    
+    services_lang_path = WEB_DIR / 'services_language.py'
+    spec = spec_from_file_location("formal_services_language", services_lang_path)
+    formal_services_language = module_from_spec(spec)
+    spec.loader.exec_module(formal_services_language)
+    LanguageService = formal_services_language.LanguageService
+    
+    services_analysis_path = WEB_DIR / 'services_analysis.py'
+    spec = spec_from_file_location("formal_services_analysis", services_analysis_path)
+    formal_services_analysis = module_from_spec(spec)
+    spec.loader.exec_module(formal_services_analysis)
+    AnalysisService = formal_services_analysis.AnalysisService
+    
+except Exception as e:
+    print(f"Error importando servicios de Lenguajes Formales: {e}")
+    import traceback
+    traceback.print_exc()
     sys.exit(1)
 
 # ============================================================================
@@ -46,6 +88,15 @@ CORS(app)
 # Configuración
 app.config['JSON_SORT_KEYS'] = False
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+
+# ============================================================================
+# Inicializar Servicios de Lenguajes Formales
+# ============================================================================
+
+# Crear instancias de servicios
+alphabet_service = AlphabetService()
+language_service = LanguageService(alphabet_service)
+analysis_service = AnalysisService(language_service, alphabet_service)
 
 # ============================================================================
 # Rutas principales (HTML)
@@ -571,6 +622,333 @@ def health_check():
     })
 
 # ============================================================================
+# API: LENGUAJES FORMALES - Alfabetos (7 endpoints)
+# ============================================================================
+
+@app.route('/api/alphabets', methods=['GET'])
+def get_alphabets():
+    """GET /api/alphabets - Listar todos los alfabetos"""
+    alphabets = alphabet_service.get_all()
+    return jsonify({
+        'success': True,
+        'total': len(alphabets),
+        'alphabets': [a.to_dict() for a in alphabets]
+    })
+
+@app.route('/api/alphabets', methods=['POST'])
+def create_alphabet():
+    """POST /api/alphabets - Crear un nuevo alfabeto"""
+    try:
+        data = request.get_json()
+        name = data.get('name', '')
+        symbols = data.get('symbols', [])
+        initial_symbol = data.get('initial_symbol', '')
+        
+        success, message, alphabet = alphabet_service.create(
+            name=name,
+            symbols=symbols,
+            initial_symbol=initial_symbol
+        )
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': message,
+                'alphabet': alphabet.to_dict()
+            }), 201
+        else:
+            return jsonify({
+                'success': False,
+                'message': message
+            }), 400
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/alphabets/<alphabet_id>', methods=['GET'])
+def get_alphabet(alphabet_id):
+    """GET /api/alphabets/{id} - Obtener un alfabeto específico"""
+    alphabet = alphabet_service.get(alphabet_id)
+    
+    if not alphabet:
+        return jsonify({
+            'success': False,
+            'message': 'Alfabeto no encontrado'
+        }), 404
+    
+    return jsonify({
+        'success': True,
+        'alphabet': alphabet.to_dict()
+    })
+
+@app.route('/api/alphabets/<alphabet_id>', methods=['PUT'])
+def update_alphabet(alphabet_id):
+    """PUT /api/alphabets/{id} - Actualizar un alfabeto"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        symbols = data.get('symbols')
+        initial_symbol = data.get('initial_symbol')
+        
+        success, message = alphabet_service.update(
+            alphabet_id,
+            name=name,
+            symbols=symbols,
+            initial_symbol=initial_symbol
+        )
+        
+        if success:
+            alphabet = alphabet_service.get(alphabet_id)
+            return jsonify({
+                'success': True,
+                'message': message,
+                'alphabet': alphabet.to_dict()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': message
+            }), 400
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/alphabets/<alphabet_id>', methods=['DELETE'])
+def delete_alphabet(alphabet_id):
+    """DELETE /api/alphabets/{id} - Eliminar un alfabeto"""
+    success, message = alphabet_service.delete(alphabet_id)
+    
+    if success:
+        return jsonify({
+            'success': True,
+            'message': message
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': message
+        }), 400
+
+@app.route('/api/alphabets/presets/list', methods=['GET'])
+def get_preset_alphabets():
+    """GET /api/alphabets/presets - Obtener alfabetos preestablecidos"""
+    presets = alphabet_service.get_presets()
+    return jsonify({
+        'success': True,
+        'total': len(presets),
+        'presets': presets
+    })
+
+@app.route('/api/alphabets/<alphabet_id>/validate', methods=['POST'])
+def validate_alphabet_endpoint(alphabet_id):
+    """POST /api/alphabets/{id}/validate - Validar un alfabeto"""
+    alphabet = alphabet_service.get(alphabet_id)
+    
+    if not alphabet:
+        return jsonify({
+            'success': False,
+            'message': 'Alfabeto no encontrado'
+        }), 404
+    
+    is_valid, message = alphabet.validate()
+    return jsonify({
+        'success': is_valid,
+        'valid': is_valid,
+        'message': message,
+        'alphabet': alphabet.to_dict()
+    })
+
+# ============================================================================
+# API: LENGUAJES FORMALES - Lenguajes (5 endpoints)
+# ============================================================================
+
+@app.route('/api/languages', methods=['GET'])
+def get_languages():
+    """GET /api/languages - Listar todos los lenguajes"""
+    languages = language_service.get_all()
+    return jsonify({
+        'success': True,
+        'total': len(languages),
+        'languages': [l.to_dict() for l in languages]
+    })
+
+@app.route('/api/languages', methods=['POST'])
+def create_language():
+    """POST /api/languages - Crear un nuevo lenguaje"""
+    try:
+        data = request.get_json()
+        name = data.get('name', '')
+        alphabet_id = data.get('alphabet_id', '')
+        length = int(data.get('length', 1))
+        words = set(data.get('words', []))
+        conditions = data.get('conditions', '')
+        
+        success, message, language = language_service.create(
+            name=name,
+            alphabet_id=alphabet_id,
+            length=length,
+            words=words,
+            conditions=conditions
+        )
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': message,
+                'language': language.to_dict()
+            }), 201
+        else:
+            return jsonify({
+                'success': False,
+                'message': message
+            }), 400
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/languages/<language_id>/generate', methods=['POST'])
+def generate_language_words(language_id):
+    """POST /api/languages/{id}/generate - Generar palabras de un lenguaje"""
+    try:
+        data = request.get_json()
+        condition = data.get('condition', 'all')  # 'all' o nombre de condición
+        
+        language = language_service.get(language_id)
+        if not language:
+            return jsonify({
+                'success': False,
+                'message': 'Lenguaje no encontrado'
+            }), 404
+        
+        if condition == 'all':
+            success, message, words = language_service.generate_all_words(
+                language.alphabet_id,
+                language.length
+            )
+        else:
+            success, message, words = language_service.generate_custom(
+                language.alphabet_id,
+                language.length,
+                condition
+            )
+        
+        if success:
+            language.words = words
+            return jsonify({
+                'success': True,
+                'message': message,
+                'cardinality': len(words),
+                'language': language.to_dict()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': message
+            }), 400
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/languages/<language_id>', methods=['GET'])
+def get_language(language_id):
+    """GET /api/languages/{id} - Obtener un lenguaje específico"""
+    language = language_service.get(language_id)
+    
+    if not language:
+        return jsonify({
+            'success': False,
+            'message': 'Lenguaje no encontrado'
+        }), 404
+    
+    success, stats = language_service.get_statistics(language_id)
+    
+    return jsonify({
+        'success': True,
+        'language': language.to_dict(),
+        'statistics': stats if success else {}
+    })
+
+@app.route('/api/languages/<language_id>', methods=['DELETE'])
+def delete_language(language_id):
+    """DELETE /api/languages/{id} - Eliminar un lenguaje"""
+    success, message = language_service.delete(language_id)
+    
+    if success:
+        return jsonify({
+            'success': True,
+            'message': message
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': message
+        }), 400
+
+# ============================================================================
+# API: LENGUAJES FORMALES - Análisis (3 endpoints)
+# ============================================================================
+
+@app.route('/api/analysis/orders', methods=['GET'])
+def get_orders():
+    """GET /api/analysis/orders - Listar todos los ordenamientos"""
+    orders = analysis_service.get_all_orders()
+    return jsonify({
+        'success': True,
+        'total': len(orders),
+        'orders': [o.to_dict() for o in orders]
+    })
+
+@app.route('/api/analysis/languages/<language_id>/analyze', methods=['GET'])
+def analyze_language(language_id):
+    """GET /api/analysis/languages/{id}/analyze - Analizar un lenguaje"""
+    language = language_service.get(language_id)
+    
+    if not language:
+        return jsonify({
+            'success': False,
+            'message': 'Lenguaje no encontrado'
+        }), 404
+    
+    coverage = analysis_service.analyze_coverage(language_id)
+    distribution = analysis_service.analyze_symbol_distribution(language_id)
+    patterns = analysis_service.analyze_pattern_frequency(language_id, pattern_length=2)
+    
+    return jsonify({
+        'success': True,
+        'language_id': language_id,
+        'coverage': coverage,
+        'symbol_distribution': distribution,
+        'pattern_frequency': patterns
+    })
+
+@app.route('/api/analysis/statistics', methods=['GET'])
+def get_global_statistics():
+    """GET /api/analysis/statistics - Obtener estadísticas globales"""
+    stats = analysis_service.get_global_statistics()
+    alphabet_stats = alphabet_service.get_statistics()
+    language_stats = language_service.get_statistics_global()
+    
+    return jsonify({
+        'success': True,
+        'alphabets': alphabet_stats,
+        'languages': language_stats,
+        'orders': stats
+    })
+
+
+# ============================================================================
 # Error Handlers
 # ============================================================================
 
@@ -598,26 +976,29 @@ def server_error(error):
 
 if __name__ == '__main__':
     print("""
-╔════════════════════════════════════════════════════════════════════╗
-║  GeneratorFEExercises - Web UI (Fase 7)                            ║
-║                                                                    ║
-║  Iniciando servidor en http://localhost:5000                      ║
-║                                                                    ║
-║  Simuladores Disponibles:                                          ║
-║    • IEEE754 Interactivo:  http://localhost:5000/ieee754          ║
-║    • Calculadora de Bases: http://localhost:5000/converter        ║
-║    • Visualizador:         http://localhost:5000/distribution     ║
-║                                                                    ║
-║  API Endpoints:                                                    ║
-║    POST   /api/ieee754/encode                                     ║
-║    POST   /api/ieee754/characteristics                            ║
-║    POST   /api/ieee754/special                                    ║
-║    POST   /api/convert                                            ║
-║    POST   /api/distribution/fixed_point                           ║
-║    GET    /api/health                                             ║
-║                                                                    ║
-║  Presiona CTRL+C para detener                                     ║
-╚════════════════════════════════════════════════════════════════════╝
+===================================================================
+ GeneratorFEExercises - Web UI (Fase 7 + Lenguajes Formales)
+===================================================================
+
+  Iniciando servidor en http://localhost:5000
+
+  Simuladores Disponibles:
+    * IEEE754 Interactivo:    http://localhost:5000/ieee754
+    * Calculadora de Bases:   http://localhost:5000/converter
+    * Distribucion Numeros:   http://localhost:5000/distribution
+    * BCD/Biquinario:         http://localhost:5000/bcd-biquinario
+
+  API Endpoints (Lenguajes Formales):
+    GET    /api/alphabets                    - List alphabets
+    POST   /api/alphabets                    - Create alphabet
+    GET    /api/languages                    - List languages
+    POST   /api/languages                    - Create language
+    POST   /api/languages/{id}/generate      - Generate words
+    GET    /api/analysis/orders              - List orderings
+    GET    /api/analysis/statistics          - Global stats
+
+  Presiona CTRL+C para detener
+===================================================================
     """)
     
     app.run(debug=True, host='localhost', port=5000)
