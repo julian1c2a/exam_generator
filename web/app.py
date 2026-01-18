@@ -287,6 +287,83 @@ def distribution_fixed_point():
             'error': str(e)
         }), 400
 
+@app.route('/api/distribution/chart-data', methods=['POST'])
+def distribution_chart_data():
+    """Obtener datos para gráfica de distribución (Chart.js compatible)"""
+    try:
+        data = request.get_json()
+        E = int(data.get('E', 4))
+        F = int(data.get('F', 4))
+        representation = data.get('representation', 'unsigned')
+        
+        fp = FixedPointUnified(E=E, F=F, base=2, 
+                              signed=(representation != 'unsigned'),
+                              representation=representation if representation != 'unsigned' else None)
+        
+        total_bits = E + F
+        total_numbers = 2 ** total_bits
+        
+        # Generar datos de frecuencia para gráfica de distribución
+        # Dividir rango en 50 bins para visualización
+        min_val = float(fp.min_value)
+        max_val = float(fp.max_value)
+        epsilon = float(fp.epsilon)
+        
+        # Crear bins
+        num_bins = min(50, total_numbers)
+        bin_width = (max_val - min_val) / num_bins if max_val > min_val else 1.0
+        
+        labels = []
+        frequencies = []
+        
+        for i in range(num_bins):
+            bin_start = min_val + (i * bin_width)
+            bin_end = bin_start + bin_width
+            bin_center = (bin_start + bin_end) / 2
+            
+            # Estimar frecuencia (uniforme en punto fijo)
+            if max_val > min_val:
+                frequency = total_numbers / num_bins
+            else:
+                frequency = total_numbers
+            
+            labels.append(f"{bin_center:.2f}")
+            frequencies.append(frequency)
+        
+        return jsonify({
+            'success': True,
+            'chart_type': 'bar',
+            'E': E,
+            'F': F,
+            'representation': representation,
+            'labels': labels,
+            'datasets': [
+                {
+                    'label': f'Distribución de Números ({representation})',
+                    'data': frequencies,
+                    'backgroundColor': 'rgba(75, 192, 192, 0.6)',
+                    'borderColor': 'rgba(75, 192, 192, 1)',
+                    'borderWidth': 1,
+                    'tension': 0.1
+                }
+            ],
+            'statistics': {
+                'min': min_val,
+                'max': max_val,
+                'epsilon': epsilon,
+                'total_numbers': total_numbers,
+                'total_bits': total_bits,
+                'uniform': True,
+                'gap_type': 'uniforme'
+            }
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
 # ============================================================================
 # API: Health Check
 # ============================================================================
