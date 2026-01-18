@@ -419,13 +419,17 @@ def distribution_chart_data():
                 }), 400
             
             try:
+                # FixedPointUnified siempre necesita un representation válido
+                rep = representation if representation else 'complement'
                 fp = FixedPointUnified(E=E, F=F, base=base, 
                                       signed=signed,
-                                      representation=representation)
+                                      representation=rep)
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 return jsonify({
                     'success': False,
-                    'error': f'Error creando FixedPointUnified: {str(e)}'
+                    'error': f'Error creando FixedPointUnified: {str(e)} (E={E}, F={F}, base={base}, signed={signed}, representation={representation})'
                 }), 400
             
             total_bits = E + F
@@ -504,12 +508,21 @@ def distribution_chart_data():
             E = int(data.get('E', 8))
             F = int(data.get('F', 23))
             
+            # Validar parámetros E y F
+            if E < 1 or F < 1:
+                return jsonify({
+                    'success': False,
+                    'error': f'E y F deben ser >= 1. E={E}, F={F}'
+                }), 400
+            
             try:
                 ieee = IEEE754Gen(E_bits=E, F_bits=F, base=base)
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 return jsonify({
                     'success': False,
-                    'error': f'Error creando IEEE754Gen: {str(e)}'
+                    'error': f'Error creando IEEE754Gen: {str(e)} (E={E}, F={F}, base={base})'
                 }), 400
             
             total_bits = 1 + E + F  # sign + exponent + mantissa
@@ -519,13 +532,21 @@ def distribution_chart_data():
             representable_values = []
             
             # Generar valores positivos
-            for exponent in range(-2**(E-1), 2**(E-1)):
-                for mantissa in range(0, min(2**F, 100)):  # Limitar para rendimiento
-                    val = (1 + mantissa / (2**F)) * (2 ** exponent)
-                    representable_values.append(val)
-                    representable_values.append(-val)
+            # El rango de exponente depende de la base y E bits
+            exp_min = 1 - ieee.bias
+            exp_max = ieee.bias - 1
             
-            representable_values = sorted(set(representable_values))
+            for exponent in range(exp_min, exp_max + 1):
+                for mantissa in range(0, min(base**F, 100)):  # Limitar para rendimiento
+                    try:
+                        # Normalizado: 1.M × B^E
+                        val = (1 + mantissa / (base**F)) * (base ** exponent)
+                        representable_values.append(val)
+                        representable_values.append(-val)
+                    except (OverflowError, ValueError, ZeroDivisionError):
+                        pass
+            
+            representable_values = sorted(set([v for v in representable_values if v != 0]))
             
             # Crear bins logarítmicos para valores positivos
             num_bins = 50
@@ -533,10 +554,22 @@ def distribution_chart_data():
                 min_val = min([v for v in representable_values if v > 0])
                 max_val = max([v for v in representable_values if v > 0])
                 
-                # Escala logarítmica
+                # Escala logarítmica en base correspondiente
                 import math
-                log_min = math.log10(min_val) if min_val > 0 else -10
-                log_max = math.log10(max_val) if max_val > 0 else 10
+                if base == 10:
+                    log_func = math.log10
+                elif base == 2:
+                    log_func = math.log2
+                else:
+                    # Para otras bases, usar cambio de base
+                    log_func = lambda x: math.log(x) / math.log(base)
+                
+                try:
+                    log_min = log_func(min_val) if min_val > 0 else -10
+                    log_max = log_func(max_val) if max_val > 0 else 10
+                except (ValueError, ZeroDivisionError):
+                    log_min = -10
+                    log_max = 10
                 
                 labels = []
                 frequencies = []
@@ -544,11 +577,19 @@ def distribution_chart_data():
                 for i in range(num_bins):
                     log_start = log_min + (i / num_bins) * (log_max - log_min)
                     log_end = log_min + ((i + 1) / num_bins) * (log_max - log_min)
-                    bin_center = (10**log_start + 10**log_end) / 2
                     
-                    # Contar valores en este bin
-                    count = len([v for v in representable_values 
-                               if 10**log_start <= v < 10**log_end])
+                    # Convertir de log a valor lineal según la base
+                    try:
+                        bin_start = base ** log_start
+                        bin_end = base ** log_end
+                        bin_center = (bin_start + bin_end) / 2
+                        
+                        # Contar valores en este bin
+                        count = len([v for v in representable_values 
+                                   if bin_start <= v < bin_end])
+                    except (OverflowError, ValueError):
+                        bin_center = 0
+                        count = 0
                     
                     labels.append(f"{bin_center:.2e}")
                     frequencies.append(count)
