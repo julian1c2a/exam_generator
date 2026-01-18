@@ -92,6 +92,30 @@ def run_tests():
             'path': '/api/distribution/fixed_point',
             'data': {'E': 4, 'F': 4, 'representation': 'unsigned'}
         },
+        
+        # BCD conversion
+        {
+            'name': 'BCD Conversion',
+            'method': 'POST',
+            'path': '/api/representations/bcd',
+            'data': {'number': 42}
+        },
+        
+        # Biquinario conversion
+        {
+            'name': 'Biquinario Conversion',
+            'method': 'POST',
+            'path': '/api/representations/biquinario',
+            'data': {'number': 42}
+        },
+        
+        # Compare representations
+        {
+            'name': 'Compare Representations',
+            'method': 'POST',
+            'path': '/api/representations/compare',
+            'data': {'number': 42}
+        },
     ]
     
     passed = 0

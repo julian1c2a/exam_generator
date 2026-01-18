@@ -71,6 +71,11 @@ def distribution_visualizer():
     """Visualizador de Distribución de Números"""
     return render_template('distribution.html')
 
+@app.route('/bcd-biquinario')
+def bcd_biquinario():
+    """Convertidor BCD y Biquinario"""
+    return render_template('bcd-biquinario.html')
+
 # ============================================================================
 # API: IEEE754
 # ============================================================================
@@ -355,6 +360,194 @@ def distribution_chart_data():
                 'total_bits': total_bits,
                 'uniform': True,
                 'gap_type': 'uniforme'
+            }
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
+# ============================================================================
+# API: Representaciones Especiales - BCD y Biquinarios
+# ============================================================================
+
+@app.route('/api/representations/bcd', methods=['POST'])
+def bcd_conversion():
+    """Convertir número decimal a BCD (Binary Coded Decimal)"""
+    try:
+        data = request.get_json()
+        number = int(data.get('number', 0))
+        
+        # Validar rango
+        if number < 0 or number > 9999:
+            return jsonify({
+                'success': False,
+                'error': 'BCD soporta números de 0 a 9999'
+            }), 400
+        
+        # Convertir a BCD
+        bcd_str = ''
+        temp = number
+        for _ in range(4):
+            digit = temp % 10
+            bcd_str = format(digit, '04b') + bcd_str
+            temp //= 10
+        
+        bcd_str = bcd_str.lstrip('0') or '0000'
+        
+        # Generar visualización de nibbles
+        nibbles = []
+        for digit in str(number).zfill(4):
+            nibbles.append({
+                'digit': int(digit),
+                'binary': format(int(digit), '04b'),
+                'hex': format(int(digit), 'x')
+            })
+        
+        return jsonify({
+            'success': True,
+            'number': number,
+            'bcd_binary': bcd_str,
+            'bcd_hex': hex(int(bcd_str, 2)),
+            'bcd_decimal': int(bcd_str, 2),
+            'nibbles': nibbles,
+            'total_bits': len(bcd_str),
+            'info': {
+                'name': 'Binary Coded Decimal',
+                'description': 'Cada dígito decimal se codifica en 4 bits',
+                'range': '0-9999',
+                'bits_per_digit': 4
+            }
+        })
+    
+    except ValueError:
+        return jsonify({
+            'success': False,
+            'error': 'Número inválido'
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
+@app.route('/api/representations/biquinario', methods=['POST'])
+def biquinario_conversion():
+    """Convertir número decimal a Biquinario (7 bits)"""
+    try:
+        data = request.get_json()
+        number = int(data.get('number', 0))
+        
+        # Validar rango (0-99)
+        if number < 0 or number > 99:
+            return jsonify({
+                'success': False,
+                'error': 'Biquinario soporta números de 0 a 99'
+            }), 400
+        
+        # Sistema Biquinario: 7 bits (5, 4, 3, 2, 1, 0)
+        # Primeros 2 bits: quinario (0-4), últimos 5 bits: binario (0-1)
+        
+        quinary = number // 5      # Primer dígito (0-4 cuando number < 99)
+        binary_part = number % 5   # Segundo dígito (0-4)
+        
+        # Binario de 3 bits para cada parte
+        quinary_bin = format(quinary, '02b')
+        binary_bin = format(binary_part, '03b')
+        
+        biquia_full = quinary_bin + binary_bin
+        
+        return jsonify({
+            'success': True,
+            'number': number,
+            'biquinario': biquia_full,
+            'biquinario_hex': hex(int(biquia_full, 2)),
+            'biquinario_decimal': int(biquia_full, 2),
+            'components': {
+                'quinario_part': {
+                    'value': quinary,
+                    'binary': quinary_bin,
+                    'position': '5-4'
+                },
+                'binary_part': {
+                    'value': binary_part,
+                    'binary': binary_bin,
+                    'position': '3-2-1'
+                }
+            },
+            'total_bits': len(biquia_full),
+            'info': {
+                'name': 'Biquinario',
+                'description': 'Sistema de 2 dígitos: uno quinario (base 5) y otro binario',
+                'range': '0-99',
+                'structure': '2 bits quinario + 3 bits binario'
+            }
+        })
+    
+    except ValueError:
+        return jsonify({
+            'success': False,
+            'error': 'Número inválido'
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
+@app.route('/api/representations/compare', methods=['POST'])
+def compare_representations():
+    """Comparar múltiples representaciones de un número"""
+    try:
+        data = request.get_json()
+        number = int(data.get('number', 0))
+        
+        representations = {}
+        
+        # Binario
+        try:
+            representations['binary'] = format(number, 'b')
+        except:
+            representations['binary'] = 'N/A'
+        
+        # Octal
+        try:
+            representations['octal'] = oct(number)[2:]
+        except:
+            representations['octal'] = 'N/A'
+        
+        # Hexadecimal
+        try:
+            representations['hexadecimal'] = hex(number)[2:]
+        except:
+            representations['hexadecimal'] = 'N/A'
+        
+        # BCD (si está en rango)
+        if 0 <= number <= 9999:
+            bcd_str = ''
+            temp = number
+            for _ in range(4):
+                digit = temp % 10
+                bcd_str = format(digit, '04b') + bcd_str
+                temp //= 10
+            representations['bcd'] = bcd_str.lstrip('0') or '0000'
+        
+        # Biquinario (si está en rango)
+        if 0 <= number <= 99:
+            quinary = number // 5
+            binary_part = number % 5
+            biq = format(quinary, '02b') + format(binary_part, '03b')
+            representations['biquinario'] = biq
+        
+        return jsonify({
+            'success': True,
+            'decimal': number,
+            'representations': representations,
+            'comparison': {
+                'total_representations': len(representations),
+                'max_bits': max(len(str(v)) for v in representations.values() if v != 'N/A')
             }
         })
     
