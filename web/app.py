@@ -380,76 +380,225 @@ def distribution_chart_data():
     """Obtener datos para gráfica de distribución (Chart.js compatible)"""
     try:
         data = request.get_json()
-        E = int(data.get('E', 4))
-        F = int(data.get('F', 4))
-        representation = data.get('representation', 'unsigned')
         
-        fp = FixedPointUnified(E=E, F=F, base=2, 
-                              signed=(representation != 'unsigned'),
-                              representation=representation if representation != 'unsigned' else None)
+        # Obtener tipo de número
+        tipo_numero = data.get('tipo_numero', 'fixed_point')
+        base = int(data.get('base', 2))
         
-        total_bits = E + F
-        total_numbers = 2 ** total_bits
+        # Validar base
+        if base < 2 or base > 36:
+            return jsonify({
+                'success': False,
+                'error': 'Base inválida. Debe estar entre 2 y 36.'
+            }), 400
         
-        # Generar datos de frecuencia para gráfica de distribución
-        # Dividir rango en 50 bins para visualización
-        min_val = float(fp.min_value)
-        max_val = float(fp.max_value)
-        epsilon = float(fp.epsilon)
-        
-        # Crear bins
-        num_bins = min(50, total_numbers)
-        bin_width = (max_val - min_val) / num_bins if max_val > min_val else 1.0
-        
-        labels = []
-        frequencies = []
-        
-        for i in range(num_bins):
-            bin_start = min_val + (i * bin_width)
-            bin_end = bin_start + bin_width
-            bin_center = (bin_start + bin_end) / 2
+        if tipo_numero == 'fixed_point':
+            # ===== PUNTO FIJO =====
+            E = int(data.get('E', 4))
+            F = int(data.get('F', 4))
+            representation_str = data.get('representation', 'unsigned')
             
-            # Estimar frecuencia (uniforme en punto fijo)
-            if max_val > min_val:
-                frequency = total_numbers / num_bins
+            # Mapear valores de representación de la UI a los parámetros de la clase
+            if representation_str == 'unsigned':
+                signed = False
+                representation = None
+            elif representation_str == 'signed_magnitude':
+                signed = True
+                representation = 'ms'
+            elif representation_str == 'twos_complement':
+                signed = True
+                representation = 'complement'
+            elif representation_str == 'ones_complement':
+                # Complemento a uno se maneja como complemento a base
+                signed = True
+                representation = 'complement'
             else:
-                frequency = total_numbers
+                return jsonify({
+                    'success': False,
+                    'error': f'Representación desconocida: {representation_str}'
+                }), 400
             
-            labels.append(f"{bin_center:.2f}")
-            frequencies.append(frequency)
-        
-        return jsonify({
-            'success': True,
-            'chart_type': 'bar',
-            'E': E,
-            'F': F,
-            'representation': representation,
-            'labels': labels,
-            'datasets': [
-                {
-                    'label': f'Distribución de Números ({representation})',
-                    'data': frequencies,
-                    'backgroundColor': 'rgba(75, 192, 192, 0.6)',
-                    'borderColor': 'rgba(75, 192, 192, 1)',
-                    'borderWidth': 1,
-                    'tension': 0.1
+            try:
+                fp = FixedPointUnified(E=E, F=F, base=base, 
+                                      signed=signed,
+                                      representation=representation)
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Error creando FixedPointUnified: {str(e)}'
+                }), 400
+            
+            total_bits = E + F
+            total_numbers = 2 ** total_bits
+            
+            # Generar datos de frecuencia para gráfica de distribución
+            # Dividir rango en 50 bins para visualización
+            min_val = float(fp.min_value)
+            max_val = float(fp.max_value)
+            epsilon = float(fp.epsilon)
+            
+            # Crear bins
+            num_bins = min(50, total_numbers)
+            if max_val > min_val:
+                bin_width = (max_val - min_val) / num_bins
+            else:
+                bin_width = 1.0
+            
+            labels = []
+            frequencies = []
+            
+            for i in range(num_bins):
+                bin_start = min_val + (i * bin_width)
+                bin_end = bin_start + bin_width
+                bin_center = (bin_start + bin_end) / 2
+                
+                # Estimar frecuencia (uniforme en punto fijo)
+                if max_val > min_val:
+                    frequency = total_numbers / num_bins
+                else:
+                    frequency = total_numbers
+                
+                labels.append(f"{bin_center:.2f}")
+                frequencies.append(frequency)
+            
+            return jsonify({
+                'success': True,
+                'chart_type': 'bar',
+                'E': E,
+                'F': F,
+                'representation': representation_str,
+                'base': base,
+                'tipo_numero': 'fixed_point',
+                'labels': labels,
+                'datasets': [
+                    {
+                        'label': f'Distribución ({representation_str})',
+                        'data': frequencies,
+                        'backgroundColor': 'rgba(75, 192, 192, 0.6)',
+                        'borderColor': 'rgba(75, 192, 192, 1)',
+                        'borderWidth': 1,
+                        'tension': 0.1
+                    }
+                ],
+                'statistics': {
+                    'min': min_val,
+                    'max': max_val,
+                    'epsilon': epsilon,
+                    'total_numbers': total_numbers,
+                    'total_bits': total_bits,
+                    'uniform': True,
+                    'gap_type': 'uniforme'
                 }
-            ],
-            'statistics': {
-                'min': min_val,
-                'max': max_val,
-                'epsilon': epsilon,
-                'total_numbers': total_numbers,
-                'total_bits': total_bits,
-                'uniform': True,
-                'gap_type': 'uniforme'
-            }
-        })
+            })
+        
+        elif tipo_numero == 'floating_point':
+            # ===== PUNTO FLOTANTE IEEE754 =====
+            try:
+                from core.ieee754 import IEEE754Gen
+            except ImportError:
+                return jsonify({
+                    'success': False,
+                    'error': 'Módulo IEEE754Gen no disponible'
+                }), 400
+            
+            E = int(data.get('E', 8))
+            F = int(data.get('F', 23))
+            
+            try:
+                ieee = IEEE754Gen(E_bits=E, F_bits=F, base=base)
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Error creando IEEE754Gen: {str(e)}'
+                }), 400
+            
+            total_bits = 1 + E + F  # sign + exponent + mantissa
+            
+            # Para IEEE754, la distribución es no-uniforme (logarítmica en magnitud)
+            # Generar valores representables
+            representable_values = []
+            
+            # Generar valores positivos
+            for exponent in range(-2**(E-1), 2**(E-1)):
+                for mantissa in range(0, min(2**F, 100)):  # Limitar para rendimiento
+                    val = (1 + mantissa / (2**F)) * (2 ** exponent)
+                    representable_values.append(val)
+                    representable_values.append(-val)
+            
+            representable_values = sorted(set(representable_values))
+            
+            # Crear bins logarítmicos para valores positivos
+            num_bins = 50
+            if representable_values:
+                min_val = min([v for v in representable_values if v > 0])
+                max_val = max([v for v in representable_values if v > 0])
+                
+                # Escala logarítmica
+                import math
+                log_min = math.log10(min_val) if min_val > 0 else -10
+                log_max = math.log10(max_val) if max_val > 0 else 10
+                
+                labels = []
+                frequencies = []
+                
+                for i in range(num_bins):
+                    log_start = log_min + (i / num_bins) * (log_max - log_min)
+                    log_end = log_min + ((i + 1) / num_bins) * (log_max - log_min)
+                    bin_center = (10**log_start + 10**log_end) / 2
+                    
+                    # Contar valores en este bin
+                    count = len([v for v in representable_values 
+                               if 10**log_start <= v < 10**log_end])
+                    
+                    labels.append(f"{bin_center:.2e}")
+                    frequencies.append(count)
+                
+                return jsonify({
+                    'success': True,
+                    'chart_type': 'bar',
+                    'E': E,
+                    'F': F,
+                    'base': base,
+                    'tipo_numero': 'floating_point',
+                    'labels': labels,
+                    'datasets': [
+                        {
+                            'label': f'Distribución IEEE754 ({E},{F})',
+                            'data': frequencies,
+                            'backgroundColor': 'rgba(200, 100, 150, 0.6)',
+                            'borderColor': 'rgba(200, 100, 150, 1)',
+                            'borderWidth': 1,
+                            'tension': 0.1
+                        }
+                    ],
+                    'statistics': {
+                        'min': min_val,
+                        'max': max_val,
+                        'epsilon': 2**(-F),
+                        'total_numbers': total_bits,
+                        'total_bits': total_bits,
+                        'uniform': False,
+                        'gap_type': 'logarítmica'
+                    }
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'No se pudieron generar valores IEEE754'
+                }), 400
+        
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Tipo de número desconocido: {tipo_numero}'
+            }), 400
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': f'Error: {str(e)}'
         }), 400
 
 # ============================================================================

@@ -228,7 +228,7 @@
     <div class="container">
         <header>
             <h1>📊 Visualizador de Distribución</h1>
-            <p>Analiza cómo se distribuyen los números en diferentes representaciones de punto fijo</p>
+            <p>Analiza cómo se distribuyen los números en diferentes representaciones numéricas</p>
         </header>
 
         <div class="content">
@@ -236,8 +236,29 @@
             <section class="controls">
                 <h2 style="margin-bottom: 20px; color: #333;">Configuración</h2>
 
-                <!-- Punto Fijo -->
+                <!-- Tipo de Representación -->
                 <div style="margin-bottom: 25px;">
+                    <h3 style="color: #667eea; font-size: 1.1em; margin-bottom: 15px;">Tipo de Representación</h3>
+                    <div class="control-group">
+                        <div>
+                            <label for="numType">Selecciona tipo</label>
+                            <select id="numType" onchange="toggleControls()">
+                                <option value="fixed_point">Punto Fijo</option>
+                                <option value="floating_point">Punto Flotante (IEEE754)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="base">Base (2-36)</label>
+                            <input type="number" id="base" value="2" min="2" max="36" step="1">
+                            <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+                                Base numérica (2-36)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Punto Fijo -->
+                <div id="fixedPointControls" style="margin-bottom: 25px;">
                     <h3 style="color: #667eea; font-size: 1.1em; margin-bottom: 15px;">Números en Punto Fijo</h3>
                     <div class="control-group">
                         <div>
@@ -262,6 +283,27 @@
                                 <option value="twos_complement">Complemento a Dos</option>
                                 <option value="ones_complement">Complemento a Uno</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Punto Flotante -->
+                <div id="floatingPointControls" style="margin-bottom: 25px; display: none;">
+                    <h3 style="color: #667eea; font-size: 1.1em; margin-bottom: 15px;">Números en Punto Flotante (IEEE754)</h3>
+                    <div class="control-group">
+                        <div>
+                            <label for="E_fp">Bits Exponente</label>
+                            <input type="number" id="E_fp" value="8" min="1" max="16" step="1">
+                            <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+                                Bits para el exponente (1-16)
+                            </small>
+                        </div>
+                        <div>
+                            <label for="F_fp">Bits Mantisa</label>
+                            <input type="number" id="F_fp" value="23" min="1" max="32" step="1">
+                            <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+                                Bits para la mantisa (1-32)
+                            </small>
                         </div>
                     </div>
                 </div>

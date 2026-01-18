@@ -7,12 +7,49 @@
 let distributionChart = null;
 
 /**
+ * Toggle visibility of fixed-point and floating-point controls
+ */
+function toggleControls() {
+    const numType = document.getElementById('numType').value;
+    const fixedPointControls = document.getElementById('fixedPointControls');
+    const floatingPointControls = document.getElementById('floatingPointControls');
+    
+    if (numType === 'fixed_point') {
+        fixedPointControls.style.display = 'block';
+        floatingPointControls.style.display = 'none';
+    } else {
+        fixedPointControls.style.display = 'none';
+        floatingPointControls.style.display = 'block';
+    }
+}
+
+/**
  * Crear gráfica de distribución con Chart.js
  */
 async function analyzeDistribution() {
-    const E = parseInt(document.getElementById('E').value);
-    const F = parseInt(document.getElementById('F').value);
-    const representation = document.getElementById('representation').value;
+    const numType = document.getElementById('numType').value;
+    const base = parseInt(document.getElementById('base').value);
+    
+    // Validar base
+    if (base < 2 || base > 36 || isNaN(base)) {
+        alert('❌ Base inválida. Debe ser un número entre 2 y 36.');
+        return;
+    }
+    
+    let payload;
+    
+    if (numType === 'fixed_point') {
+        const E = parseInt(document.getElementById('E').value);
+        const F = parseInt(document.getElementById('F').value);
+        const representation = document.getElementById('representation').value;
+        
+        payload = { E, F, representation, base, tipo_numero: 'fixed_point' };
+    } else {
+        const E_fp = parseInt(document.getElementById('E_fp').value);
+        const F_fp = parseInt(document.getElementById('F_fp').value);
+        
+        payload = { E: E_fp, F: F_fp, base, tipo_numero: 'floating_point' };
+    }
     
     try {
         // Mostrar estado de carga
@@ -25,7 +62,7 @@ async function analyzeDistribution() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ E, F, representation })
+            body: JSON.stringify(payload)
         });
         
         if (!response.ok) {
@@ -102,7 +139,9 @@ async function analyzeDistribution() {
                 plugins: {
                     title: {
                         display: true,
-                        text: `Distribución de Números en Punto Fijo (E=${E}, F=${F}, ${representation})`,
+                        text: numType === 'fixed_point' 
+                            ? `Distribución de Números en Punto Fijo (E=${payload.E}, F=${payload.F}, Base=${base})` 
+                            : `Distribución de Números en IEEE754 (E=${payload.E}, F=${payload.F}, Base=${base})`,
                         font: {
                             size: 14,
                             weight: 'bold'
@@ -159,6 +198,11 @@ function resetDistribution() {
     document.getElementById('E').value = '4';
     document.getElementById('F').value = '4';
     document.getElementById('representation').value = 'unsigned';
+    document.getElementById('base').value = '2';
+    document.getElementById('E_fp').value = '8';
+    document.getElementById('F_fp').value = '23';
+    document.getElementById('numType').value = 'fixed_point';
+    toggleControls();
     
     // Limpiar gráfica
     if (distributionChart) {
