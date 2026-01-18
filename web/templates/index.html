@@ -198,19 +198,19 @@
             <h3>Estado del Proyecto</h3>
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-value" id="status-phase">7/9</div>
+                    <div class="stat-value" id="status-phase">8/9</div>
                     <div class="stat-label">Fase Actual</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="status-completion">90%</div>
+                    <div class="stat-value" id="status-completion">95%</div>
                     <div class="stat-label">Completitud</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="status-api">9</div>
+                    <div class="stat-value" id="status-api">24</div>
                     <div class="stat-label">APIs Disponibles</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value" id="status-simulators">4</div>
+                    <div class="stat-value" id="status-simulators">9</div>
                     <div class="stat-label">Simuladores</div>
                 </div>
             </div>
@@ -300,6 +300,92 @@
                     </button>
                 </div>
             </div>
+
+            <!-- SERIE 1: LENGUAJES FORMALES -->
+            
+            <!-- Gestor de Alfabetos -->
+            <div class="simulator-card">
+                <div class="simulator-header">
+                    <div class="icon">🔤</div>
+                    <h2>Gestor de Alfabetos</h2>
+                    <p style="opacity: 0.8; margin-top: 0.5rem;">Crear y administrar alfabetos</p>
+                </div>
+                <div class="simulator-body">
+                    <p>Crea y administra alfabetos personalizados para lenguajes formales.</p>
+                    <ul>
+                        <li>Alfabetos personalizados (2-36 símbolos)</li>
+                        <li>Alfabetos preestablecidos (Binario, Decimal, Hex)</li>
+                        <li>Estadísticas de cardinales</li>
+                        <li>Gestión completa (crear, ver, eliminar)</li>
+                    </ul>
+                    <button class="btn-primary" onclick="window.location.href='/alphabets'">
+                        Abrir Gestor
+                    </button>
+                </div>
+            </div>
+
+            <!-- Generador de Lenguajes -->
+            <div class="simulator-card">
+                <div class="simulator-header">
+                    <div class="icon">🔡</div>
+                    <h2>Generador de Lenguajes</h2>
+                    <p style="opacity: 0.8; margin-top: 0.5rem;">Generar palabras con condiciones</p>
+                </div>
+                <div class="simulator-body">
+                    <p>Genera palabras de un lenguaje formal con múltiples condiciones.</p>
+                    <ul>
+                        <li>6 condiciones de generación</li>
+                        <li>Palabras sin repeticiones, con patrones</li>
+                        <li>Detección de palíndromos y paridades</li>
+                        <li>Vista previa y exportación de palabras</li>
+                    </ul>
+                    <button class="btn-primary" onclick="window.location.href='/languages'">
+                        Abrir Generador
+                    </button>
+                </div>
+            </div>
+
+            <!-- Análisis de Lenguajes -->
+            <div class="simulator-card">
+                <div class="simulator-header">
+                    <div class="icon">📈</div>
+                    <h2>Análisis de Lenguajes</h2>
+                    <p style="opacity: 0.8; margin-top: 0.5rem;">Visualizar propiedades lingüísticas</p>
+                </div>
+                <div class="simulator-body">
+                    <p>Analiza en profundidad las propiedades y estadísticas de lenguajes formales.</p>
+                    <ul>
+                        <li>Cobertura de símbolos (gráficas)</li>
+                        <li>Distribución de símbolos (tablas)</li>
+                        <li>Análisis de patrones (bigramas)</li>
+                        <li>Propiedades lingüísticas completas</li>
+                    </ul>
+                    <button class="btn-primary" onclick="window.location.href='/language-analysis'">
+                        Abrir Análisis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ordenamientos y Significados -->
+            <div class="simulator-card">
+                <div class="simulator-header">
+                    <div class="icon">🔤</div>
+                    <h2>Ordenamientos y Significados</h2>
+                    <p style="opacity: 0.8; margin-top: 0.5rem;">Asignar orden y semántica</p>
+                </div>
+                <div class="simulator-body">
+                    <p>Crea ordenamientos de palabras y asigna significados numéricos.</p>
+                    <ul>
+                        <li>Ordenamientos: Lexicográfico, Numérico, Personalizado</li>
+                        <li>Generación de significados (Decimal, Binario)</li>
+                        <li>Visualización de palabras ordenadas</li>
+                        <li>Mapeo palabra → significado</li>
+                    </ul>
+                    <button class="btn-primary" onclick="window.location.href='/language-order'">
+                        Abrir Ordenador
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -317,10 +403,10 @@
             .then(r => r.json())
             .then(data => {
                 console.log('Server status:', data.status);
-                document.getElementById('status-phase').textContent = '7/9';
-                document.getElementById('status-completion').textContent = '90%';
-                document.getElementById('status-api').textContent = '6';
-                document.getElementById('status-simulators').textContent = '3';
+                document.getElementById('status-phase').textContent = '8/9';
+                document.getElementById('status-completion').textContent = '95%';
+                document.getElementById('status-api').textContent = '24';
+                document.getElementById('status-simulators').textContent = '9';
             })
             .catch(err => console.error('Server not responding:', err));
     </script>

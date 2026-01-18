@@ -127,6 +127,27 @@ def bcd_biquinario():
     """Convertidor BCD y Biquinario"""
     return render_template('bcd-biquinario.html')
 
+# Rutas para Lenguajes Formales
+@app.route('/alphabets')
+def alphabets_manager():
+    """Gestor de Alfabetos - Lenguajes Formales"""
+    return render_template('alphabets.html')
+
+@app.route('/languages')
+def languages_generator():
+    """Generador de Lenguajes Formales"""
+    return render_template('languages.html')
+
+@app.route('/language-analysis')
+def language_analysis():
+    """Análisis de Lenguajes Formales"""
+    return render_template('language-analysis.html')
+
+@app.route('/language-order')
+def language_order():
+    """Ordenamientos y Significados de Lenguajes"""
+    return render_template('language-order.html')
+
 # ============================================================================
 # API: IEEE754
 # ============================================================================
