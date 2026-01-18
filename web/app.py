@@ -162,21 +162,32 @@ def ieee754_encode():
         E_bits = int(data.get('E_bits', 8))
         F_bits = int(data.get('F_bits', 23))
         
-        ieee = IEEE754Gen(base=base, E_bits=E_bits, F_bits=F_bits)
+        ieee = IEEE754Gen(E_bits=E_bits, F_bits=F_bits, base=base)
         encoded = ieee.encode(value)
-        bits = bin(encoded)[2:].zfill(1 + E_bits + F_bits)
-        hex_repr = hex(encoded)
-        decoded = ieee.decode(encoded)
+        
+        # Extraer componentes del entero codificado
+        total_bits = 1 + E_bits + F_bits
+        bits_str = bin(encoded)[2:].zfill(total_bits)
+        
+        sign_bit = int(bits_str[0])
+        exponent_bits = bits_str[1:1+E_bits]
+        mantissa_bits = bits_str[1+E_bits:]
+        
+        E_encoded = int(exponent_bits, 2) if exponent_bits else 0
+        M_encoded = int(mantissa_bits, 2) if mantissa_bits else 0
+        
+        # Decodificar para obtener el valor
+        decoded = ieee.decode(sign_bit, E_encoded, M_encoded)
         
         return jsonify({
             'success': True,
             'value': value,
-            'bits': bits,
-            'hex': hex_repr,
-            'sign': bits[0],
-            'exponent': bits[1:1+E_bits],
-            'mantissa': bits[1+E_bits:],
-            'decoded': decoded,
+            'bits': bits_str,
+            'hex': hex(encoded),
+            'sign': str(sign_bit),
+            'exponent': exponent_bits,
+            'mantissa': mantissa_bits,
+            'decoded': str(decoded) if not isinstance(decoded, (int, float)) else decoded,
             'valid': True
         })
     

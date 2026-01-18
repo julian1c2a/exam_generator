@@ -189,6 +189,44 @@ class IEEE754Gen:
         
         return (sign, E_encoded, M_encoded)
     
+    def encode(self, value: float) -> int:
+        """
+        Codificar un número flotante a su representación IEEE 754 de 32 bits.
+        
+        Este método determina automáticamente si el número es:
+        - Normalizado
+        - Denormalizado (subnormal)
+        - Especial (infinito, NaN)
+        
+        Args:
+            value: número flotante a codificar
+            
+        Returns:
+            int: representación IEEE 754 completa como entero
+        """
+        # Casos especiales
+        if math.isnan(value):
+            sign, E_enc, M_enc = self.encode_nan(quiet=True)
+        elif math.isinf(value):
+            sign, E_enc, M_enc = self.encode_infinity(positive=(value > 0))
+        else:
+            # Intentar normalizado primero
+            try:
+                sign, E_enc, M_enc = self.encode_normalized(value)
+            except ValueError:
+                # Si no es normalizado, intenta denormalizado
+                try:
+                    sign, E_enc, M_enc = self.encode_denormalized(value)
+                except ValueError:
+                    # Si aún no cabe, es infinito
+                    positive = value > 0
+                    sign, E_enc, M_enc = self.encode_infinity(positive=positive)
+        
+        # Combinar en un entero: [signo|exponente|mantisa]
+        total_bits = 1 + self.E_bits + self.F_bits
+        result = (sign << (self.E_bits + self.F_bits)) | (E_enc << self.F_bits) | M_enc
+        return result
+    
     def decode(self, sign: int, E_encoded: int, M_encoded: int) -> Union[float, str]:
         """
         Decodificar IEEE 754.
