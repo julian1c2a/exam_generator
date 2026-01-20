@@ -407,8 +407,8 @@ El **rango de representación** para un registro de longitud $l$ en base $B$ es 
 
 **Ejemplos**:
 
-| Base | Longitud | Rango | Capacidad |
-|------|----------|-------|-----------|
+| Base | Longitud | Rango       | Capacidad |
+|------|----------|-------------|-----------|
 | 2    | 3        | [0, 7]      | 8 |
 | 2    | 8        | [0, 255]    | 256 |
 | 10   | 2        | [0, 99]     | 100 |
@@ -1130,6 +1130,40 @@ Ver [core/sistemas_numeracion_basicos.py](core/sistemas_numeracion_basicos.py) p
 - Función 'normalizar' en punto flotante (2.1.1.9.5.2)
 - Conversión entre representaciones en punto fijo y punto flotante (2.1.1.9.5.3)
 - Operaciones aritméticas en punto flotante: suma, resta, multiplicación y división (2.1.1.9.5.4)
+
+**Operaciones aritméticas básicas en los anteriores formatos de representación umérica**
+**(Solo binario y decimal)**
+
+- Algoritmos de Comparación en binario natural
+- Algoritmo de Suma en binario natural
+- Algoritmo de Resta en binario natural
+- Algoritmo de Multiplicación en binario natural
+- Algoritmo de División en binario natural (división binaria larga)
+- Algoritmo de Comparación en magnitud y signo
+- Algoritmo de Suma en magnitud y signo
+- Algoritmo de Resta en magnitud y signo
+- Algoritmo de Multiplicación en magnitud y signo
+- Algoritmo de División en magnitud y signo
+- Algoritmo de Comparación en complemento a 2
+- Algoritmo de Suma en complemento a 2
+- Algoritmo de Resta en complemento a 2
+- Algoritmo de Multiplicación en complemento a 2
+- Algoritmo de División en complemento a 2
+- Algoritmo de Comparación en exceso a un sesgo k
+- Algoritmo de Suma en exceso a un sesgo k
+- Algoritmo de Resta en exceso a un sesgo k
+- Algoritmo de Multiplicación en exceso a un sesgo k
+- Algoritmo de División en exceso a un sesgo k
+- Algoritmos de Comparación en BCD Natural
+- Algoritmo de Suma en BCD Natural
+- Algoritmo de Resta en BCD Natural
+- Algoritmo de Multiplicación en BCD Natural
+- Algoritmo de División en BCD Natural (división binaria larga)
+- Algoritmo de Comparación en BCD Aiken 2-4-2-1
+- Algoritmo de Suma en BCD Aiken 2-4-2-1
+- Algoritmo de Resta en BCD Aiken 2-4-2-1
+- Algoritmo de Multiplicación en BCD Aiken 2-4-2
+- Algoritmo de División en BCD Aiken 2-4-2-1 (división binaria larga)
 
 #### 2.1.2 Sistemas de Representación Alfanumérica
 
